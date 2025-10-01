@@ -3,7 +3,7 @@ import { useState } from "react";
 // Import i18next for internationalization support
 import { useTranslation } from "react-i18next";
 // Import Lucide React icons for UI elements
-import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, Settings, MapPin } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, Settings } from "lucide-react";
 // Import UI components from the design system
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +24,6 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 // Import auth context for authentication
 import { useAuth } from "@/contexts/AuthContext";
-// Import location context for location management
-import { useLocation } from "@/contexts/LocationContext";
 
 // Supported languages for internationalization
 // Includes major African languages and international languages
@@ -59,7 +57,6 @@ export function Header() {
   // Auth context for authentication
   const { user, logout, isAuthenticated } = useAuth();
   // Location context for location management
-  const { selectedLocation, setSelectedLocation, availableLocations } = useLocation();
   
   // Local state management
   const [searchQuery, setSearchQuery] = useState("");           // Search input value
@@ -169,40 +166,6 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Premium Location Selector */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-all duration-300">
-                  <MapPin className="h-4 w-4 text-navy-500" />
-                  <span className="hidden sm:inline text-navy-600 dark:text-navy-300 font-medium">
-                    {selectedLocation ? selectedLocation.name : 'Select Location'}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover z-50 w-64">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium text-foreground">Choose your location</p>
-                  <p className="text-xs text-muted-foreground">Products will be filtered by location</p>
-                </div>
-                <DropdownMenuSeparator />
-                {availableLocations.map((location) => (
-                  <DropdownMenuItem
-                    key={location.id}
-                    onClick={() => setSelectedLocation(location)}
-                    className={`cursor-pointer ${
-                      selectedLocation?.id === location.id ? 'bg-accent' : ''
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-medium">{location.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {location.state}, {location.country}
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             {/* Premium Cart with enhanced styling */}
             <Button 

@@ -22,18 +22,13 @@ import { Footer } from "@/components/Footer";
 
 // Import data sources
 import { categories } from "@/data/categories";
+import { featuredProducts } from "@/data/products";
 import { getFeaturedStores } from "@/data/stores";
-// Import API client and location context
-import { apiClient } from "@/utils/api";
-import { useLocation } from "@/contexts/LocationContext";
 
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { selectedLocation } = useLocation();
   const [featuredStores, setFeaturedStores] = useState<any[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   // Load featured stores
   useEffect(() => {
@@ -48,30 +43,6 @@ const Index = () => {
     loadStores();
   }, []);
 
-  // Load featured products based on selected location
-  useEffect(() => {
-    const loadFeaturedProducts = async () => {
-      setIsLoadingProducts(true);
-      try {
-        const locationString = selectedLocation ? `${selectedLocation.city}, ${selectedLocation.state}` : undefined;
-        const response = await apiClient.getFeaturedProducts(locationString, 12);
-        
-        if (response.success) {
-          setFeaturedProducts(response.data.products);
-        } else {
-          console.error('Error loading featured products:', response.error);
-          setFeaturedProducts([]);
-        }
-      } catch (error) {
-        console.error('Error loading featured products:', error);
-        setFeaturedProducts([]);
-      } finally {
-        setIsLoadingProducts(false);
-      }
-    };
-
-    loadFeaturedProducts();
-  }, [selectedLocation]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-navy-950">
@@ -218,10 +189,7 @@ const Index = () => {
                   Featured Products
                 </h2>
                 <p className="text-lg text-gray-600 dark:text-gray-300">
-                  {selectedLocation 
-                    ? `Handpicked products from ${selectedLocation.name}` 
-                    : 'Handpicked products just for you'
-                  }
+                  Handpicked products just for you
                 </p>
               </div>
               <Button 
@@ -233,48 +201,17 @@ const Index = () => {
               </Button>
             </div>
             
-            {isLoadingProducts ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-                {Array.from({ length: 12 }).map((_, index) => (
-                  <div key={index} className="animate-pulse">
-                    <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-48 w-full mb-3"></div>
-                    <div className="bg-gray-200 dark:bg-gray-700 rounded h-4 w-3/4 mb-2"></div>
-                    <div className="bg-gray-200 dark:bg-gray-700 rounded h-3 w-1/2"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+              {featuredProducts.slice(0, 12).map((product, index) => (
+                <div key={product.id} className={`group animate-scale-in ${index < 12 ? `stagger-${(index % 8) + 1}` : 'stagger-8'}`}>
+                  <MinimalProductCard
+                    product={product}
+                    onWishlistToggle={() => {}}
+                    onAddToCart={() => {}}
+                  />
                   </div>
-                ))}
-              </div>
-            ) : featuredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-                {featuredProducts.map((product, index) => (
-                  <div key={product.id} className={`group animate-scale-in ${index < 12 ? `stagger-${(index % 8) + 1}` : 'stagger-8'}`}>
-                    <MinimalProductCard
-                      product={product}
-                      onWishlistToggle={() => {}}
-                      onAddToCart={() => {}}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-gray-500 dark:text-gray-400 mb-4">
-                  <ShoppingBag className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-xl font-semibold mb-2">No featured products found</h3>
-                  <p className="text-sm">
-                    {selectedLocation 
-                      ? `No featured products available in ${selectedLocation.name} at the moment.`
-                      : 'No featured products available at the moment.'
-                    }
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => navigate('/search')}
-                  className="px-6 py-3 bg-navy-600 hover:bg-navy-700 text-white rounded-xl"
-                >
-                  Browse All Products
-                </Button>
-              </div>
-            )}
+              ))}
+            </div>
             
             <div className="text-center mt-12 md:hidden">
               <Button 

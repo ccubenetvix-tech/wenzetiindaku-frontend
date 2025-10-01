@@ -16,13 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { filterBySearch, sortBy } from "@/utils";
-import { apiClient } from "@/utils/api";
-import { useLocation } from "@/contexts/LocationContext";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
-  const { selectedLocation } = useLocation();
   const query = searchParams.get("q") || "";
 
   // Filter state
@@ -33,53 +30,27 @@ const SearchResults = () => {
   const [minRating, setMinRating] = useState(0);
   const [sortByValue, setSortByValue] = useState("relevance");
   
-  // API state
-  const [products, setProducts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 20;
 
-  // Load products from API
-  useEffect(() => {
-    const loadProducts = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const locationString = selectedLocation ? `${selectedLocation.city}, ${selectedLocation.state}` : undefined;
-        const searchQuery = refineSearch || query;
-        
-        const response = await apiClient.getAllProducts({
-          location: locationString,
-          category: selectedCategory !== "all" ? selectedCategory : undefined,
-          search: searchQuery,
-          page: currentPage,
-          limit: 20,
-          sortBy: sortByValue === "relevance" ? "created_at" : sortByValue,
-          sortOrder: sortByValue === "price-low" ? "asc" : "desc"
-        });
-        
-        if (response.success) {
-          setProducts(response.data.products);
-          setTotalPages(response.data.pagination.totalPages);
-        } else {
-          setError(response.error?.message || 'Failed to load products');
-        }
-      } catch (err) {
-        setError('Failed to load products');
-        console.error('Error loading products:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Import all products data
+  const { allProducts } = require('@/data/products');
 
-    loadProducts();
-  }, [query, refineSearch, selectedCategory, selectedLocation, currentPage, sortByValue]);
-
-  // Apply client-side filters for price and rating (since these are not handled by the API yet)
+  // Apply client-side filters
   const filteredProducts = useMemo(() => {
-    let filtered = products;
+    let filtered = allProducts;
+
+    // Filter by search query
+    const searchQuery = refineSearch || query;
+    if (searchQuery) {
+      filtered = filterBySearch(filtered, searchQuery);
+    }
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
 
     // Filter by price range
     if (minPrice) {
@@ -94,8 +65,17 @@ const SearchResults = () => {
       filtered = filtered.filter(product => product.rating >= minRating);
     }
 
+    // Sort products
+    filtered = sortBy(filtered, sortByValue);
+
     return filtered;
-  }, [products, minPrice, maxPrice, minRating]);
+  }, [allProducts, query, refineSearch, selectedCategory, minPrice, maxPrice, minRating, sortByValue]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
   const handleApplyFilters = () => {
     setCurrentPage(1); // Reset to first page when filters change
@@ -298,38 +278,12 @@ const SearchResults = () => {
                 <h2 className="text-xl font-bold mb-4 flex items-center">
                   <Grid className="h-5 w-5 text-primary mr-2" />
                   All Results
-                  {selectedLocation && (
-                    <span className="ml-2 text-sm font-normal text-muted-foreground">
-                      in {selectedLocation.name}
-                    </span>
-                  )}
                 </h2>
                 
-                {isLoading ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array.from({ length: 6 }).map((_, index) => (
-                      <div key={index} className="animate-pulse">
-                        <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-64 w-full mb-3"></div>
-                        <div className="bg-gray-200 dark:bg-gray-700 rounded h-4 w-3/4 mb-2"></div>
-                        <div className="bg-gray-200 dark:bg-gray-700 rounded h-3 w-1/2"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-12">
-                    <div className="text-red-500 mb-4">
-                      <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <h3 className="text-xl font-semibold mb-2">Error loading products</h3>
-                      <p className="text-sm">{error}</p>
-                    </div>
-                    <Button onClick={() => window.location.reload()}>
-                      Try Again
-                    </Button>
-                  </div>
-                ) : filteredProducts.length > 0 ? (
+                {paginatedProducts.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredProducts.map((product) => (
+                      {paginatedProducts.map((product) => (
                         <ProductCard key={product.id} {...product} />
                       ))}
                     </div>

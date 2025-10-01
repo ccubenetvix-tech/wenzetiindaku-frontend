@@ -13,8 +13,6 @@ import { I18nextProvider } from "react-i18next";
 import { CartProvider } from "@/contexts/CartContext";
 // Import auth context provider for authentication state management
 import { AuthProvider } from "@/contexts/AuthContext";
-// Import location context provider for location state management
-import { LocationProvider } from "@/contexts/LocationContext";
 // Import cookie consent component for GDPR compliance
 import { CookieConsent } from "@/components/CookieConsent";
 // Import i18n configuration for multi-language support
@@ -73,10 +71,8 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       {/* Auth context provider for authentication state */}
       <AuthProvider>
-        {/* Location context provider for location state management */}
-        <LocationProvider>
-          {/* Cart context provider for global shopping cart state */}
-          <CartProvider>
+        {/* Cart context provider for global shopping cart state */}
+        <CartProvider>
         {/* Tooltip provider for enhanced UI interactions */}
         <TooltipProvider>
           {/* Toast notification components for user feedback */}
@@ -137,7 +133,6 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
           </CartProvider>
-        </LocationProvider>
       </AuthProvider>
     </QueryClientProvider>
   </I18nextProvider>
