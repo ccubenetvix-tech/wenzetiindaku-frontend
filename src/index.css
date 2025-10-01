@@ -1,0 +1,604 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* WENZE TII NDAKU Premium Marketplace Design System
+Primary: Dark Navy Blue (#1a237e), Accent: Deep Navy (#0d1421)
+Secondary: Rich Orange (#ff6f00), Accent: Dark Orange (#e65100)
+Premium color palette inspired by top-tier e-commerce platforms
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Premium Dark Navy Blue - Primary brand colors */
+    --primary: 231 48% 30%; /* Dark Navy Blue #1a237e */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 231 48% 25%; /* Deeper Navy #0d1421 */
+
+    /* Rich Orange - Secondary brand colors */
+    --secondary: 32 100% 50%; /* Rich Orange #ff6f00 */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 24 100% 45%; /* Dark Orange #e65100 */
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 231 48% 30%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 231 48% 30%;
+
+    /* Modern font family */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* Premium marketplace colors */
+    --hero-gradient: linear-gradient(135deg, hsl(231 48% 30%), hsl(32 100% 50%));
+    --card-hover: 220 14% 97%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Premium shadows with brand colors */
+    --shadow-primary: 231 48% 30% / 0.15;
+    --shadow-secondary: 32 100% 50% / 0.15;
+
+    /* Premium Dark Navy Blue Color Palette */
+    --navy-50: 231 100% 97%;
+    --navy-100: 231 100% 94%;
+    --navy-200: 231 100% 88%;
+    --navy-300: 231 100% 80%;
+    --navy-400: 231 100% 70%;
+    --navy-500: 231 48% 30%; /* Primary Dark Navy */
+    --navy-600: 231 48% 25%; /* Deeper Navy */
+    --navy-700: 231 48% 20%; /* Deep Navy */
+    --navy-800: 231 48% 15%; /* Very Deep Navy */
+    --navy-900: 231 48% 10%; /* Darkest Navy */
+    --navy-950: 231 48% 5%; /* Ultra Dark Navy */
+    
+    /* Premium Rich Orange Color Palette */
+    --orange-50: 32 100% 97%;
+    --orange-100: 32 100% 94%;
+    --orange-200: 32 100% 88%;
+    --orange-300: 32 100% 80%;
+    --orange-400: 32 100% 70%;
+    --orange-500: 32 100% 50%; /* Primary Rich Orange */
+    --orange-600: 24 100% 45%; /* Dark Orange */
+    --orange-700: 24 100% 40%; /* Deeper Orange */
+    --orange-800: 24 100% 35%; /* Deep Orange */
+    --orange-900: 24 100% 30%; /* Very Deep Orange */
+    --orange-950: 24 100% 25%; /* Darkest Orange */
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 84% 5%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 84% 5%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Dark mode - Premium navy and orange with enhanced contrast */
+    --primary: 231 48% 40%; /* Lighter navy for dark backgrounds */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 231 48% 35%;
+
+    --secondary: 32 100% 60%; /* Lighter orange for dark backgrounds */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 32 100% 55%;
+
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 231 48% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 231 48% 15%;
+    --input: 231 48% 15%;
+    --ring: 231 48% 40%;
+
+    /* Dark mode premium colors */
+    --hero-gradient: linear-gradient(135deg, hsl(231 48% 40%), hsl(32 100% 60%));
+    --card-hover: 231 48% 20%;
+    --success: 142 76% 46%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Dark mode premium shadows */
+    --shadow-primary: 231 48% 40% / 0.25;
+    --shadow-secondary: 32 100% 60% / 0.25;
+
+    /* Dark mode Premium Navy Color Palette */
+    --navy-50: 231 48% 20%;
+    --navy-100: 231 48% 25%;
+    --navy-200: 231 48% 30%;
+    --navy-300: 231 48% 35%;
+    --navy-400: 231 48% 40%;
+    --navy-500: 231 48% 45%;
+    --navy-600: 231 48% 50%;
+    --navy-700: 231 48% 55%;
+    --navy-800: 231 48% 60%;
+    --navy-900: 231 48% 65%;
+    --navy-950: 231 48% 70%;
+    
+    /* Dark mode Premium Orange Color Palette */
+    --orange-50: 32 100% 20%;
+    --orange-100: 32 100% 25%;
+    --orange-200: 32 100% 30%;
+    --orange-300: 32 100% 35%;
+    --orange-400: 32 100% 40%;
+    --orange-500: 32 100% 50%;
+    --orange-600: 32 100% 60%;
+    --orange-700: 32 100% 65%;
+    --orange-800: 32 100% 70%;
+    --orange-900: 32 100% 75%;
+    --orange-950: 32 100% 80%;
+
+    --sidebar-background: 222 84% 5%;
+
+    --sidebar-foreground: 210 40% 98%;
+
+    --sidebar-primary: 210 40% 98%;
+
+    --sidebar-primary-foreground: 222 84% 5%;
+
+    --sidebar-accent: 217 33% 18%;
+
+    --sidebar-accent-foreground: 210 40% 98%;
+
+    --sidebar-border: 217 33% 18%;
+
+    --sidebar-ring: 217 91% 70%;
+  }
+
+  /* Modern typography styles */
+  * {
+    font-family: var(--font-family);
+  }
+
+  html {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  body {
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+  h5 { font-size: 1.125rem; }
+  h6 { font-size: 1rem; }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  small {
+    font-size: 0.875rem;
+  }
+}
+
+@layer components {
+  /* Premium Button variants */
+  .btn-primary {
+    @apply bg-navy-500 hover:bg-navy-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+  }
+
+  .btn-outline {
+    @apply border-2 border-navy-500 text-navy-500 hover:bg-navy-500 hover:text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5;
+  }
+
+  .btn-ghost {
+    @apply text-navy-500 hover:text-navy-600 hover:bg-navy-50 dark:hover:bg-navy-950/20 font-semibold py-3 px-6 rounded-xl transition-all duration-300;
+  }
+
+  /* Premium Hero button variant */
+  .btn-hero {
+    @apply bg-gradient-to-r from-navy-500 via-navy-600 to-orange-500 hover:from-navy-600 hover:via-navy-700 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105;
+  }
+
+  /* Premium Card styles */
+  .card {
+    @apply bg-white dark:bg-navy-900 rounded-2xl shadow-lg border border-navy-100 dark:border-navy-800 backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply hover:shadow-2xl hover:border-navy-200 dark:hover:border-navy-700 transition-all duration-500 hover:shadow-navy-500/20 dark:hover:shadow-navy-500/30 transform hover:-translate-y-2;
+  }
+
+  /* Premium Gradient backgrounds */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-navy-500 to-navy-700 hover:from-navy-600 hover:to-navy-800 transition-all duration-500 shadow-lg hover:shadow-xl;
+  }
+
+  .gradient-secondary {
+    @apply bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 transition-all duration-500 shadow-lg hover:shadow-xl;
+  }
+
+  .gradient-hero {
+    @apply bg-gradient-to-br from-navy-500 via-navy-600 to-orange-500 hover:from-navy-600 hover:via-navy-700 hover:to-orange-600 transition-all duration-700 shadow-2xl hover:shadow-3xl;
+  }
+
+  /* Premium Text colors */
+  .text-primary {
+    @apply text-navy-500 dark:text-navy-400;
+  }
+
+  .text-secondary {
+    @apply text-orange-500 dark:text-orange-400;
+  }
+
+  .text-muted {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  .text-success {
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  .text-warning {
+    @apply text-yellow-600 dark:text-yellow-400;
+  }
+
+  .text-error {
+    @apply text-red-600 dark:text-red-400;
+  }
+
+  /* Premium Background colors */
+  .bg-primary {
+    @apply bg-navy-500 dark:bg-navy-400;
+  }
+
+  .bg-secondary {
+    @apply bg-orange-500 dark:bg-orange-400;
+  }
+
+  .bg-muted {
+    @apply bg-gray-100 dark:bg-navy-800;
+  }
+
+  .bg-success {
+    @apply bg-green-100 dark:bg-green-900;
+  }
+
+  .bg-warning {
+    @apply bg-yellow-100 dark:bg-yellow-900;
+  }
+
+  .bg-error {
+    @apply bg-red-100 dark:bg-red-900;
+  }
+
+  /* Premium Border colors */
+  .border-primary {
+    @apply border-navy-500 dark:border-navy-400;
+  }
+
+  .border-secondary {
+    @apply border-orange-500 dark:border-orange-400;
+  }
+
+  .border-muted {
+    @apply border-gray-200 dark:border-navy-700;
+  }
+
+  /* Premium Shadow utilities */
+  .shadow-primary {
+    @apply shadow-xl shadow-navy-500/25;
+  }
+
+  .shadow-secondary {
+    @apply shadow-xl shadow-orange-500/25;
+  }
+
+  /* Premium Status indicators */
+  .status-verified {
+    @apply bg-navy-500 text-white rounded-full px-3 py-1 text-sm font-semibold shadow-lg;
+  }
+
+  .status-featured {
+    @apply bg-orange-500 text-white rounded-full px-3 py-1 text-sm font-semibold shadow-lg;
+  }
+
+  .status-new {
+    @apply bg-green-500 text-white rounded-full px-3 py-1 text-sm font-semibold shadow-lg;
+  }
+
+  /* Rating stars */
+  .star-filled {
+    @apply text-orange-400 fill-orange-400;
+  }
+
+  .star-empty {
+    @apply text-gray-300 dark:text-gray-600;
+  }
+
+  /* Premium Navy-Orange Theme Classes */
+  .bg-navy-subtle {
+    @apply bg-navy-50 dark:bg-navy-950/20;
+  }
+
+  .bg-orange-subtle {
+    @apply bg-orange-50 dark:bg-orange-950/20;
+  }
+
+  .text-navy-accent {
+    @apply text-navy-700 dark:text-navy-300;
+  }
+
+  .text-orange-accent {
+    @apply text-orange-700 dark:text-orange-300;
+  }
+
+  .border-navy-subtle {
+    @apply border-navy-200 dark:border-navy-800;
+  }
+
+  .border-orange-subtle {
+    @apply border-orange-200 dark:border-orange-800;
+  }
+
+  .hover-navy {
+    @apply hover:bg-navy-50 hover:text-navy-700 dark:hover:bg-navy-950/20 dark:hover:text-navy-300 transition-all duration-300 transform hover:scale-105;
+  }
+
+  .hover-orange {
+    @apply hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/20 dark:hover:text-orange-300 transition-all duration-300 transform hover:scale-105;
+  }
+
+  .focus-navy {
+    @apply focus:ring-4 focus:ring-navy-500/30 focus:border-navy-500 transition-all duration-300;
+  }
+
+  .focus-orange {
+    @apply focus:ring-4 focus:ring-orange-500/30 focus:border-orange-500 transition-all duration-300;
+  }
+
+  /* Hero background */
+  .hero-bg {
+    background-image: url('/image.png');
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
+  .grid {
+    @apply gap-3;
+  }
+  
+  .card {
+    @apply p-3;
+  }
+  
+  .btn-hero {
+    @apply py-2 px-4 text-sm;
+  }
+}
+
+/* Tablet-specific optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    @apply px-6;
+  }
+  
+  .grid {
+    @apply gap-4;
+  }
+  
+  .card {
+    @apply p-4;
+  }
+}
+
+/* Desktop-specific optimizations */
+@media (min-width: 1025px) {
+  .container {
+    @apply px-8;
+  }
+  
+  .grid {
+    @apply gap-6;
+  }
+  
+  .card {
+    @apply p-6;
+  }
+}
+
+/* Line clamp utilities for text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Premium dynamic animations for e-commerce experience */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes scale-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Animation utility classes */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+/* Staggered animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+.stagger-7 { animation-delay: 0.7s; }
+.stagger-8 { animation-delay: 0.8s; }
+
+/* Performance optimizations for smooth rendering */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-auto {
+  will-change: auto;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimize animations for better performance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "name": "wenze-tii-ndaku-marketplace",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

@@ -1,0 +1,383 @@
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+export class ApiClient {
+  private baseURL: string;
+  private token: string | null = null;
+
+  constructor(baseURL: string = API_BASE_URL) {
+    this.baseURL = baseURL;
+    this.token = localStorage.getItem('auth_token');
+  }
+
+  setToken(token: string | null) {
+    this.token = token;
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+    
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    // Check for admin token first, then regular token
+    const adminToken = localStorage.getItem('adminToken');
+    const userToken = this.token || localStorage.getItem('auth_token');
+    
+    if (adminToken) {
+      config.headers = {
+        ...config.headers,
+        'Authorization': `Bearer ${adminToken}`,
+      };
+    } else if (userToken) {
+      config.headers = {
+        ...config.headers,
+        'Authorization': `Bearer ${userToken}`,
+      };
+    }
+
+    try {
+      const response = await fetch(url, config);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+
+  // Authentication methods
+  async login(email: string, password: string, role: 'customer' | 'vendor') {
+    return this.request(`/auth/${role}/login`, {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async signup(data: any, role: 'customer' | 'vendor') {
+    return this.request(`/auth/${role}/signup`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyOTP(email: string, otp: string, role: 'customer' | 'vendor') {
+    return this.request(`/auth/${role}/verify-otp`, {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+  }
+
+  async resendOTP(email: string, role: 'customer' | 'vendor') {
+    return this.request(`/auth/${role}/resend-otp`, {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async getProfile() {
+    return this.request(`/auth/me`);
+  }
+
+  // Customer methods
+  async getCustomerProfile() {
+    return this.request(`/customer/profile`);
+  }
+
+  async updateCustomerProfile(data: any) {
+    return this.request(`/customer/profile`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCustomerOrders(page = 1, limit = 10) {
+    return this.request(`/customer/orders?page=${page}&limit=${limit}`);
+  }
+
+  async getCustomerOrder(orderId: string) {
+    return this.request(`/customer/orders/${orderId}`);
+  }
+
+  async getWishlist() {
+    return this.request(`/customer/wishlist`);
+  }
+
+  async addToWishlist(productId: string) {
+    return this.request(`/customer/wishlist`, {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    });
+  }
+
+  async removeFromWishlist(productId: string) {
+    return this.request(`/customer/wishlist/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Vendor methods
+  async getVendorProfile() {
+    return this.request(`/vendor/profile`);
+  }
+
+  async updateVendorProfile(data: any) {
+    return this.request(`/vendor/profile`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getVendorDashboard() {
+    return this.request(`/vendor/dashboard`);
+  }
+
+  async getVendorProducts(page = 1, limit = 10, status?: string) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (status) params.append('status', status);
+    
+    return this.request(`/vendor/products?${params}`);
+  }
+
+  async createProduct(data: any) {
+    return this.request(`/vendor/products`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProduct(productId: string, data: any) {
+    return this.request(`/vendor/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProduct(productId: string) {
+    return this.request(`/vendor/products/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createVendorProduct(productData: any) {
+    return this.request('/vendor/products', {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async updateVendorProduct(productId: string, productData: any) {
+    return this.request(`/vendor/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async deleteVendorProduct(productId: string) {
+    return this.deleteProduct(productId);
+  }
+
+  // Public product endpoints
+  async getFeaturedProducts(location?: string, limit = 12) {
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+    });
+    if (location) params.append('location', location);
+    
+    return this.request(`/products/featured?${params}`);
+  }
+
+  async getAllProducts(params: {
+    location?: string;
+    category?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) {
+    const searchParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value.toString());
+      }
+    });
+    
+    return this.request(`/products?${searchParams}`);
+  }
+
+  async getProductById(productId: string) {
+    return this.request(`/products/${productId}`);
+  }
+
+  async getVendorOrders(page = 1, limit = 10, status?: string) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (status) params.append('status', status);
+    
+    return this.request(`/vendor/orders?${params}`);
+  }
+
+  async updateOrderStatus(orderId: string, status: string) {
+    return this.request(`/vendor/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async updateVendorOrderStatus(orderId: string, status: string) {
+    return this.updateOrderStatus(orderId, status);
+  }
+
+  // Admin methods
+  async adminLogin(email: string, password: string) {
+    return this.request(`/admin/login`, {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async getAdminDashboard() {
+    return this.request(`/admin/dashboard`, {
+      method: 'GET',
+    });
+  }
+
+  async getVendors(page = 1, limit = 10, status?: string) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (status) params.append('status', status);
+    
+    return this.request(`/admin/vendors?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateVendor(vendorId: string, vendorData: any) {
+    return this.request(`/admin/vendors/${vendorId}`, {
+      method: 'PUT',
+      body: JSON.stringify(vendorData),
+    });
+  }
+
+  async deleteVendor(vendorId: string) {
+    return this.request(`/admin/vendors/${vendorId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAdminProducts(page = 1, limit = 10, search = '', status = '', vendorId = '') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    if (vendorId) params.append('vendor_id', vendorId);
+    
+    return this.request(`/admin/products?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateAdminProduct(productId: string, productData: any) {
+    return this.request(`/admin/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async deleteAdminProduct(productId: string) {
+    return this.request(`/admin/products/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async redMarkProduct(productId: string, reason: string) {
+    return this.request(`/admin/products/${productId}/red-mark`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async getAdminCustomers(page = 1, limit = 10, search = '') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (search) params.append('search', search);
+    
+    return this.request(`/admin/customers?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  async getAdminCustomerDetails(customerId: string) {
+    return this.request(`/admin/customers/${customerId}`, {
+      method: 'GET',
+    });
+  }
+
+  async deleteAdminCustomer(customerId: string) {
+    return this.request(`/admin/customers/${customerId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getVendorDetails(vendorId: string) {
+    return this.request(`/admin/vendors/${vendorId}`, {
+      method: 'GET',
+    });
+  }
+
+  async approveVendor(vendorId: string) {
+    return this.request(`/admin/vendors/${vendorId}/approve`, {
+      method: 'PUT',
+    });
+  }
+
+  async rejectVendor(vendorId: string, reason: string) {
+    return this.request(`/admin/vendors/${vendorId}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  }
+}
+
+// Create a singleton instance
+export const apiClient = new ApiClient();
+
+// Hook for using API client with auth context
+export const useApi = () => {
+  const { token } = useAuth();
+  
+  // Update token when it changes
+  React.useEffect(() => {
+    apiClient.setToken(token);
+  }, [token]);
+
+  return apiClient;
+};
