@@ -245,7 +245,6 @@ const getCategoryColors = (categoryName: string) => {
 
 export const CategoryCard = memo(function CategoryCard({ name, href }: CategoryCardProps) {
   const navigate = useNavigate();
-  const colors = getCategoryColors(name);
   const categoryImage = getCategoryImage(name);
 
   const handleClick = () => {
@@ -253,84 +252,32 @@ export const CategoryCard = memo(function CategoryCard({ name, href }: CategoryC
   };
 
   return (
-    <div 
-      className="group cursor-pointer relative gpu-accelerated"
+    <Card 
+      className="group cursor-pointer relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg"
       onClick={handleClick}
     >
-      {/* Premium dynamic card design with equal sizing */}
-      <div className={`relative ${colors.cardBg} rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-4 border-2 ${colors.border} overflow-hidden transition-all duration-700 h-52 w-full group-hover:scale-105 ${colors.glow} backdrop-blur-sm gpu-accelerated`}>
-        {/* Dynamic background gradient overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${colors.bg} opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse`}></div>
-        
-        {/* Animated floating particles */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-          <div className="absolute top-4 left-4 w-2 h-2 bg-white/40 rounded-full animate-bounce delay-100"></div>
-          <div className="absolute top-8 right-6 w-1.5 h-1.5 bg-white/30 rounded-full animate-bounce delay-300"></div>
-          <div className="absolute bottom-6 left-8 w-1 h-1 bg-white/50 rounded-full animate-bounce delay-500"></div>
-        </div>
-        
-        {/* Premium shimmer effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1200 ease-out"></div>
-        
-        {/* Glowing border effect */}
-        <div className={`absolute inset-0 rounded-3xl ${colors.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-700`}></div>
-        
-         <div className="relative p-6 text-center h-full flex flex-col">
-           {/* Category Image with premium dynamic styling */}
-           <div className="mb-4 flex justify-center">
-             <div className={`relative h-16 w-16 rounded-2xl bg-white/95 dark:bg-navy-800/95 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-700 overflow-hidden backdrop-blur-sm`}>
-               {/* Dynamic image background glow */}
-               <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${colors.bg} blur-xl opacity-0 group-hover:opacity-50 transition-all duration-700 animate-pulse`}></div>
-               
-               {/* Rotating gradient border */}
-               <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${colors.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-spin-slow`}></div>
-               
-               {/* Category Image with enhanced styling */}
+      <CardContent className="p-4 text-center">
+        {/* Category Image */}
+        <div className="mb-3 flex justify-center">
+          <div className="relative h-12 w-12 rounded-lg bg-gray-100 dark:bg-navy-800 overflow-hidden">
                <img 
                  src={categoryImage} 
                  alt={name}
-                 className="absolute inset-0 h-full w-full object-cover rounded-2xl group-hover:scale-110 transition-all duration-700 z-10"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                  onError={(e) => {
-                   // Fallback to a simple colored div if image fails to load
                    const target = e.target as HTMLImageElement;
                    target.style.display = 'none';
-                   target.parentElement!.innerHTML = `<div class="absolute inset-0 h-full w-full rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center z-10"><span class="text-sm font-bold text-white">${name[0]}</span></div>`;
-                 }}
-               />
-               
-               {/* Premium image highlight with shimmer */}
-               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-20"></div>
-               
-               {/* Floating sparkles */}
-               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                 <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full animate-ping delay-200"></div>
-                 <div className="absolute bottom-1 left-1 w-0.5 h-0.5 bg-white/40 rounded-full animate-ping delay-500"></div>
-               </div>
+                target.parentElement!.innerHTML = `<div class="h-full w-full bg-navy-600 flex items-center justify-center"><span class="text-sm font-bold text-white">${name[0]}</span></div>`;
+              }}
+            />
              </div>
            </div>
            
-           {/* Category name with modern typography */}
-           <h3 className={`font-bold text-base mb-3 text-gray-800 dark:text-gray-200 group-hover:${colors.textHover} transition-colors duration-500 leading-tight flex-grow`}>
+        {/* Category name */}
+        <h3 className="font-medium text-sm text-gray-900 dark:text-white leading-tight">
              {name}
            </h3>
-           
-           {/* Explore indicator - absolutely positioned */}
-           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full px-6">
-             <div className={`inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r ${colors.bg} text-xs font-medium ${colors.icon} shadow-lg transition-all duration-500 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0`}>
-               Explore
-               <svg className="ml-1.5 h-3 w-3 group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-               </svg>
-             </div>
-           </div>
-         </div>
-        
-        {/* Modern bottom accent */}
-        <div className={`absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r ${colors.bg} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`}></div>
-        
-        {/* Corner decoration */}
-        <div className="absolute top-0 right-0 w-0 h-0 border-l-[24px] border-l-transparent border-t-[24px] border-t-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 });

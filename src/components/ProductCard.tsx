@@ -10,6 +10,7 @@
 
 import { useState, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Star, Heart, ShoppingCart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,17 +42,24 @@ export const ProductCard = memo(function ProductCard({
   isNew = false,
   isFeatured = false,
 }: ProductCardProps) {
-  
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const handleWishlistToggle = useCallback(() => {
+  const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking wishlist
     setIsWishlisted(prev => !prev);
   }, []);
 
-  const handleAddToCart = useCallback(() => {
+  const handleProductClick = useCallback(() => {
+    navigate(`/product/${id}`);
+  }, [navigate, id]);
+
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking add to cart
     addToCart({
       id,
       name,
@@ -70,134 +78,142 @@ export const ProductCard = memo(function ProductCard({
     setImageError(true);
   }, []);
 
+  const discountPercentage = originalPrice 
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : 0;
+
   return (
-    <div className="group cursor-pointer relative h-full gpu-accelerated">
-      {/* Premium product card with fixed height */}
-      <div className="relative bg-white dark:bg-navy-900 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border border-navy-100 dark:border-navy-800/50 overflow-hidden group-hover:scale-105 h-full flex flex-col gpu-accelerated">
-        {/* Shine effect on hover */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-10"></div>
-        
-        {/* Premium Product Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-navy-50 to-orange-50 dark:from-navy-800 dark:to-orange-800">
-          {/* Product Image */}
+    <Card 
+      className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg h-full flex flex-col cursor-pointer"
+      onClick={handleProductClick}
+    >
+      <CardContent className="p-0 flex flex-col h-full">
+        {/* Professional Image Container */}
+        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-navy-800">
           {!imageError ? (
             <img
               src={image}
               alt={name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                onError={handleImageError}
+              loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy-100 to-orange-100 dark:from-navy-900/20 dark:to-orange-900/20">
+            <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-navy-800">
               <div className="text-center">
-                <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 font-medium">{name}</p>
+                <div className="w-12 h-12 bg-gray-200 dark:bg-navy-700 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <ShoppingCart className="w-6 h-6 text-gray-400 dark:text-navy-500" />
+                </div>
+                <p className="text-xs text-gray-400 dark:text-navy-500">No Image</p>
               </div>
             </div>
           )}
 
-          {/* Enhanced Badges Container */}
-          <div className="absolute top-3 left-3 z-20">
-            <div className="flex flex-col gap-2">
+          {/* Professional Badges */}
+          <div className="absolute top-2 left-2 z-10">
+            <div className="flex flex-col gap-1">
+              {discountPercentage > 0 && (
+                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded font-medium">
+                  -{discountPercentage}%
+                </span>
+              )}
               {isNew && (
-                <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/30 backdrop-blur-sm">
-                  NEW
+                <span className="bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
+                  {t('new')}
                 </span>
               )}
               {isFeatured && (
-                <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/30 backdrop-blur-sm">
-                  FEATURED
+                <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded font-medium">
+                  {t('hot')}
                 </span>
               )}
             </div>
           </div>
 
-          {/* Enhanced Wishlist Button */}
+          {/* Wishlist Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-3 right-3 bg-white/95 hover:bg-white w-10 h-10 shadow-lg hover:shadow-xl z-20 rounded-full backdrop-blur-sm border border-white/30"
+            className="absolute top-2 right-2 bg-white/90 hover:bg-white w-8 h-8 shadow-sm hover:shadow-md z-10 rounded-full"
             onClick={handleWishlistToggle}
           >
             <Heart
-              className={`h-5 w-5 transition-all duration-300 ${
-                isWishlisted ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-600 hover:text-red-500'
+              className={`h-4 w-4 transition-colors duration-200 ${
+                isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
               }`}
             />
           </Button>
 
-          {/* Quick Add to Cart - Appears on hover */}
-          <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0 z-20">
+          {/* Add to Cart Button - Professional overlay */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="p-3">
             <Button
               size="sm"
-              className="w-full bg-gradient-to-r from-navy-600 to-orange-500 hover:from-navy-700 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full py-2.5"
+                className="w-full bg-navy-600 hover:bg-navy-700 text-white rounded-md"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
-              Quick Add
+                {t('addToCart')}
             </Button>
+            </div>
           </div>
         </div>
 
-        {/* Enhanced Product Information */}
-        <div className="relative p-6 flex flex-col flex-grow">
-          {/* Vendor Name with enhanced styling */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">{vendor}</p>
+        {/* Professional Product Information */}
+        <div className="p-3 space-y-2 flex-1 flex flex-col">
+          {/* Vendor Name */}
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            {vendor}
+          </p>
 
-          {/* Product Name with better typography */}
-          <h3 className="font-bold text-base mb-3 line-clamp-2 group-hover:text-navy-700 dark:group-hover:text-navy-400 transition-colors duration-300 leading-tight">
+          {/* Product Name */}
+          <h3 className="font-medium text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 flex-1">
             {name}
           </h3>
 
-          {/* Enhanced Rating Section */}
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-0.5">
+          {/* Rating */}
+          <div className="flex items-center gap-1">
+            <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-4 w-4 transition-colors duration-200 ${
+                  className={`h-3 w-3 ${
                     i < Math.floor(rating)
-                      ? 'fill-orange-400 text-orange-400'
-                      : 'text-gray-300'
+                      ? 'text-orange-400 fill-orange-400'
+                      : 'text-gray-300 dark:text-gray-600'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-sm text-gray-600 font-semibold">{rating}</span>
-            {reviewCount > 0 && (
-              <span className="text-sm text-gray-500">({reviewCount})</span>
-            )}
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              ({reviewCount})
+            </span>
           </div>
 
-          {/* Enhanced Price Section */}
-          <div className="flex items-center gap-3 mb-4">
-            <span className="font-bold text-navy-700 dark:text-navy-400 text-lg">${price.toFixed(2)}</span>
-            {originalPrice && originalPrice > price && (
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500 line-through">
+          {/* Price Section - Professional layout */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                ${price.toFixed(2)}
+              </span>
+              {originalPrice && (
+                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
                   ${originalPrice.toFixed(2)}
                 </span>
-                <span className="text-xs text-green-600 font-semibold">
-                  Save ${(originalPrice - price).toFixed(2)}
+              )}
+            </div>
+          </div>
+
+          {/* Free Shipping Badge */}
+          {price > 50 && (
+            <div className="flex items-center text-xs text-green-600 dark:text-green-400">
+              <span className="bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded text-xs font-medium">
+                Free Shipping
                 </span>
               </div>
             )}
           </div>
-
-          {/* Enhanced Add to Cart Button - pushed to bottom */}
-          <Button
-            size="sm"
-            className="w-full py-3 text-base font-semibold bg-gradient-to-r from-navy-600 to-orange-500 hover:from-navy-700 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl mt-auto"
-            onClick={handleAddToCart}
-          >
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            Add to Cart
-          </Button>
-        </div>
-        
-        {/* Bottom accent line */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-navy-600 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 });

@@ -49,116 +49,125 @@ const Index = () => {
       <Header />
       
       <main className="flex-1">
-        {/* Hero Section - Amazon/Flipkart Style */}
-        <section className="relative bg-white dark:bg-navy-900">
-          <div className="container mx-auto px-4 py-16">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+        {/* Hero Section - Professional E-commerce Style */}
+        <section className="relative bg-white dark:bg-navy-900 overflow-hidden">
+          <div className="container mx-auto px-4 py-12">
+            <div className="grid lg:grid-cols-2 gap-8 items-center">
               {/* Left Content */}
               <div className="text-center lg:text-left">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-                  Welcome to{" "}
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                  {t('yourPremierMarketplace')}{" "}
                   <span className="bg-gradient-to-r from-navy-600 to-orange-500 bg-clip-text text-transparent">
-                    WENZE TII NDAKU
+                    {t('marketplace')}
                   </span>
                 </h1>
-                <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0">
-                  Africa's premier marketplace connecting buyers and sellers across the continent
+                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-xl mx-auto lg:mx-0">
+                  {t('discoverMillions')}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <Button 
                     size="lg" 
-                    className="text-lg px-8 py-4 bg-gradient-to-r from-navy-600 to-orange-500 hover:from-navy-700 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="px-8 py-3 bg-gradient-to-r from-navy-600 to-orange-500 hover:from-navy-700 hover:to-orange-600 text-white font-medium rounded-md"
                   onClick={() => navigate('/categories')}
                 >
-                    Start Shopping
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    {t('startShopping')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                    className="text-lg px-8 py-4 border-2 border-navy-500 text-navy-600 hover:bg-navy-500 hover:text-white transition-all duration-300 rounded-xl"
+                    className="px-8 py-3 border-2 border-orange-500 text-orange-600 hover:bg-gradient-to-r hover:from-orange-500 hover:to-navy-600 hover:text-white transition-all rounded-md"
                     onClick={() => navigate('/vendor/register')}
                 >
-                    Become a Seller
+                    {t('sellOnPlatform')}
                 </Button>
                 </div>
               </div>
               
-              {/* Right Content - Hero Image */}
-              <div className="relative hidden lg:block">
-                <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-2xl">
+              {/* Right Content - Hero Banner */}
+              <div className="relative">
+                <div className="relative w-full h-[300px] lg:h-[400px] rounded-lg overflow-hidden shadow-lg">
                   <img 
                     src="/hero-marketplace.jpg" 
                     alt="WENZE TII NDAKU Marketplace" 
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-900/50 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  
+                  {/* Overlay content */}
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3">
+                      <div className="text-sm font-medium">Special Offer</div>
+                      <div className="text-lg font-bold">Up to 50% Off</div>
                 </div>
-                {/* Floating stats cards */}
-                <div className="absolute -top-4 -left-4 bg-white dark:bg-navy-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-navy-700">
-                  <div className="text-xl font-bold text-navy-600 dark:text-navy-300">10K+</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Active Sellers</div>
                 </div>
-                <div className="absolute -bottom-4 -right-4 bg-white dark:bg-navy-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-navy-700">
-                  <div className="text-xl font-bold text-orange-600 dark:text-orange-400">50K+</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Happy Customers</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Trust Indicators */}
-        <section className="bg-white dark:bg-navy-900 border-y border-gray-200 dark:border-navy-800">
-          <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-navy-100 dark:bg-navy-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Truck className="h-6 w-6 text-navy-600 dark:text-navy-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Free Shipping</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">On orders over $50</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Secure Payment</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">100% secure checkout</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">24/7 Support</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Always here to help</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Best Prices</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Competitive rates</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Featured Categories */}
-        <section className="py-16 bg-gray-50 dark:bg-navy-950">
+        {/* Trust Indicators - Professional */}
+        <section className="bg-gray-50 dark:bg-navy-950 py-8">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Shop by Category
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Truck className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('freeShipping')}</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('onOrdersOver')}</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('securePayment')}</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('secureCheckout')}</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Users className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('support247')}</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('alwaysHereToHelp')}</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('bestPrices')}</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('competitiveRates')}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Categories - Professional */}
+        <section className="py-12 bg-white dark:bg-navy-900">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {t('shopByCategory')}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Discover amazing products across our diverse categories
-              </p>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {t('exploreWideRange')}
+                </p>
+              </div>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/categories')}
+                className="hidden md:flex"
+              >
+                {t('viewAll')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-              {categories.slice(0, 8).map((category, index) => (
-                <div key={index} className={`group animate-slide-up ${index < 8 ? `stagger-${index + 1}` : 'stagger-8'}`}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {categories.slice(0, 6).map((category, index) => (
+                <div key={index} className="group">
                   <CategoryCard
                     name={category.name}
                     href={category.href}
@@ -168,10 +177,11 @@ const Index = () => {
               ))}
             </div>
             
-            <div className="text-center mt-12">
+            <div className="text-center mt-8 md:hidden">
               <Button 
+                variant="outline"
                 onClick={() => navigate('/categories')}
-                className="px-8 py-3 bg-navy-600 hover:bg-navy-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full"
               >
                 View All Categories
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -180,30 +190,31 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Featured Products */}
-        <section className="py-16 bg-white dark:bg-navy-900">
+        {/* Featured Products - Professional */}
+        <section className="py-12 bg-gray-50 dark:bg-navy-950">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                  Featured Products
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {t('featuredProducts')}
                 </h2>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  Handpicked products just for you
+                <p className="text-gray-600 dark:text-gray-300">
+                  {t('handpickedProducts')}
                 </p>
               </div>
               <Button 
+                variant="outline"
                 onClick={() => navigate('/search')}
-                className="hidden md:flex px-6 py-3 bg-navy-600 hover:bg-navy-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="hidden md:flex"
               >
-                View All Products
+                {t('viewAllProducts')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-              {featuredProducts.slice(0, 12).map((product, index) => (
-                <div key={product.id} className={`group animate-scale-in ${index < 12 ? `stagger-${(index % 8) + 1}` : 'stagger-8'}`}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {featuredProducts.slice(0, 12).map((product) => (
+                <div key={product.id} className="group">
                   <MinimalProductCard
                     product={product}
                     onWishlistToggle={() => {}}
@@ -213,90 +224,96 @@ const Index = () => {
               ))}
             </div>
             
-            <div className="text-center mt-12 md:hidden">
+            <div className="text-center mt-8 md:hidden">
               <Button 
+                variant="outline"
                 onClick={() => navigate('/search')}
-                className="px-8 py-3 bg-navy-600 hover:bg-navy-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full"
               >
                 View All Products
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
+
+            {/* Top Stores - Minimal Section */}
+            <div className="mt-16">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                    {t('topStores')}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {t('discoverAmazingStores')}
+                  </p>
+                </div>
+                <Button 
+                  variant="ghost"
+                  onClick={() => navigate('/stores')}
+                  className="text-sm"
+                >
+                  {t('viewAll')}
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {featuredStores.slice(0, 10).map((store) => (
+                  <div key={store.id} className="group cursor-pointer" onClick={() => navigate(`/store/${store.id}`)}>
+                    <div className="bg-white dark:bg-navy-900 rounded-lg p-4 hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600">
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-sm font-bold text-white">{store.name[0]}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">{store.name}</h4>
+                          <div className="flex items-center">
+                            <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+                            <span className="text-xs ml-1 text-gray-600 dark:text-gray-300">{store.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{store.productCount} products</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Platform Statistics */}
-        <section className="py-16 bg-gradient-to-r from-navy-600 to-orange-500">
+        {/* Platform Statistics - Navy & Orange Balance */}
+        <section className="py-12 bg-gradient-to-r from-navy-600 to-orange-500">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Trusted by Millions
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {t('trustedByMillions')}
               </h2>
-              <p className="text-lg text-white/90 max-w-2xl mx-auto">
-                Join our growing community of satisfied customers and successful sellers
+              <p className="text-white/80">
+                {t('joinGrowingCommunity')}
               </p>
           </div>
           
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white mb-2">50K+</div>
-                <div className="text-white/80">Happy Customers</div>
+                <div className="text-3xl font-bold text-white mb-1">50K+</div>
+                <div className="text-white/80 text-sm">{t('happyCustomers')}</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white mb-2">10K+</div>
-                <div className="text-white/80">Active Sellers</div>
+                <div className="text-3xl font-bold text-white mb-1">10K+</div>
+                <div className="text-white/80 text-sm">{t('activeSellers')}</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white mb-2">1M+</div>
-                <div className="text-white/80">Products Sold</div>
+                <div className="text-3xl font-bold text-white mb-1">1M+</div>
+                <div className="text-white/80 text-sm">{t('productsSold')}</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white mb-2">4.8★</div>
-                <div className="text-white/80">Average Rating</div>
+                <div className="text-3xl font-bold text-white mb-1">4.8★</div>
+                <div className="text-white/80 text-sm">{t('averageRating')}</div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Promoted Stores */}
-        <section className="py-16 bg-gray-50 dark:bg-navy-950">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Top Stores
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Discover amazing stores and their featured products
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredStores.slice(0, 6).map((store, index) => (
-                <div key={store.id} className="bg-white dark:bg-navy-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:-translate-y-1">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-navy-500 to-orange-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                      <span className="text-lg font-bold text-white">{store.name[0]}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{store.name}</h3>
-                        <div className="flex items-center">
-                        <Star className="h-4 w-4 text-orange-400 fill-orange-400" />
-                        <span className="text-sm ml-1 font-medium text-gray-600 dark:text-gray-300">{store.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{store.productCount} products</p>
-                  <Button 
-                    onClick={() => navigate(`/store/${store.id}`)}
-                    className="w-full bg-navy-600 hover:bg-navy-700 text-white rounded-xl transition-all duration-300"
-                  >
-                    Visit Store
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />

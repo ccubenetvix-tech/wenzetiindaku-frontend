@@ -64,6 +64,7 @@ export function Header() {
 
   // Function to change the application language
   const changeLanguage = (lng: string) => {
+    console.log('Changing language to:', lng);
     i18n.changeLanguage(lng);
   };
 
@@ -78,6 +79,7 @@ export function Header() {
 
   // Get current language object for display
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+  console.log('Current language:', i18n.language, 'Translation test:', t('freeShippingOnOrders'));
 
   // Main navigation items with internationalized labels
   const navigation = [
@@ -87,169 +89,171 @@ export function Header() {
   ];
 
   return (
-    // Sticky header with premium styling and backdrop blur
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-b border-navy-100 dark:border-navy-800 shadow-xl">
+    // Professional e-commerce header with clean design
+    <header className="sticky top-0 z-50 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-navy-800 shadow-sm">
+      {/* Top utility bar - Less congestive */}
+      <div className="bg-gray-50 dark:bg-navy-950 border-b border-gray-200 dark:border-navy-800">
       <div className="container mx-auto px-4">
-        <div className="flex items-center h-20">
-          {/* Premium Logo section with enhanced styling */}
-          <div className="flex-shrink-0 mr-8">
-            <div 
-              className="flex items-center cursor-pointer group"
-              onClick={() => navigate('/')}  // Navigate to homepage on logo click
-            >
-              {/* Marketplace logo image */}
-              <img 
-                src="/marketplace.jpeg" 
-                alt="WENZE TII NDAKU" 
-                className="h-16 w-auto transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-2xl"
-              />
-              {/* Logo text - hidden on smaller screens */}
-              <div className="ml-3 hidden lg:block">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-navy-500 to-orange-500 bg-clip-text text-transparent">
-                  WENZE TII NDAKU
-                </h1>
-                <p className="text-xs text-muted-foreground font-medium">Premium Marketplace</p>
+          <div className="flex items-center justify-between h-10 text-xs">
+            <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
+              <span className="hidden sm:inline">{t('freeShippingOnOrders')}</span>
+              <span className="hidden md:inline text-gray-400">•</span>
+              <span className="hidden md:inline">{t('customerSupport')}</span>
               </div>
-            </div>
-          </div>
-
-          {/* Premium Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 mr-auto">
-            {navigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.name === 'home' ? '/' : item.href}
-                className="text-navy-600 dark:text-navy-300 hover:text-orange-500 dark:hover:text-orange-400 transition-all duration-300 font-semibold relative group"
-              >
-                {item.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-navy-500 to-orange-500 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-            ))}
-          </nav>
-
-          {/* Premium Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
-            <form onSubmit={handleSearch} className="relative w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-navy-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder={t('search')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 w-full rounded-xl border-2 border-navy-100 dark:border-navy-800 focus:border-navy-500 dark:focus:border-navy-400 bg-white/80 dark:bg-navy-800/80 backdrop-blur-sm shadow-lg focus:shadow-xl transition-all duration-300"
-              />
-            </form>
-          </div>
-
-          {/* Right Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Premium Language Selector */}
+            <div className="flex items-center space-x-6">
+              {/* Language Selector - Compact */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-all duration-300">
-                  <Globe className="h-4 w-4 text-navy-500" />
-                  <span className="hidden sm:inline text-navy-600 dark:text-navy-300 font-medium">{currentLanguage.name}</span>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-transparent">
+                    <Globe className="h-3 w-3 mr-1" />
+                    {currentLanguage.name}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover z-50">
+                <DropdownMenuContent align="end" className="min-w-[120px]">
                 {languages.map((language) => (
                   <DropdownMenuItem
                     key={language.code}
                     onClick={() => changeLanguage(language.code)}
-                    className={`cursor-pointer ${
-                      i18n.language === language.code ? 'bg-accent' : ''
-                    }`}
+                      className={`text-xs ${i18n.language === language.code ? 'bg-accent' : ''}`}
                   >
                     {language.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+              <span className="text-gray-400 hidden sm:inline">|</span>
+              <span className="text-gray-600 dark:text-gray-400 hidden sm:inline">{t('helpSupport')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-
-            {/* Premium Cart with enhanced styling */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="relative hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-all duration-300 transform hover:scale-105"
-              onClick={() => navigate('/cart')}
+      {/* Main header */}
+      <div className="container mx-auto px-4">
+        <div className="flex items-center h-16">
+          {/* Logo section - Professional and clean */}
+          <div className="flex-shrink-0 mr-6">
+            <div 
+              className="flex items-center cursor-pointer"
+              onClick={() => navigate('/')}
             >
-              <ShoppingCart className="h-6 w-6 text-navy-500" />
-              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center shadow-xl font-bold animate-pulse">
-                {getTotalItems()}
-              </span>
-            </Button>
+              <img 
+                src="/marketplace.jpeg" 
+                alt="WENZE TII NDAKU" 
+                className="h-10 w-auto"
+              />
+              <div className="ml-3 hidden lg:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-navy-600 to-orange-500 bg-clip-text text-transparent">
+                  WENZE TII NDAKU
+                </h1>
+              </div>
+            </div>
+          </div>
 
-            {/* Premium User Menu */}
+          {/* Professional Search Bar - Amazon style */}
+          <div className="flex-1 max-w-2xl mx-4">
+            <form onSubmit={handleSearch} className="relative">
+              <div className="flex">
+                <Input
+                  type="text"
+                  placeholder={t('searchForProducts')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 h-10 pl-4 pr-12 border-2 border-gray-300 dark:border-navy-700 focus:border-navy-500 dark:focus:border-navy-400 rounded-l-md rounded-r-none"
+                />
+            <Button 
+                  type="submit"
+                  className="h-10 px-6 bg-navy-600 hover:bg-navy-700 text-white rounded-l-none rounded-r-md border-2 border-navy-600 hover:border-navy-700"
+                >
+                  <Search className="h-4 w-4" />
+            </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Right section - Professional layout */}
+          <div className="flex items-center space-x-1">
+            {/* User Account */}
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-all duration-300"
-                  >
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="flex items-center space-x-2 h-10 px-3">
+                    <Avatar className="h-6 w-6">
                       <AvatarImage src={user.profilePhoto} alt={user.firstName || user.businessName} />
-                      <AvatarFallback className="bg-gradient-to-r from-navy-500 to-orange-500 text-white text-sm font-semibold">
+                      <AvatarFallback className="bg-navy-100 text-navy-600 text-xs">
                         {(user.firstName || user.businessName || user.email).charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
+                    <div className="hidden md:block text-left">
+                      <div className="text-xs text-gray-500">{t('hello')}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user.firstName || user.businessName || 'User'}
+                      </div>
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium text-foreground">
-                      {user.firstName && user.lastName 
-                        ? `${user.firstName} ${user.lastName}`
-                        : user.businessName || user.email
-                      }
-                    </p>
-                    <p className="text-xs text-muted-foreground capitalize">
-                      {user.role}
-                    </p>
-                  </div>
-                  <DropdownMenuSeparator />
+                <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/profile' : '/vendor/profile')}>
                     <User className="mr-2 h-4 w-4" />
-                    Profile
+                    {t('myProfile')}
                   </DropdownMenuItem>
                   {user.role === 'vendor' && (
                     <DropdownMenuItem onClick={() => navigate('/vendor/dashboard')}>
                       <Store className="mr-2 h-4 w-4" />
-                      Dashboard
+                      {t('sellerDashboard')}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => navigate('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    {t('settings')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Logout
+                    {t('signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Button 
                 variant="ghost" 
-                size="icon" 
-                className="hover:bg-navy-50 dark:hover:bg-navy-800/50 transition-all duration-300"
+                className="flex items-center space-x-1 h-10 px-3"
                 onClick={() => setIsLoginModalOpen(true)}
               >
-                <User className="h-6 w-6 text-navy-500" />
+                <User className="h-4 w-4" />
+                <div className="hidden md:block text-left">
+                  <div className="text-xs text-gray-500">{t('hello')}</div>
+                  <div className="text-sm font-medium">{t('signIn')}</div>
+                </div>
               </Button>
             )}
+
+            {/* Cart */}
+            <Button 
+              variant="ghost" 
+              className="relative flex items-center space-x-1 h-10 px-3"
+              onClick={() => navigate('/cart')}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              <div className="hidden md:block text-left">
+                <div className="text-xs text-gray-500">{t('cart')}</div>
+                <div className="text-sm font-medium">{getTotalItems()}</div>
+              </div>
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                  {getTotalItems()}
+                </span>
+              )}
+            </Button>
 
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden h-10 w-10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72">
+              <SheetContent side="right" className="w-80">
                 <div className="flex flex-col space-y-4 mt-8">
                   {/* Mobile Search */}
                   <form onSubmit={handleSearch} className="relative">
@@ -269,16 +273,15 @@ export function Header() {
                       <a
                         key={item.name}
                         href={item.name === 'home' ? '/' : item.href}
-                        className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-2 px-4 rounded-md hover:bg-navy-50 dark:hover:bg-navy-950/20"
+                        className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-3 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-navy-950/20 border-b border-gray-100 dark:border-navy-800"
                       >
                         {item.name}
                       </a>
                     ))}
                   </nav>
 
-                  {/* Mobile Login Options */}
-                  <div className="pt-4 border-t border-muted-foreground/20">
-                    <p className="text-sm font-medium text-foreground mb-3">Login Options</p>
+                  {/* Mobile Auth Options */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
                     <div className="space-y-2">
                       <Button
                         variant="outline"
@@ -286,7 +289,7 @@ export function Header() {
                         className="w-full justify-start"
                       >
                         <LogIn className="mr-2 h-4 w-4" />
-                        Customer Login
+                        {t('customerLogin')}
                       </Button>
                       <Button
                         variant="outline"
@@ -294,13 +297,41 @@ export function Header() {
                         className="w-full justify-start"
                       >
                         <Store className="mr-2 h-4 w-4" />
-                        Vendor Login
+                        {t('sellerLogin')}
                       </Button>
                     </div>
                   </div>
                 </div>
               </SheetContent>
             </Sheet>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation bar - Professional category navigation */}
+      <div className="bg-navy-600 dark:bg-navy-700">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center h-10">
+            <nav className="flex items-center space-x-8 text-sm">
+              {navigation.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.name === 'home' ? '/' : item.href}
+                  className="text-white hover:text-orange-300 transition-colors duration-200 font-medium"
+                >
+                  {item.name}
+                </a>
+              ))}
+              <a href="/categories" className="text-white hover:text-orange-300 transition-colors duration-200 font-medium">
+                {t('allCategories')}
+              </a>
+              <a href="/stores" className="text-white hover:text-orange-300 transition-colors duration-200 font-medium">
+                {t('topStores')}
+              </a>
+              <a href="/vendor/register" className="text-orange-300 hover:text-orange-200 transition-colors duration-200 font-medium">
+                {t('becomeSeller')}
+              </a>
+            </nav>
           </div>
         </div>
       </div>

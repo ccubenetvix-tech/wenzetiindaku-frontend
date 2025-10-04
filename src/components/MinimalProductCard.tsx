@@ -10,6 +10,7 @@
 
 import { useState, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Star, Heart, ShoppingCart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   onWishlistToggle,
   onAddToCart
 }: MinimalProductCardProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const { id, name, price, originalPrice, rating, reviewCount = 0, image, vendor, isNew = false, isFeatured = false } = product;
   
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -47,11 +50,17 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const handleWishlistToggle = useCallback(() => {
+  const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking wishlist
     setIsWishlisted(prev => !prev);
   }, []);
 
-  const handleAddToCart = useCallback(() => {
+  const handleProductClick = useCallback(() => {
+    navigate(`/product/${id}`);
+  }, [navigate, id]);
+
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking add to cart
     addToCart({
       id,
       name,
@@ -71,111 +80,95 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   }, []);
 
   return (
-    <div className="group cursor-pointer relative h-full gpu-accelerated">
-      {/* Minimal product card with fixed height */}
-      <div className="relative bg-white dark:bg-navy-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-navy-100 dark:border-navy-800/50 overflow-hidden h-full flex flex-col gpu-accelerated">
-        {/* Product Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-navy-50 to-orange-50 dark:from-navy-800 dark:to-orange-800">
-          {/* Product Image */}
+    <div className="group cursor-pointer relative h-full" onClick={handleProductClick}>
+      {/* Ultra Minimal Product Card */}
+      <div className="relative bg-white dark:bg-navy-900 rounded-lg border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 hover:shadow-md transition-all duration-300 overflow-hidden h-full flex flex-col">
+        {/* Product Image Container - Minimal */}
+        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-navy-800">
           {!imageError ? (
             <img
               src={image}
               alt={name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-               onError={handleImageError}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={handleImageError}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy-100 to-orange-100 dark:from-navy-900/20 dark:to-orange-900/20">
-              <ShoppingCart className="h-8 w-8 text-navy-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-navy-800">
+              <ShoppingCart className="h-6 w-6 text-gray-400 dark:text-navy-500" />
             </div>
           )}
 
-          {/* Minimal Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {isNew && (
-              <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-md">
-                NEW
-              </span>
-            )}
-            {isFeatured && (
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-md">
-                FEATURED
-              </span>
-            )}
-          </div>
-          
           {/* Minimal Wishlist Button */}
           <button
             onClick={handleWishlistToggle}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 dark:bg-navy-800/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-200 hover:scale-110"
+            className="absolute top-2 right-2 p-1 rounded-full bg-white/90 dark:bg-navy-800/90 shadow-sm hover:shadow-md transition-all duration-200"
             aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-            title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           >
             <Heart 
-              className={`h-3.5 w-3.5 transition-colors duration-200 ${
+              className={`h-3 w-3 transition-colors duration-200 ${
                 isWishlisted 
                   ? 'text-red-500 fill-red-500' 
-                  : 'text-navy-600 dark:text-navy-400 hover:text-red-500'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
               }`} 
             />
           </button>
-        </div>
 
-        {/* Product Info */}
-        <div className="p-3 flex flex-col flex-grow">
-          {/* Product Name */}
-          <h3 className="font-semibold text-sm text-navy-600 dark:text-navy-300 mb-1 line-clamp-2 leading-tight">
-            {name}
-          </h3>
-          
-          {/* Vendor */}
-          <p className="text-xs text-navy-500 dark:text-navy-400 mb-2 truncate">
-            by {vendor}
-          </p>
-          
-          {/* Rating */}
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3 w-3 ${
-                    i < Math.floor(rating)
-                      ? 'text-orange-400 fill-orange-400'
-                      : 'text-gray-300 dark:text-gray-600'
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-navy-500 dark:text-navy-400">
-              ({reviewCount})
-            </span>
-          </div>
-          
-          {/* Price */}
-          <div className="flex items-center justify-between mb-3 flex-grow">
-            <div className="flex items-center gap-1">
-              <span className="text-lg font-bold text-navy-600 dark:text-navy-300">
-                ${price ? price.toFixed(2) : '0.00'}
-              </span>
-              {originalPrice && originalPrice > (price || 0) && (
-                <span className="text-sm text-gray-500 line-through">
-                  ${originalPrice.toFixed(2)}
+          {/* Minimal Badges - Only if needed */}
+          {(isNew || isFeatured) && (
+            <div className="absolute top-2 left-2">
+              {isNew && (
+                <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                  {t('new')}
+                </span>
+              )}
+              {isFeatured && (
+                <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                  {t('hot')}
                 </span>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Minimal Product Info */}
+        <div className="p-3 flex flex-col flex-grow space-y-2">
+          {/* Product Name - Minimal */}
+          <h3 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight">
+            {name}
+          </h3>
+          
+          {/* Rating - Simplified */}
+          <div className="flex items-center gap-1">
+            <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {rating.toFixed(1)} ({reviewCount})
+            </span>
           </div>
           
-          {/* Add to Cart Button - pushed to bottom */}
-          <Button
-            onClick={handleAddToCart}
-            className="w-full h-8 text-xs bg-gradient-to-r from-navy-500 to-navy-600 hover:from-navy-600 hover:to-navy-700 text-white shadow-md hover:shadow-lg transition-all duration-200 mt-auto"
-          >
-            <ShoppingCart className="h-3 w-3 mr-1" />
-            Add to Cart
-          </Button>
-         </div>
-       </div>
-     </div>
-   );
+          {/* Price - Clean */}
+          <div className="flex items-center gap-2 mt-auto">
+            <span className="text-base font-bold text-gray-900 dark:text-white">
+              ${price ? price.toFixed(2) : '0.00'}
+            </span>
+            {originalPrice && originalPrice > (price || 0) && (
+              <span className="text-sm text-gray-500 line-through">
+                ${originalPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
+          
+          {/* Minimal Add to Cart - Only on hover */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              onClick={handleAddToCart}
+              size="sm"
+              className="w-full h-7 text-xs bg-navy-600 hover:bg-navy-700 text-white"
+            >
+              {t('addToCart')}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
  });
