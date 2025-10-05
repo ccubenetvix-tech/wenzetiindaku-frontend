@@ -1,11 +1,10 @@
-// Static admin authentication utility
-// This provides a simple way to authenticate admin users based on a static email
+// Admin authentication utility for backend integration
+// This provides a way to authenticate admin users through the backend API
 
 export const ADMIN_CONFIG = {
-  // Static admin email - this should be provided by the system administrator
-  ADMIN_EMAIL: 'admin@wenzetiindaku.com',
-  // You can add more admin emails here if needed
-  ADMIN_EMAILS: ['admin@wenzetiindaku.com', 'superadmin@wenzetiindaku.com']
+  // Backend admin credentials
+  ADMIN_EMAIL: 'wenzetiindaku@gmail.com',
+  ADMIN_EMAILS: ['wenzetiindaku@gmail.com']
 } as const;
 
 export interface AdminUser {
@@ -15,19 +14,13 @@ export interface AdminUser {
   permissions: string[];
 }
 
-// Mock admin user data - in a real app, this would come from a database
+// Admin user data - matches backend admin structure
 const ADMIN_USERS: Record<string, AdminUser> = {
-  'admin@wenzetiindaku.com': {
-    email: 'admin@wenzetiindaku.com',
+  'wenzetiindaku@gmail.com': {
+    email: 'wenzetiindaku@gmail.com',
     name: 'System Administrator',
     role: 'admin',
     permissions: ['manage_vendors', 'manage_products', 'view_analytics', 'manage_disputes']
-  },
-  'superadmin@wenzetiindaku.com': {
-    email: 'superadmin@wenzetiindaku.com',
-    name: 'Super Administrator',
-    role: 'superadmin',
-    permissions: ['*'] // All permissions
   }
 };
 

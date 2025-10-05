@@ -34,7 +34,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Use proxy in development, direct URL in production
+const API_BASE_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend.onrender.com/api');
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Use proxy in development, direct URL in production
+const API_BASE_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend.onrender.com/api');
 
 export class ApiClient {
   private baseURL: string;
@@ -127,6 +128,37 @@ export class ApiClient {
 
   async removeFromWishlist(productId: string) {
     return this.request(`/customer/wishlist/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Cart methods
+  async getCart() {
+    return this.request(`/cart`);
+  }
+
+  async addToCart(productId: string, quantity = 1) {
+    return this.request(`/cart`, {
+      method: 'POST',
+      body: JSON.stringify({ productId, quantity }),
+    });
+  }
+
+  async updateCartItem(itemId: string, quantity: number) {
+    return this.request(`/cart/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ quantity }),
+    });
+  }
+
+  async removeFromCart(itemId: string) {
+    return this.request(`/cart/${itemId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async clearCart() {
+    return this.request(`/cart`, {
       method: 'DELETE',
     });
   }

@@ -791,7 +791,7 @@ const AdminDashboard = () => {
                             </div>
                           </TableCell>
                         </TableRow>
-                      ) : filteredVendors.length === 0 ? (
+                      ) : vendors.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-12">
                             <div className="flex flex-col items-center justify-center space-y-3">
@@ -804,7 +804,7 @@ const AdminDashboard = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredVendors.map((vendor) => (
+                        vendors.map((vendor) => (
                           <TableRow key={vendor.id} className="hover:bg-gray-50 dark:hover:bg-navy-800/30 transition-colors">
                             <TableCell className="py-4">
                               <div className="flex items-center space-x-3">

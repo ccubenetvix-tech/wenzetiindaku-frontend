@@ -19,6 +19,7 @@ import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
 import { MinimalProductCard } from "@/components/MinimalProductCard";
 import { Footer } from "@/components/Footer";
+import ImageSlider from "@/components/ImageSlider";
 
 // Import data sources
 import { categories } from "@/data/categories";
@@ -29,6 +30,15 @@ const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [featuredStores, setFeaturedStores] = useState<any[]>([]);
+
+  // Hero slider images
+  const heroImages = [
+    "/one.svg",
+    "/two.svg", 
+    "/three.svg",
+    "/four.svg",
+    "/five.svg"
+  ];
 
   // Load featured stores
   useEffect(() => {
@@ -84,23 +94,17 @@ const Index = () => {
                 </div>
               </div>
               
-              {/* Right Content - Hero Banner */}
+              {/* Right Content - Hero Image Slider */}
               <div className="relative">
-                <div className="relative w-full h-[300px] lg:h-[400px] rounded-lg overflow-hidden shadow-lg">
-                  <img 
-                    src="/hero-marketplace.jpg" 
-                    alt="WENZE TII NDAKU Marketplace" 
-                    className="w-full h-full object-cover"
+                <div className="relative w-full h-[300px] lg:h-[400px] shadow-lg">
+                  <ImageSlider 
+                    images={heroImages}
+                    interval={2000}
+                    className="w-full h-full"
+                    showArrows={false}
+                    showDots={false}
+                    showCounter={false}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                  
-                  {/* Overlay content */}
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3">
-                      <div className="text-sm font-medium">Special Offer</div>
-                      <div className="text-lg font-bold">Up to 50% Off</div>
-                </div>
-                </div>
                 </div>
               </div>
             </div>

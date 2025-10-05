@@ -91,20 +91,20 @@ export function Header() {
   return (
     // Professional e-commerce header with clean design
     <header className="sticky top-0 z-50 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-navy-800 shadow-sm">
-      {/* Top utility bar - Less congestive */}
+      {/* Top utility bar - Professional */}
       <div className="bg-gray-50 dark:bg-navy-950 border-b border-gray-200 dark:border-navy-800">
-      <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-10 text-xs">
             <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
               <span className="hidden sm:inline">{t('freeShippingOnOrders')}</span>
               <span className="hidden md:inline text-gray-400">•</span>
               <span className="hidden md:inline">{t('customerSupport')}</span>
-              </div>
-            <div className="flex items-center space-x-6">
+            </div>
+            <div className="flex items-center space-x-4">
               {/* Language Selector - Compact */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-transparent">
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-gray-200 dark:hover:bg-navy-800 transition-colors">
                     <Globe className="h-3 w-3 mr-1" />
                     {currentLanguage.name}
                 </Button>
@@ -122,7 +122,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
               <span className="text-gray-400 hidden sm:inline">|</span>
-              <span className="text-gray-600 dark:text-gray-400 hidden sm:inline">{t('helpSupport')}</span>
+              <span className="text-gray-600 dark:text-gray-400 hidden sm:inline hover:text-navy-600 dark:hover:text-navy-300 cursor-pointer transition-colors">{t('helpSupport')}</span>
             </div>
           </div>
         </div>
@@ -130,9 +130,9 @@ export function Header() {
 
       {/* Main header */}
       <div className="container mx-auto px-4">
-        <div className="flex items-center h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo section - Professional and clean */}
-          <div className="flex-shrink-0 mr-6">
+          <div className="flex-shrink-0">
             <div 
               className="flex items-center cursor-pointer"
               onClick={() => navigate('/')}
@@ -150,8 +150,8 @@ export function Header() {
             </div>
           </div>
 
-          {/* Professional Search Bar - Amazon style */}
-          <div className="flex-1 max-w-2xl mx-4">
+          {/* Center section - Search Bar */}
+          <div className="flex-1 max-w-2xl mx-8">
             <form onSubmit={handleSearch} className="relative">
               <div className="flex">
                 <Input
@@ -171,13 +171,13 @@ export function Header() {
             </form>
           </div>
 
-          {/* Right section - Professional layout */}
-          <div className="flex items-center space-x-1">
+          {/* Right section - User Account & Cart */}
+          <div className="flex items-center space-x-2">
             {/* User Account */}
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2 h-10 px-3">
+                  <Button variant="ghost" className="flex items-center space-x-2 h-10 px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
                     <Avatar className="h-6 w-6">
                       <AvatarImage src={user.profilePhoto} alt={user.firstName || user.businessName} />
                       <AvatarFallback className="bg-navy-100 text-navy-600 text-xs">
@@ -217,7 +217,7 @@ export function Header() {
             ) : (
               <Button 
                 variant="ghost" 
-                className="flex items-center space-x-1 h-10 px-3"
+                className="flex items-center space-x-1 h-10 px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
                 onClick={() => setIsLoginModalOpen(true)}
               >
                 <User className="h-4 w-4" />
@@ -231,7 +231,7 @@ export function Header() {
             {/* Cart */}
             <Button 
               variant="ghost" 
-              className="relative flex items-center space-x-1 h-10 px-3"
+              className="relative flex items-center space-x-1 h-10 px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
               onClick={() => navigate('/cart')}
             >
               <ShoppingCart className="h-5 w-5" />
@@ -249,7 +249,7 @@ export function Header() {
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-10 w-10">
+                <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -311,7 +311,8 @@ export function Header() {
       {/* Navigation bar - Professional category navigation */}
       <div className="bg-navy-600 dark:bg-navy-700">
         <div className="container mx-auto px-4">
-          <div className="flex items-center h-10">
+          <div className="flex items-center justify-between h-10">
+            {/* Left side - Main navigation centered */}
             <nav className="flex items-center space-x-8 text-sm">
               {navigation.map((item) => (
                 <a
@@ -328,10 +329,14 @@ export function Header() {
               <a href="/stores" className="text-white hover:text-orange-300 transition-colors duration-200 font-medium">
                 {t('topStores')}
               </a>
+            </nav>
+            
+            {/* Right side - Become Seller */}
+            <div className="flex items-center">
               <a href="/vendor/register" className="text-orange-300 hover:text-orange-200 transition-colors duration-200 font-medium">
                 {t('becomeSeller')}
               </a>
-            </nav>
+            </div>
           </div>
         </div>
       </div>

@@ -15,9 +15,10 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://wenzetiindaku-backend.onrender.com',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },
   },
