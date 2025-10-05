@@ -5,11 +5,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { updateUser } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
@@ -42,36 +44,47 @@ const AuthCallback = () => {
           return;
         }
 
-        // Store the token and user data
+        // Store the token
         localStorage.setItem('auth_token', token);
         
         // Decode the token to get user info (basic decode, not verification)
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
-          const userData = {
-            id: payload.userId,
-            role: payload.role,
-            email: payload.email || 'user@example.com', // You might need to get this from the token or make an API call
-          };
           
-          localStorage.setItem('auth_user', JSON.stringify(userData));
-          
-          setStatus('success');
-          setMessage(isNewUser ? 'Welcome to WENZE TII NDAKU! Your account has been created successfully.' : 'Welcome back! You have been logged in successfully.');
-          
-          toast({
-            title: "Authentication Successful",
-            description: isNewUser ? "Welcome to WENZE TII NDAKU!" : "Welcome back!",
-          });
-
-          // Redirect to profile update page for new users, home for existing users
-          setTimeout(() => {
-            if (isNewUser) {
-              navigate('/update-profile');
-            } else {
-              navigate('/');
+          // Fetch complete user data from backend
+          const response = await fetch(`${import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend.onrender.com/api')}/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
-          }, 2000);
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            const user = userData.data.user;
+            
+            // Update auth context with complete user data
+            updateUser(user);
+            
+            setStatus('success');
+            setMessage(isNewUser ? 'Welcome to WENZE TII NDAKU! Your account has been created successfully.' : 'Welcome back! You have been logged in successfully.');
+            
+            toast({
+              title: "Authentication Successful",
+              description: isNewUser ? "Welcome to WENZE TII NDAKU!" : "Welcome back!",
+            });
+
+            // Redirect to profile update page for new users, home for existing users
+            setTimeout(() => {
+              if (isNewUser) {
+                navigate('/update-profile');
+              } else {
+                navigate('/');
+              }
+            }, 2000);
+          } else {
+            throw new Error('Failed to fetch user data');
+          }
 
         } catch (decodeError) {
           console.error('Error decoding token:', decodeError);
