@@ -1,0 +1,9 @@
+# Copy this content to create your .env file
+# This file is safe to commit to GitHub as it contains no sensitive data
+
+VITE_ENVIRONMENT=development
+VITE_LOCAL_BACKEND_URL=http://localhost:5000/api
+VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
+
+# Optional: Direct override (highest priority)
+# VITE_API_URL=http://localhost:5000/api

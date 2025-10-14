@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => ({
     port: 5173,        // Development server port
     proxy: {
       // Proxy API requests to the backend server
+      // This will only be used when VITE_ENVIRONMENT is not set to 'development'
       '/api': {
         target: 'https://wenzetiindaku-backend.onrender.com',
         changeOrigin: true,

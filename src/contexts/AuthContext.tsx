@@ -34,8 +34,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Use proxy in development, direct URL in production
-const API_BASE_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend.onrender.com/api');
+// Environment-based API URL configuration
+const getApiBaseUrl = () => {
+  // If VITE_API_URL is explicitly set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Check environment setting
+  const environment = import.meta.env.VITE_ENVIRONMENT || 'production';
+  
+  if (environment === 'development') {
+    // In development, use local backend
+    return import.meta.env.VITE_LOCAL_BACKEND_URL || 'http://localhost:5000/api';
+  } else {
+    // In production, use deployed backend
+    return import.meta.env.VITE_PRODUCTION_BACKEND_URL || 'https://wenzetiindaku-backend.onrender.com/api';
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
