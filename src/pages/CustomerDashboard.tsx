@@ -28,7 +28,9 @@ import {
   Trash2,
   Download,
   Share2,
-  HelpCircle
+  HelpCircle,
+  DollarSign,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +58,7 @@ export default function CustomerDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+
 
   // Mock data
   const userStats = {

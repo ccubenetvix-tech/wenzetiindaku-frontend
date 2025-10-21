@@ -17,7 +17,8 @@ import {
   Camera, 
   Save,
   ArrowLeft,
-  CheckCircle
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +31,24 @@ const UpdateProfile = () => {
   const [error, setError] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [dobError, setDobError] = useState('');
+
+  // Age validation function
+  const validateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return true; // Allow empty DOB
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
+      ? age - 1 
+      : age;
+    
+    return actualAge >= 18;
+  };
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -71,6 +90,15 @@ const UpdateProfile = () => {
       [name]: value
     }));
     if (error) setError('');
+    
+    // Validate DOB for age requirement
+    if (name === 'dateOfBirth') {
+      if (value && !validateAge(value)) {
+        setDobError('You must be at least 18 years old to use this service');
+      } else {
+        setDobError('');
+      }
+    }
   };
 
   const handleSelectChange = (value: string) => {
@@ -119,6 +147,13 @@ const UpdateProfile = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
+    // Validate DOB before saving
+    if (formData.dateOfBirth && !validateAge(formData.dateOfBirth)) {
+      setError('You must be at least 18 years old to use this service');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Validate required fields
@@ -355,9 +390,15 @@ const UpdateProfile = () => {
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={handleChange}
-                    className="pl-10 border-muted focus:border-primary focus:ring-primary"
+                    className={`pl-10 border-muted focus:border-primary focus:ring-primary ${dobError ? 'border-red-500' : ''}`}
                   />
                 </div>
+                {dobError && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    {dobError}
+                  </p>
+                )}
               </div>
 
               {/* Address */}
@@ -379,7 +420,7 @@ const UpdateProfile = () => {
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isLoading || !formData.gender || !formData.address || !formData.phoneNumber || !formData.dateOfBirth}
+                disabled={isLoading || !formData.gender || !formData.address || !formData.phoneNumber || !formData.dateOfBirth || !!dobError}
                 className="w-full gradient-primary hover:from-blue-700 hover:to-blue-800 text-white py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (

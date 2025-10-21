@@ -153,6 +153,9 @@ export default function VendorDashboard() {
     image_url: '',
     status: 'active'
   });
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [productImagePreview, setProductImagePreview] = useState<string>('');
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
 
   // Check authentication and redirect if needed
   useEffect(() => {
@@ -284,9 +287,23 @@ export default function VendorDashboard() {
     }
   }, [activeTab, orderStatusFilter, isAuthenticated, user]);
 
+  // Handle product image upload
+  const handleProductImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProductImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProductImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Product form handlers
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsCreatingProduct(true);
     
     try {
       const data = editingProduct 
@@ -310,6 +327,8 @@ export default function VendorDashboard() {
           image_url: '',
           status: 'active'
         });
+        setProductImage(null);
+        setProductImagePreview('');
         
         // Refresh products list and dashboard statistics
         const statusFilter = productStatusFilter === 'all' ? '' : productStatusFilter;
@@ -329,6 +348,8 @@ export default function VendorDashboard() {
         description: "Network error. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsCreatingProduct(false);
     }
   };
 
@@ -469,11 +490,24 @@ export default function VendorDashboard() {
               >
                 ← Back to Store
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vendor Dashboard</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Welcome back, {vendor?.businessName || user?.businessName || 'Vendor'}
-                </p>
+              <div className="flex items-center space-x-3">
+                {vendor?.profilePhoto || user?.profilePhoto ? (
+                  <img
+                    src={vendor?.profilePhoto || user?.profilePhoto}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20 rounded-full flex items-center justify-center">
+                    <Store className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vendor Dashboard</h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Welcome back, {vendor?.businessName || user?.businessName || 'Vendor'}
+                  </p>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -806,7 +840,22 @@ export default function VendorDashboard() {
                         ) : (
                           products.map((product) => (
                             <TableRow key={product.id}>
-                              <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center space-x-3">
+                                  {(product.image || (product.images && product.images.length > 0)) ? (
+                                    <img
+                                      src={product.image || product.images[0]}
+                                      alt={product.name}
+                                      className="w-10 h-10 rounded-lg object-cover border"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                      <Package className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                  )}
+                                  <span>{product.name}</span>
+                                </div>
+                              </TableCell>
                               <TableCell>{product.category}</TableCell>
                               <TableCell>${product.price}</TableCell>
                               <TableCell>{product.stock}</TableCell>
@@ -1036,20 +1085,56 @@ export default function VendorDashboard() {
               </div>
             </div>
             <div>
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
-                value={productForm.image_url}
-                onChange={(e) => setProductForm(prev => ({ ...prev, image_url: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-              />
+              <Label htmlFor="product_image">Product Image</Label>
+              <div className="space-y-2">
+                {productImagePreview || productForm.image_url ? (
+                  <div className="relative w-32 h-32">
+                    <img
+                      src={productImagePreview || productForm.image_url}
+                      alt="Product preview"
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                  </div>
+                ) : null}
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => document.getElementById('product-image-upload')?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {productImagePreview || productForm.image_url ? 'Change Image' : 'Upload Image'}
+                  </Button>
+                  <input
+                    id="product-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProductImageUpload}
+                    className="hidden"
+                  />
+                  {productImagePreview && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setProductImage(null);
+                        setProductImagePreview('');
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowProductDialog(false)}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingProduct ? 'Update Product' : 'Create Product'}
+              <Button type="submit" disabled={isCreatingProduct}>
+                {isCreatingProduct ? 'Creating...' : editingProduct ? 'Update Product' : 'Create Product'}
               </Button>
             </DialogFooter>
           </form>

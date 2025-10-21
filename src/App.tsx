@@ -29,6 +29,7 @@ import Cart from "./pages/Cart";                      // Shopping cart page
 import Checkout from "./pages/Checkout";              // Checkout and payment page
 import Profile from "./pages/Profile";                // User profile management
 import CustomerProfile from "./pages/CustomerProfile"; // Customer profile management
+import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
 import VendorProfile from "./pages/VendorProfile";     // Vendor profile management
 import SearchResults from "./pages/SearchResults";    // Search results page
 
@@ -37,6 +38,7 @@ import About from "./pages/About";                    // About the marketplace
 import Contact from "./pages/Contact";                // Contact information and form
 import PrivacyPolicy from "./pages/PrivacyPolicy";    // Privacy policy page
 import TermsOfService from "./pages/TermsOfService";  // Terms of service page
+import VendorTerms from "./pages/VendorTerms";        // Vendor terms page
 import CookiePolicy from "./pages/CookiePolicy";      // Cookie policy page
 import HelpCenter from "./pages/HelpCenter";          // Help and support center
 import FAQs from "./pages/FAQs";                      // Frequently asked questions
@@ -101,6 +103,7 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />                          {/* Contact page */}
               <Route path="/privacy" element={<PrivacyPolicy />} />                    {/* Privacy policy */}
               <Route path="/terms" element={<TermsOfService />} />                     {/* Terms of service */}
+              <Route path="/vendor-terms" element={<VendorTerms />} />                 {/* Vendor terms */}
               <Route path="/cookies" element={<CookiePolicy />} />                     {/* Cookie policy */}
               <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
               <Route path="/faqs" element={<FAQs />} />                                {/* FAQ page */}
@@ -117,6 +120,7 @@ const App = () => (
               <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
               
               {/* Dashboard routes */}
+              <Route path="/customer/dashboard" element={<CustomerDashboard />} />     {/* Customer dashboard */}
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />         {/* Vendor dashboard */}
               {/* Admin dashboard with route protection */}
               <Route path="/admin/dashboard" element={

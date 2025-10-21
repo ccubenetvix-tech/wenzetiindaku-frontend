@@ -563,7 +563,7 @@ const VendorRegister = () => {
                     />
                     <Label htmlFor="agreeToVendorTerms" className="text-sm text-muted-foreground">
                       I agree to the{" "}
-                      <Link to="/vendor/terms" className="text-orange-600 hover:text-orange-700 underline">
+                      <Link to="/vendor-terms" className="text-orange-600 hover:text-orange-700 underline">
                         Vendor Agreement
                       </Link>{" "}
                       and understand my responsibilities as a vendor

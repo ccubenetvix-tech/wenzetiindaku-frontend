@@ -1,6 +1,16 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Global auth state management for API client
+let authState: { 
+  clearAuth: () => void; 
+  redirectToLogin: () => void; 
+} | null = null;
+
+export const setAuthState = (state: typeof authState) => {
+  authState = state;
+};
+
 // Environment-based API URL configuration
 const getApiBaseUrl = () => {
   // If VITE_API_URL is explicitly set, use it
@@ -70,6 +80,21 @@ export class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle token expiration
+        if (response.status === 401) {
+          console.log('Token expired, clearing auth state');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          localStorage.removeItem('adminToken');
+          
+          // Use auth state if available, otherwise fallback to window redirect
+          if (authState) {
+            authState.clearAuth();
+            authState.redirectToLogin();
+          } else {
+            window.location.href = '/customer/login';
+          }
+        }
         throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
       }
 
@@ -147,6 +172,35 @@ export class ApiClient {
   async removeFromWishlist(productId: string) {
     return this.request(`/customer/wishlist/${productId}`, {
       method: 'DELETE',
+    });
+  }
+
+  async deleteCustomerAccount(confirmation: string): Promise<{ success: boolean; message?: string; error?: { message: string } }> {
+    return this.request(`/customer/delete-account`, {
+      method: 'DELETE',
+      body: JSON.stringify({ confirmation }),
+    });
+  }
+
+  async fixRegistrationMethod(registrationMethod: 'google' | 'email'): Promise<{ success: boolean; message?: string; error?: { message: string } }> {
+    return this.request(`/customer/fix-registration-method`, {
+      method: 'POST',
+      body: JSON.stringify({ registrationMethod }),
+    });
+  }
+
+  // Vendor uploads
+  async uploadVendorProfilePhoto(fileBase64: string, fileName: string): Promise<{ success: boolean; data?: { url: string } }> {
+    return this.request(`/vendor/profile/photo`, {
+      method: 'POST',
+      body: JSON.stringify({ fileBase64, fileName })
+    });
+  }
+
+  async uploadProductImage(productId: string, fileBase64: string, fileName: string): Promise<{ success: boolean; data?: { url: string } }> {
+    return this.request(`/vendor/products/${productId}/image`, {
+      method: 'POST',
+      body: JSON.stringify({ fileBase64, fileName })
     });
   }
 

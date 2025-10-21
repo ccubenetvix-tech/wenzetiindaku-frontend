@@ -44,7 +44,7 @@ const SearchResults = () => {
     // Filter by search query
     const searchQuery = refineSearch || query;
     if (searchQuery) {
-      filtered = filterBySearch(filtered, searchQuery);
+      filtered = filterBySearch(filtered, searchQuery, ['name', 'description', 'category', 'vendor']);
     }
 
     // Filter by category
@@ -318,8 +318,8 @@ const SearchResults = () => {
                       <h3 className="text-xl font-semibold mb-2">No products found</h3>
                       <p className="text-sm">
                         {query 
-                          ? `No products found for "${query}"${selectedLocation ? ` in ${selectedLocation.name}` : ''}.`
-                          : `No products available${selectedLocation ? ` in ${selectedLocation.name}` : ''} at the moment.`
+                          ? `No products found for "${query}".`
+                          : `No products available at the moment.`
                         }
                       </p>
                     </div>

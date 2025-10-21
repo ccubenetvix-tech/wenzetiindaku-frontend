@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { setAuthState } from '../utils/api';
 
 interface User {
   id: string;
@@ -16,6 +17,19 @@ interface User {
   dateOfBirth?: string;
   profile_completed?: boolean;
   createdAt: string;
+  registrationMethod?: 'google' | 'email';
+  // Vendor-specific properties
+  businessEmail?: string;
+  businessPhone?: string;
+  businessWebsite?: string;
+  businessAddress?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  businessType?: string;
+  description?: string;
+  categories?: string[];
 }
 
 interface AuthContextType {
@@ -93,7 +107,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             },
           });
 
-          if (!response.ok) {
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Auth initialization - User data received:', data);
+            if (data.success) {
+              setUser(data.data.user);
+            }
+          } else {
             // Token is invalid, clear auth state
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_user');
@@ -133,6 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         })
           .then(response => response.json())
           .then(data => {
+            console.log('Google callback - User data received:', data);
             if (data.success) {
               setToken(token);
               setUser(data.data.user);
@@ -279,6 +300,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('auth_user');
     window.location.href = '/';
   };
+
+  const redirectToLogin = () => {
+    window.location.href = '/customer/login';
+  };
+
+  // Set up auth state for API client
+  useEffect(() => {
+    setAuthState({
+      clearAuth: logout,
+      redirectToLogin: redirectToLogin
+    });
+  }, []);
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {

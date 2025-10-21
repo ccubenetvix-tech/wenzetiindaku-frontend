@@ -193,19 +193,13 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/dashboard' : '/vendor/dashboard')}>
+                    <User className="mr-2 h-4 w-4" />
+                    {user.role === 'customer' ? t('My Dashboard') : t('Dashboard')}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/profile' : '/vendor/profile')}>
                     <User className="mr-2 h-4 w-4" />
                     {t('myProfile')}
-                  </DropdownMenuItem>
-                  {user.role === 'vendor' && (
-                    <DropdownMenuItem onClick={() => navigate('/vendor/dashboard')}>
-                      <Store className="mr-2 h-4 w-4" />
-                      {t('sellerDashboard')}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => navigate('/settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    {t('settings')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-red-600">
@@ -280,27 +274,29 @@ export function Header() {
                     ))}
                   </nav>
 
-                  {/* Mobile Auth Options */}
-                  <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
-                    <div className="space-y-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate('/customer/login')}
-                        className="w-full justify-start"
-                      >
-                        <LogIn className="mr-2 h-4 w-4" />
-                        {t('customerLogin')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate('/vendor/login')}
-                        className="w-full justify-start"
-                      >
-                        <Store className="mr-2 h-4 w-4" />
-                        {t('sellerLogin')}
-                      </Button>
+                  {/* Mobile Auth Options - Only show if not authenticated */}
+                  {!isAuthenticated && (
+                    <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate('/customer/login')}
+                          className="w-full justify-start"
+                        >
+                          <LogIn className="mr-2 h-4 w-4" />
+                          {t('customerLogin')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate('/vendor/login')}
+                          className="w-full justify-start"
+                        >
+                          <Store className="mr-2 h-4 w-4" />
+                          {t('sellerLogin')}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
@@ -331,12 +327,14 @@ export function Header() {
               </a>
             </nav>
             
-            {/* Right side - Become Seller */}
-            <div className="flex items-center">
-              <a href="/vendor/register" className="text-orange-300 hover:text-orange-200 transition-colors duration-200 font-medium">
-                {t('becomeSeller')}
-              </a>
-            </div>
+            {/* Right side - Become Seller - Only show if not authenticated or not a vendor */}
+            {(!isAuthenticated || (isAuthenticated && user?.role !== 'vendor')) && (
+              <div className="flex items-center">
+                <a href="/vendor/register" className="text-orange-300 hover:text-orange-200 transition-colors duration-200 font-medium">
+                  {t('becomeSeller')}
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

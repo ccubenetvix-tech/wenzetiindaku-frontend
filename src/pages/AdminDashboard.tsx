@@ -163,6 +163,7 @@ const AdminDashboard = () => {
   const [isRedMarkModalOpen, setIsRedMarkModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [redMarkReason, setRedMarkReason] = useState('');
+  const [isVendorActionLoading, setIsVendorActionLoading] = useState(false);
   
   // Form state
   const [vendorForm, setVendorForm] = useState<Partial<Vendor>>({});
@@ -274,6 +275,7 @@ const AdminDashboard = () => {
 
   // Handle vendor actions
   const handleApproveVendor = async (vendorId: string) => {
+    setIsVendorActionLoading(true);
     try {
       const response = await apiClient.approveVendor(vendorId);
       if (response.success) {
@@ -292,10 +294,13 @@ const AdminDashboard = () => {
         description: "Failed to approve vendor",
         variant: "destructive",
       });
+    } finally {
+      setIsVendorActionLoading(false);
     }
   };
 
   const handleRejectVendor = async (vendorId: string) => {
+    setIsVendorActionLoading(true);
     try {
       const response = await apiClient.rejectVendor(vendorId, rejectionReason);
       if (response.success) {
@@ -315,6 +320,8 @@ const AdminDashboard = () => {
         description: "Failed to reject vendor",
         variant: "destructive",
       });
+    } finally {
+      setIsVendorActionLoading(false);
     }
   };
 
@@ -343,6 +350,7 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteVendor = async (vendorId: string) => {
+    setIsVendorActionLoading(true);
     try {
       const response = await apiClient.deleteVendor(vendorId);
       if (response.success) {
@@ -361,6 +369,8 @@ const AdminDashboard = () => {
         description: "Failed to delete vendor",
         variant: "destructive",
       });
+    } finally {
+      setIsVendorActionLoading(false);
     }
   };
 
@@ -808,11 +818,19 @@ const AdminDashboard = () => {
                           <TableRow key={vendor.id} className="hover:bg-gray-50 dark:hover:bg-navy-800/30 transition-colors">
                             <TableCell className="py-4">
                               <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-navy-600 rounded-lg flex items-center justify-center">
-                                  <span className="text-sm font-bold text-white">
-                                    {vendor.business_name.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
+                                {vendor.profile_photo ? (
+                                  <img
+                                    src={vendor.profile_photo}
+                                    alt={vendor.business_name}
+                                    className="w-10 h-10 rounded-lg object-cover border"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 bg-navy-600 rounded-lg flex items-center justify-center">
+                                    <span className="text-sm font-bold text-white">
+                                      {vendor.business_name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
                                 <div>
                                   <div className="font-medium text-gray-900 dark:text-gray-100">{vendor.business_name}</div>
                                   <div className="text-sm text-gray-500 dark:text-gray-400">{vendor.business_type}</div>
@@ -1007,7 +1025,22 @@ const AdminDashboard = () => {
                       ) : (
                         products.map((product) => (
                           <TableRow key={product.id}>
-                            <TableCell className="font-medium">{product.name}</TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center space-x-3">
+                                {(product.image || (product.images && product.images.length > 0)) ? (
+                                  <img
+                                    src={product.image || product.images[0]}
+                                    alt={product.name}
+                                    className="w-12 h-12 rounded-lg object-cover border"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <Package className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                                <span>{product.name}</span>
+                              </div>
+                            </TableCell>
                             <TableCell>
                               <div>
                                 <div className="font-medium">{product.vendor.business_name}</div>
@@ -1139,7 +1172,22 @@ const AdminDashboard = () => {
                         customers.map((customer) => (
                           <TableRow key={customer.id}>
                             <TableCell className="font-medium">
-                              {customer.first_name} {customer.last_name}
+                              <div className="flex items-center space-x-3">
+                                {customer.profile_photo ? (
+                                  <img
+                                    src={customer.profile_photo}
+                                    alt={`${customer.first_name} ${customer.last_name}`}
+                                    className="w-8 h-8 rounded-full object-cover border"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-bold text-white">
+                                      {customer.first_name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
+                                <span>{customer.first_name} {customer.last_name}</span>
+                              </div>
                             </TableCell>
                             <TableCell>{customer.email}</TableCell>
                             <TableCell>{customer.phone_number || 'N/A'}</TableCell>
@@ -1246,8 +1294,11 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setIsApproveModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => selectedVendor && handleApproveVendor(selectedVendor.id)}>
-              Approve Vendor
+            <Button 
+              onClick={() => selectedVendor && handleApproveVendor(selectedVendor.id)}
+              disabled={isVendorActionLoading}
+            >
+              {isVendorActionLoading ? "Approving..." : "Approve Vendor"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1280,9 +1331,9 @@ const AdminDashboard = () => {
             <Button 
               variant="destructive" 
               onClick={() => selectedVendor && handleRejectVendor(selectedVendor.id)}
-              disabled={!rejectionReason.trim()}
+              disabled={!rejectionReason.trim() || isVendorActionLoading}
             >
-              Reject Vendor
+              {isVendorActionLoading ? "Rejecting..." : "Reject Vendor"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1314,8 +1365,9 @@ const AdminDashboard = () => {
                   handleDeleteCustomer(selectedCustomer.id);
                 }
               }}
+              disabled={isVendorActionLoading}
             >
-              Delete
+              {isVendorActionLoading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1462,6 +1514,20 @@ const AdminDashboard = () => {
           </DialogHeader>
           {selectedProduct && (
             <div className="space-y-4">
+              {/* Product Image */}
+              <div className="flex justify-center">
+                {(selectedProduct.image || (selectedProduct.images && selectedProduct.images.length > 0)) ? (
+                  <img
+                    src={selectedProduct.image || selectedProduct.images[0]}
+                    alt={selectedProduct.name}
+                    className="w-32 h-32 rounded-lg object-cover border"
+                  />
+                ) : (
+                  <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <Package className="h-12 w-12 text-gray-400" />
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Product Name</Label>
