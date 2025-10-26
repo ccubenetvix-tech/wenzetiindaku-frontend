@@ -18,7 +18,7 @@
  */
 
 // Import React hooks and utilities
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom"; // For accessing URL parameters
 import { useTranslation } from "react-i18next"; // For internationalization support
 
@@ -37,6 +37,7 @@ import { Footer } from "@/components/Footer";    // Site footer
 import { Button } from "@/components/ui/button"; // Reusable button component
 import { Input } from "@/components/ui/input";   // Input field component
 import { ProductCard } from "@/components/ProductCard"; // Product card component
+import { apiClient } from "@/utils/api"; // API client for dynamic data
 
 // Import Select components for sorting functionality
 import {
@@ -68,45 +69,82 @@ const Store = () => {
   
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Dynamic store and products state
+  const [store, setStore] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sample store data - In production, this would be fetched from API
-  const store = {
-    id: storeId || "1", // Use storeId from URL or default to "1"
-    name: "AfriBeauty Store",
-    description: "Premium African beauty products made with natural ingredients",
-    rating: 4.8,
-    reviewCount: 156,
-    totalProducts: 89,
-    joinedDate: "2022",
-    location: "Lagos, Nigeria",
-    banner: "/marketplace.jpeg"
-  };
+  // Load store data
+  useEffect(() => {
+    const loadStoreData = async () => {
+      if (!storeId) {
+        setError("Store ID not found");
+        setIsLoading(false);
+        return;
+      }
 
-  // Sample products from this store - In production, this would be fetched from API
-  const products = [
-    {
-      id: "1",
-      name: "Premium African Shea Butter Face Cream",
-      price: 24.99,
-      originalPrice: 34.99,
-      rating: 4.8,
-      reviewCount: 127,
-      image: "/marketplace.jpeg",
-      vendor: store.name,
-      isNew: true,
-      isFeatured: true,
-    },
-    {
-      id: "2", 
-      name: "Organic Face Moisturizer",
-      price: 19.99,
-      rating: 4.6,
-      reviewCount: 89,
-      image: "/marketplace.jpeg",
-      vendor: store.name,
-    },
-    // Add more products...
-  ];
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Load vendor data
+        const vendorResponse = await apiClient.getVendorById(storeId);
+        
+        if (vendorResponse.success) {
+          const vendor = vendorResponse.data.vendor;
+          
+          // Transform vendor data to store format
+          const storeData = {
+            id: vendor.id,
+            name: vendor.business_name || vendor.businessName || 'Unknown Store',
+            description: vendor.description || 'No description available',
+            rating: 4.5, // Default rating
+            reviewCount: 0, // Default review count
+            totalProducts: 0, // Will be updated when products are loaded
+            joinedDate: new Date(vendor.createdAt).getFullYear().toString(),
+            location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
+            banner: "/marketplace.jpeg"
+          };
+          
+          setStore(storeData);
+
+          // Load products from this vendor
+          const productsResponse = await apiClient.getAllProducts({
+            vendor_id: storeId
+          });
+          
+          if (productsResponse.success) {
+            const vendorProducts = (productsResponse.data.products || []).map((product: any) => ({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              originalPrice: product.original_price,
+              rating: product.rating || 0,
+              reviewCount: product.review_count || 0,
+              image: product.images?.[0] || product.image || "/marketplace.jpeg",
+              vendor: storeData.name,
+              isNew: product.is_new || false,
+              isFeatured: product.is_featured || false,
+            }));
+            
+            setProducts(vendorProducts);
+            setStore(prev => ({ ...prev, totalProducts: vendorProducts.length }));
+          }
+        } else {
+          setError("Store not found");
+        }
+      } catch (error) {
+        console.error('Error loading store data:', error);
+        setError("Failed to load store data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStoreData();
+  }, [storeId]);
 
   // Filter products based on search query
   const filteredProducts = useMemo(() => {
@@ -120,6 +158,40 @@ const Store = () => {
       product.vendor.toLowerCase().includes(query)
     );
   }, [products, searchQuery]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading store...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !store) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              {error || "Store Not Found"}
+            </h1>
+            <Button onClick={() => window.history.back()}>Go Back</Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     // Main page container with full height and flex layout

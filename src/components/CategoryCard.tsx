@@ -3,9 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { memo } from "react";
 
 interface CategoryCardProps {
-  name: string;
-  href: string;
-  description?: string;
+  category: {
+    name: string;
+    href: string;
+    description?: string;
+    productCount?: number;
+  };
+  index?: number;
 }
 
 // Function to get the appropriate image for each category
@@ -243,12 +247,12 @@ const getCategoryColors = (categoryName: string) => {
   };
 };
 
-export const CategoryCard = memo(function CategoryCard({ name, href }: CategoryCardProps) {
+export const CategoryCard = memo(function CategoryCard({ category, index }: CategoryCardProps) {
   const navigate = useNavigate();
-  const categoryImage = getCategoryImage(name);
+  const categoryImage = getCategoryImage(category.name);
 
   const handleClick = () => {
-    navigate(href);
+    navigate(category.href);
   };
 
   return (
@@ -262,21 +266,35 @@ export const CategoryCard = memo(function CategoryCard({ name, href }: CategoryC
           <div className="relative h-12 w-12 rounded-lg bg-gray-100 dark:bg-navy-800 overflow-hidden">
                <img 
                  src={categoryImage} 
-                 alt={name}
+                 alt={category.name}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                  onError={(e) => {
                    const target = e.target as HTMLImageElement;
                    target.style.display = 'none';
-                target.parentElement!.innerHTML = `<div class="h-full w-full bg-navy-600 flex items-center justify-center"><span class="text-sm font-bold text-white">${name[0]}</span></div>`;
+                target.parentElement!.innerHTML = `<div class="h-full w-full bg-navy-600 flex items-center justify-center"><span class="text-sm font-bold text-white">${category.name[0]}</span></div>`;
               }}
             />
              </div>
            </div>
            
         {/* Category name */}
-        <h3 className="font-medium text-sm text-gray-900 dark:text-white leading-tight">
-             {name}
+        <h3 className="font-medium text-sm text-gray-900 dark:text-white leading-tight mb-1">
+             {category.name}
            </h3>
+           
+        {/* Category description */}
+        {category.description && (
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+            {category.description}
+          </p>
+        )}
+        
+        {/* Product count */}
+        {category.productCount !== undefined && (
+          <p className="text-xs text-primary font-medium">
+            {category.productCount} products
+          </p>
+        )}
       </CardContent>
     </Card>
   );

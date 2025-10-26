@@ -11,7 +11,7 @@
 import { useState, useEffect, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Star, TrendingUp, Users, ShoppingBag, Shield, Truck } from "lucide-react";
+import { ArrowRight, Star, TrendingUp, Users, ShoppingBag, Shield, Truck, Loader2 } from "lucide-react";
 
 // Import UI components
 import { Button } from "@/components/ui/button";
@@ -22,14 +22,15 @@ import { Footer } from "@/components/Footer";
 import ImageSlider from "@/components/ImageSlider";
 
 // Import data sources
-import { categories } from "@/data/categories";
-import { featuredProducts } from "@/data/products";
-import { getFeaturedStores } from "@/data/stores";
+import { predefinedCategories } from "@/data/categories";
+import { apiClient } from "@/utils/api";
 
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [featuredStores, setFeaturedStores] = useState<any[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   // Hero slider images
   const heroImages = [
@@ -44,13 +45,57 @@ const Index = () => {
   useEffect(() => {
     const loadStores = async () => {
       try {
-        const stores = await getFeaturedStores();
-        setFeaturedStores(stores);
+        const response = await apiClient.getAllVendors() as any;
+        if (response.success) {
+          // Transform vendor data to store format and take first 3 as featured
+          const transformedStores = response.data.vendors.slice(0, 3).map((vendor: any) => ({
+            id: vendor.id,
+            name: vendor.business_name || vendor.businessName || 'Unknown Store',
+            description: vendor.description || 'No description available',
+            rating: 4.5, // Default rating
+            reviewCount: 0, // Default review count
+            productCount: 0, // Will be updated when products are loaded
+            location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
+            image: "/marketplace.jpeg", // Default image
+            categories: vendor.categories || [],
+            featured: vendor.featured || false,
+            verified: vendor.verified || false,
+            followers: 0, // Default followers
+            shipping: "Standard shipping",
+            returnPolicy: "30-day returns",
+            specialties: vendor.categories || []
+          }));
+          setFeaturedStores(transformedStores);
+        }
       } catch (error) {
         console.error('Error loading featured stores:', error);
+        setFeaturedStores([]);
       }
     };
     loadStores();
+  }, []);
+
+  // Load featured products from API
+  useEffect(() => {
+    const loadFeaturedProducts = async () => {
+      try {
+        setIsLoadingProducts(true);
+        const response = await apiClient.getFeaturedProducts(undefined, 12) as any;
+        if (response.success) {
+          setFeaturedProducts(response.data.products || []);
+        } else {
+          console.error('Error loading featured products:', response.error);
+          setFeaturedProducts([]);
+        }
+      } catch (error) {
+        console.error('Error loading featured products:', error);
+        setFeaturedProducts([]);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+
+    loadFeaturedProducts();
   }, []);
 
 
@@ -170,12 +215,16 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {categories.slice(0, 6).map((category, index) => (
+              {predefinedCategories.slice(0, 6).map((category, index) => (
                 <div key={index} className="group">
                   <CategoryCard
-                    name={category.name}
-                    href={category.href}
-                    description={category.description}
+                    category={{
+                      name: category.name,
+                      href: `/category/${category.id}`,
+                      description: category.description,
+                      productCount: 0
+                    }}
+                    index={index}
                   />
                 </div>
               ))}
@@ -216,17 +265,43 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {featuredProducts.slice(0, 12).map((product) => (
-                <div key={product.id} className="group">
-                  <MinimalProductCard
-                    product={product}
-                    onWishlistToggle={() => {}}
-                    onAddToCart={() => {}}
-                  />
+            {isLoadingProducts ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
+              </div>
+            ) : featuredProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {featuredProducts.map((product) => (
+                  <div key={product.id} className="group">
+                    <MinimalProductCard
+                      product={{
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        originalPrice: product.original_price,
+                        rating: product.rating || 0,
+                        reviewCount: product.review_count || 0,
+                        image: product.images?.[0] || product.image || "/marketplace.jpeg",
+                        vendor: product.vendor?.business_name || "Unknown Vendor",
+                        isNew: product.is_new || false,
+                        isFeatured: product.is_featured || false
+                      }}
+                      onWishlistToggle={() => {}}
+                      onAddToCart={() => {}}
+                    />
                   </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Products Available</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  No vendors have added products yet. Check back later for amazing products!
+                </p>
+              </div>
+            )}
             
             <div className="text-center mt-8 md:hidden">
               <Button 

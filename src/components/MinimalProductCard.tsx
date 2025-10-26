@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
   id: string;
@@ -49,6 +50,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
 
   const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
@@ -61,6 +63,38 @@ export const MinimalProductCard = memo(function MinimalProductCard({
 
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking add to cart
+    
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add items to your cart.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+    
+    // Check if user is a vendor (vendors cannot add to cart)
+    if (user?.role === 'vendor') {
+      toast({
+        title: "Not Available",
+        description: "Vendors cannot add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Only customers can add to cart
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Access Denied",
+        description: "Only customers can add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     addToCart({
       id,
       name,
@@ -73,7 +107,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       title: "Added to cart",
       description: `${name} has been added to your cart.`,
     });
-  }, [addToCart, toast, id, name, price, image, vendor]);
+  }, [addToCart, toast, id, name, price, image, vendor, isAuthenticated, user, navigate]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -162,9 +196,21 @@ export const MinimalProductCard = memo(function MinimalProductCard({
             <Button
               onClick={handleAddToCart}
               size="sm"
-              className="w-full h-7 text-xs bg-navy-600 hover:bg-navy-700 text-white"
+              className={`w-full h-7 text-xs ${
+                !isAuthenticated 
+                  ? 'bg-gray-400 hover:bg-gray-500 text-white' 
+                  : user?.role === 'vendor'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  : 'bg-navy-600 hover:bg-navy-700 text-white'
+              }`}
+              disabled={user?.role === 'vendor'}
             >
-              {t('addToCart')}
+              {!isAuthenticated 
+                ? 'Login to Add' 
+                : user?.role === 'vendor'
+                ? '.'
+                : t('addToCart')
+              }
             </Button>
           </div>
         </div>

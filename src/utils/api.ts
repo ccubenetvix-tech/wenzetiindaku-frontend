@@ -63,7 +63,15 @@ export class ApiClient {
     const adminToken = localStorage.getItem('adminToken');
     const userToken = this.token || localStorage.getItem('auth_token');
     
-    if (adminToken) {
+    // For vendor routes, prioritize user token over admin token
+    const isVendorRoute = endpoint.includes('/vendor/');
+    
+    if (isVendorRoute && userToken) {
+      config.headers = {
+        ...config.headers,
+        'Authorization': `Bearer ${userToken}`,
+      };
+    } else if (adminToken) {
       config.headers = {
         ...config.headers,
         'Authorization': `Bearer ${adminToken}`,
@@ -468,6 +476,15 @@ export class ApiClient {
       method: 'PUT',
       body: JSON.stringify({ reason }),
     });
+  }
+
+  // Public vendor methods
+  async getAllVendors() {
+    return this.request('/products/vendors');
+  }
+
+  async getVendorById(vendorId: string) {
+    return this.request(`/products/vendors/${vendorId}`);
   }
 }
 

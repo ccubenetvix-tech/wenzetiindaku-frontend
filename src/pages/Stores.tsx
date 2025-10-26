@@ -41,7 +41,8 @@ import { Header } from "@/components/Header";    // Site header with navigation
 import { Footer } from "@/components/Footer";    // Site footer
 
 // Import data sources
-import { stores } from "@/data/stores"; // Static stores data
+import { apiClient } from "@/utils/api"; // API client for dynamic data
+import { useState as useStateHook, useEffect } from "react"; // React hooks
 
 /**
  * Stores Component - Stores Listing Page
@@ -63,20 +64,64 @@ export default function Stores() {
   
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Dynamic stores state
+  const [dynamicStores, setDynamicStores] = useStateHook<any[]>([]);
+  const [isLoading, setIsLoading] = useStateHook(true);
+
+  // Load vendors from API
+  useEffect(() => {
+    const loadVendors = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiClient.getAllVendors() as any;
+        
+        if (response.success) {
+          // Transform vendor data to store format
+          const transformedStores = response.data.vendors.map((vendor: any) => ({
+            id: vendor.id,
+            name: vendor.business_name || vendor.businessName || 'Unknown Store',
+            description: vendor.description || 'No description available',
+            rating: 4.5, // Default rating
+            reviewCount: 0, // Default review count
+            productCount: 0, // Will be updated when products are loaded
+            location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
+            image: "/marketplace.jpeg", // Default image
+            categories: vendor.categories || [],
+            featured: vendor.featured || false,
+            verified: vendor.verified || false,
+            followers: 0, // Default followers
+            shipping: "Standard shipping",
+            returnPolicy: "30-day returns",
+            specialties: vendor.categories || []
+          }));
+          
+          setDynamicStores(transformedStores);
+        }
+      } catch (error) {
+        console.error('Error loading vendors:', error);
+        setDynamicStores([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadVendors();
+  }, []);
 
   // Filter stores based on search query
   const filteredStores = useMemo(() => {
     if (!searchQuery.trim()) {
-      return stores;
+      return dynamicStores;
     }
     
     const query = searchQuery.toLowerCase();
-    return stores.filter(store => 
+    return dynamicStores.filter(store => 
       store.name.toLowerCase().includes(query) ||
       store.description.toLowerCase().includes(query) ||
       store.location.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, dynamicStores]);
 
   return (
     // Main page container with full height and flex layout
@@ -159,8 +204,17 @@ export default function Stores() {
         {/* Stores Grid Section - Main content area */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            {/* Stores grid with responsive columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Loading state */}
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading stores...</p>
+                </div>
+              </div>
+            ) : (
+              /* Stores grid with responsive columns */
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Map through stores array and render store card for each */}
               {filteredStores.map((store) => (
                 <div key={store.id} className="card card-hover p-6">
@@ -324,7 +378,8 @@ export default function Stores() {
                   </Button>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </section>
       </main>

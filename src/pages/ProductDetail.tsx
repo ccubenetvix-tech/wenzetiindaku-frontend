@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/utils/api";
+import { Loader2 } from "lucide-react";
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -68,18 +70,122 @@ const ProductDetail = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewImages, setReviewImages] = useState([]);
   
+  // Dynamic product data
+  const [product, setProduct] = useState<any>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(true);
+  
   const { addToCart } = useCart();
   const { toast } = useToast();
 
+  // Load product data
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!productId) return;
+      
+      try {
+        setIsLoading(true);
+        const response = await apiClient.getProductById(productId);
+        
+        if (response.success) {
+          setProduct(response.data.product);
+        } else {
+          console.error('Error loading product:', response.error);
+          toast({
+            title: "Error",
+            description: "Product not found",
+            variant: "destructive",
+          });
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load product",
+          variant: "destructive",
+        });
+        navigate('/');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productId, navigate, toast]);
+
+  // Load related products
+  useEffect(() => {
+    const loadRelatedProducts = async () => {
+      if (!product) return;
+      
+      try {
+        setIsLoadingRelated(true);
+        const response = await apiClient.getAllProducts({
+          category: product.category,
+          limit: 4
+        });
+        
+        if (response.success) {
+          // Filter out the current product
+          const related = (response.data.products || []).filter(p => p.id !== product.id);
+          setRelatedProducts(related);
+        }
+      } catch (error) {
+        console.error('Error loading related products:', error);
+        setRelatedProducts([]);
+      } finally {
+        setIsLoadingRelated(false);
+      }
+    };
+
+    loadRelatedProducts();
+  }, [product]);
+
   const handleAddToCart = () => {
+    if (!product) return;
+    
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add items to your cart.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+    
+    // Check if user is a vendor (vendors cannot add to cart)
+    if (user?.role === 'vendor') {
+      toast({
+        title: "Not Available",
+        description: "Vendors cannot add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Only customers can add to cart
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Access Denied",
+        description: "Only customers can add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Add the product to cart with the selected quantity
     for (let i = 0; i < quantity; i++) {
       addToCart({
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.images[0],
-        vendor: product.vendor,
+        image: product.images?.[selectedImage] || product.image || "/marketplace.jpeg",
+        vendor: product.vendor?.business_name || "Unknown Vendor",
+        quantity: 1
       });
     }
     
@@ -181,142 +287,62 @@ const ProductDetail = () => {
     setShowReviewForm(false);
   };
 
-  // Enhanced product data
-  const product = {
-    id: productId || "1",
-    name: "Premium African Shea Butter Face Cream",
-    price: 24.99,
-    originalPrice: 34.99,
-    rating: 4.8,
-    reviewCount: 127,
-    description: "This premium face cream is made with 100% organic African shea butter, sourced directly from women's cooperatives in Ghana. Rich in vitamins A and E, it provides deep moisturization and anti-aging benefits for all skin types. The cream is carefully formulated with natural ingredients to provide maximum hydration while being gentle on sensitive skin.",
-    longDescription: "Transform your skincare routine with our Premium African Shea Butter Face Cream. This luxurious cream is crafted using traditional methods passed down through generations of Ghanaian women. Each jar contains the finest shea butter, cold-pressed to preserve its natural nutrients and healing properties. Perfect for daily use, this cream provides intense hydration, reduces fine lines, and leaves your skin feeling soft and supple. The natural antioxidants help protect your skin from environmental damage while the rich emollients provide long-lasting moisture. Suitable for all skin types including sensitive skin, this cream is free from harsh chemicals, parabens, and artificial fragrances.",
-    features: [
-      "100% Organic African Shea Butter",
-      "Rich in Vitamins A & E",
-      "Suitable for all skin types",
-      "Anti-aging properties",
-      "Cruelty-free and sustainable",
-      "Paraben-free formula",
-      "Dermatologist tested",
-      "Made in Ghana"
-    ],
-    specifications: {
-      "Brand": "AfriBeauty",
-      "Item Weight": "50ml",
-      "Skin Type": "All Skin Types",
-      "Form": "Cream",
-      "Country of Origin": "Ghana",
-      "Certification": "Organic Certified",
-      "Shelf Life": "24 months",
-      "Packaging": "Glass Jar"
-    },
-    sizes: ["30ml", "50ml", "100ml"],
-    colors: ["Natural", "Vanilla", "Lavender"],
-    images: [
-      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=600&fit=crop&crop=center",
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&crop=center", 
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop&crop=center",
-      "https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=600&h=600&fit=crop&crop=center"
-    ],
-    vendor: {
-      name: "AfriBeauty Store",
-      id: "afribeauty",
-      rating: 4.9,
-      totalProducts: 89,
-      joinedDate: "2020",
-      location: "Accra, Ghana",
-      verified: true
-    },
-    stock: 15,
-    category: "Cosmetics",
-    weight: "50ml",
-    isNew: true,
-    isFeatured: true,
-    shipping: {
-      free: true,
-      estimatedDays: "2-3 days",
-      returnPolicy: "30 days"
-    },
-    discounts: [
-      { type: "Buy 2 Get 1 Free", description: "Add 3 items to cart" },
-      { type: "Free Shipping", description: "On orders over $25" }
-    ]
+  // Review stats for display
+  const reviewStats = {
+    average: product?.rating || 0,
+    total: product?.review_count || 0,
+    distribution: {
+      5: Math.floor((product?.review_count || 0) * 0.7),
+      4: Math.floor((product?.review_count || 0) * 0.2),
+      3: Math.floor((product?.review_count || 0) * 0.06),
+      2: Math.floor((product?.review_count || 0) * 0.02),
+      1: Math.floor((product?.review_count || 0) * 0.02)
+    }
   };
 
-  // Sample related products
-  const relatedProducts = [
-    {
-      id: "2",
-      name: "Organic Face Moisturizer",
-      price: 19.99,
-      rating: 4.6,
-      reviewCount: 89,
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center",
-      vendor: "AfriBeauty Store",
-    },
-    {
-      id: "3",
-      name: "Natural Body Butter",
-      price: 22.50,
-      rating: 4.7,
-      reviewCount: 156,
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center",
-      vendor: "AfriBeauty Store",
-    },
-  ];
-
+  // Sample reviews (you can replace this with dynamic data later)
   const reviews = [
     {
       id: 1,
       author: "Sarah M.",
       rating: 5,
-      comment: "Amazing product! My skin feels so smooth and hydrated. I've been using this for a month now and I can see a significant improvement in my skin texture. The shea butter is so rich and luxurious.",
+      comment: "Amazing product! My skin feels so smooth and hydrated.",
       date: "2 days ago",
       verified: true,
       helpful: 12,
-      images: ["https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop&crop=center"]
-    },
-    {
-      id: 2,
-      author: "John D.",
-      rating: 4,
-      comment: "Great quality cream, fast delivery. Highly recommended! The packaging was excellent and the product arrived in perfect condition. My wife loves it!",
-      date: "1 week ago",
-      verified: true,
-      helpful: 8
-    },
-    {
-      id: 3,
-      author: "Maria L.",
-      rating: 5,
-      comment: "This is the best face cream I've ever used. It's perfect for my sensitive skin and doesn't cause any irritation. The natural ingredients make me feel good about what I'm putting on my skin.",
-      date: "2 weeks ago",
-      verified: true,
-      helpful: 15
-    },
-    {
-      id: 4,
-      author: "David K.",
-      rating: 4,
-      comment: "Good product overall. The cream is thick and moisturizing. Takes a bit of time to absorb but leaves skin feeling soft. Would recommend for dry skin types.",
-      date: "3 weeks ago",
-      verified: false,
-      helpful: 5
+      images: []
     }
   ];
 
-  const reviewStats = {
-    average: 4.8,
-    total: 127,
-    distribution: {
-      5: 89,
-      4: 25,
-      3: 8,
-      2: 3,
-      1: 2
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading product...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Product Not Found</h1>
+            <Button onClick={() => navigate('/')}>Go Home</Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -349,8 +375,8 @@ const ProductDetail = () => {
             <div className="space-y-4">
               <div className="relative group">
                 <img
-                  src={product.images[selectedImage]}
-                  alt={product.name}
+                  src={product?.images?.[selectedImage] || product?.image || "/marketplace.jpeg"}
+                  alt={product?.name || "Product"}
                   className="w-full aspect-square object-cover rounded-lg cursor-zoom-in"
                 />
                 <div className="absolute top-4 right-4 flex gap-2">
@@ -370,17 +396,17 @@ const ProductDetail = () => {
                 </Button>
                 </div>
                 {/* Discount Badge */}
-                {product.originalPrice && (
+                {product?.original_price && (
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-red-500 text-white">
-                      -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                      -{Math.round(((product?.original_price - product?.price) / product?.original_price) * 100)}% OFF
                     </Badge>
                   </div>
                 )}
               </div>
               
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {product.images.map((image, index) => (
+                {(product?.images || [product?.image || "/marketplace.jpeg"]).map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -390,7 +416,7 @@ const ProductDetail = () => {
                   >
                     <img
                       src={image}
-                      alt={`${product.name} ${index + 1}`}
+                      alt={`${product?.name || "Product"} ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -416,7 +442,7 @@ const ProductDetail = () => {
                 </div>
                 
                 <h1 className="text-3xl font-bold text-foreground mb-2">
-                  {product.name}
+                  {product?.name || "Product Name"}
                 </h1>
                 
                 <div className="flex items-center gap-4 mb-4">
@@ -426,7 +452,7 @@ const ProductDetail = () => {
                         <Star
                           key={i}
                           className={`h-4 w-4 ${
-                            i < Math.floor(product.rating)
+                            i < Math.floor(product?.rating || 0)
                               ? 'fill-yellow-400 text-yellow-400'
                               : 'text-gray-300'
                           }`}
@@ -434,18 +460,18 @@ const ProductDetail = () => {
                       ))}
                     </div>
                     <span className="ml-2 text-sm text-muted-foreground">
-                      {product.rating} ({product.reviewCount} reviews)
+                      {product?.rating || 0} ({product?.review_count || 0} reviews)
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 mb-4">
                   <span className="text-3xl font-bold text-primary">
-                    ${product.price}
+                    ${product?.price || 0}
                   </span>
-                  {product.originalPrice && (
+                  {product?.original_price && (
                     <span className="text-xl text-muted-foreground line-through">
-                      ${product.originalPrice}
+                      ${product.original_price}
                     </span>
                   )}
                 </div>
@@ -548,13 +574,24 @@ const ProductDetail = () => {
 
                 <div className="flex gap-4">
                   <Button 
-                    className="flex-1" 
+                    className={`flex-1 ${
+                      !isAuthenticated 
+                        ? 'bg-gray-400 hover:bg-gray-500' 
+                        : user?.role === 'vendor'
+                        ? 'bg-orange-500 hover:bg-orange-600'
+                        : 'bg-primary hover:bg-primary/90'
+                    }`}
                     size="lg"
-                    disabled={product.stock === 0 || (!selectedSize && product.sizes?.length > 0)}
+                    disabled={product.stock === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
                     onClick={handleAddToCart}
                   >
                     <ShoppingCart className="h-5 w-5 mr-2" />
-                    {t('addToCart')}
+                    {!isAuthenticated 
+                      ? 'Login to Add to Cart' 
+                      : user?.role === 'vendor'
+                      ? '. for Vendors'
+                      : t('addToCart')
+                    }
                   </Button>
                   <Button 
                     variant="outline" 
@@ -568,16 +605,28 @@ const ProductDetail = () => {
                 
                 {/* Buy Now Button */}
                 <Button 
-                  className="w-full" 
+                  className={`w-full ${
+                    !isAuthenticated 
+                      ? 'bg-gray-400 hover:bg-gray-500 text-white' 
+                      : user?.role === 'vendor'
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                      : 'bg-primary hover:bg-primary/90 text-white'
+                  }`}
                   size="lg"
-                  variant="outline"
-                  disabled={product.stock === 0 || (!selectedSize && product.sizes?.length > 0)}
+                  disabled={product.stock === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
                   onClick={() => {
                     handleAddToCart();
-                    navigate('/checkout');
+                    if (isAuthenticated && user?.role === 'customer') {
+                      navigate('/checkout');
+                    }
                   }}
                 >
-                  Buy Now
+                  {!isAuthenticated 
+                    ? 'Login to Buy' 
+                    : user?.role === 'vendor'
+                    ? 'Not Available for Vendors'
+                    : 'Buy Now'
+                  }
                 </Button>
               </div>
 
@@ -1087,21 +1136,72 @@ const ProductDetail = () => {
                 View All in {product.category}
               </Button>
                 </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <ProductCard key={relatedProduct.id} {...relatedProduct} />
-              ))}
-            </div>
+            {isLoadingRelated ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">Loading related products...</span>
+              </div>
+            ) : relatedProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedProducts.map((relatedProduct) => (
+                  <ProductCard 
+                    key={relatedProduct.id} 
+                    product={{
+                      id: relatedProduct.id,
+                      name: relatedProduct.name,
+                      price: relatedProduct.price,
+                      originalPrice: relatedProduct.original_price,
+                      rating: relatedProduct.rating || 0,
+                      reviewCount: relatedProduct.review_count || 0,
+                      image: relatedProduct.images?.[0] || relatedProduct.image || "/marketplace.jpeg",
+                      vendor: relatedProduct.vendor?.business_name || "Unknown Vendor",
+                      isNew: relatedProduct.is_new || false,
+                      isFeatured: relatedProduct.is_featured || false,
+                      category: relatedProduct.category
+                    }}
+                    onWishlistToggle={() => {}}
+                    onAddToCart={() => {}}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No related products found
+              </div>
+            )}
           </div>
 
           {/* Recently Viewed */}
           <div className="mb-12">
             <h3 className="text-2xl font-bold mb-6">Recently Viewed</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.slice(0, 4).map((product) => (
-                <ProductCard key={`recent-${product.id}`} {...product} />
-              ))}
-            </div>
+            {relatedProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedProducts.slice(0, 4).map((recentProduct) => (
+                  <ProductCard 
+                    key={`recent-${recentProduct.id}`} 
+                    product={{
+                      id: recentProduct.id,
+                      name: recentProduct.name,
+                      price: recentProduct.price,
+                      originalPrice: recentProduct.original_price,
+                      rating: recentProduct.rating || 0,
+                      reviewCount: recentProduct.review_count || 0,
+                      image: recentProduct.images?.[0] || recentProduct.image || "/marketplace.jpeg",
+                      vendor: recentProduct.vendor?.business_name || "Unknown Vendor",
+                      isNew: recentProduct.is_new || false,
+                      isFeatured: recentProduct.is_featured || false,
+                      category: recentProduct.category
+                    }}
+                    onWishlistToggle={() => {}}
+                    onAddToCart={() => {}}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No recently viewed products
+              </div>
+            )}
           </div>
         </div>
       </main>

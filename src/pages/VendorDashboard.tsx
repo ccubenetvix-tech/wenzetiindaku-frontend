@@ -68,6 +68,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import { predefinedCategories } from "@/data/categories";
 import { Footer } from "@/components/Footer";
 
 interface DashboardStats {
@@ -177,7 +178,7 @@ export default function VendorDashboard() {
     setError(null);
     
     try {
-      const data = await apiClient.getVendorDashboard();
+      const data = await apiClient.getVendorDashboard() as any;
       
       if (data.success) {
         console.log('Dashboard data received:', data.data);
@@ -1031,12 +1032,24 @@ export default function VendorDashboard() {
               </div>
               <div>
                 <Label htmlFor="category">Category *</Label>
-                <Input
-                  id="category"
+                <Select
                   value={productForm.category}
-                  onChange={(e) => setProductForm(prev => ({ ...prev, category: e.target.value }))}
-                  required
-                />
+                  onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predefinedCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{category.icon}</span>
+                          <span>{category.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div>
