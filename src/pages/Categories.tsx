@@ -58,7 +58,7 @@ const Categories = () => {
   // All categories with their dynamic data
   const allCategories = predefinedCategories.map(category => ({
     name: category.name,
-    href: `/category/${category.id}`,
+    href: `/category/${encodeURIComponent(category.id)}`,
     description: category.description,
     productCount: categoryProducts[category.id]?.length || 0,
     products: (categoryProducts[category.id] || []).map(product => ({

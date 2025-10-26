@@ -31,6 +31,7 @@ const Index = () => {
   const [featuredStores, setFeaturedStores] = useState<any[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [categoryCounts, setCategoryCounts] = useState<{[key: string]: number}>({});
 
   // Hero slider images
   const heroImages = [
@@ -96,6 +97,35 @@ const Index = () => {
     };
 
     loadFeaturedProducts();
+  }, []);
+
+  // Load product counts for each category
+  useEffect(() => {
+    const loadCategoryCounts = async () => {
+      const counts: {[key: string]: number} = {};
+      
+      for (const category of predefinedCategories) {
+        try {
+          const response = await apiClient.getAllProducts({
+            category: category.id,
+            limit: 1
+          }) as any;
+          
+          if (response.success && response.data) {
+            counts[category.id] = response.data.pagination?.total || 0;
+          } else {
+            counts[category.id] = 0;
+          }
+        } catch (error) {
+          console.error(`Error loading count for category ${category.id}:`, error);
+          counts[category.id] = 0;
+        }
+      }
+      
+      setCategoryCounts(counts);
+    };
+
+    loadCategoryCounts();
   }, []);
 
 
@@ -220,9 +250,9 @@ const Index = () => {
                   <CategoryCard
                     category={{
                       name: category.name,
-                      href: `/category/${category.id}`,
+                      href: `/category/${encodeURIComponent(category.id)}`,
                       description: category.description,
-                      productCount: 0
+                      productCount: categoryCounts[category.id] || 0
                     }}
                     index={index}
                   />
@@ -271,9 +301,29 @@ const Index = () => {
                 <span className="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
               </div>
             ) : featuredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {featuredProducts.map((product) => (
-                  <div key={product.id} className="group">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {featuredProducts.slice(0, 6).map((product) => (
+                  <div key={product.id} className="group hidden md:block">
+                    <MinimalProductCard
+                      product={{
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        originalPrice: product.original_price,
+                        rating: product.rating || 0,
+                        reviewCount: product.review_count || 0,
+                        image: product.images?.[0] || product.image || "/marketplace.jpeg",
+                        vendor: product.vendor?.business_name || "Unknown Vendor",
+                        isNew: product.is_new || false,
+                        isFeatured: product.is_featured || false
+                      }}
+                      onWishlistToggle={() => {}}
+                      onAddToCart={() => {}}
+                    />
+                  </div>
+                ))}
+                {featuredProducts.slice(0, 4).map((product) => (
+                  <div key={`mobile-${product.id}`} className="group md:hidden">
                     <MinimalProductCard
                       product={{
                         id: product.id,
@@ -335,9 +385,28 @@ const Index = () => {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {featuredStores.slice(0, 10).map((store) => (
-                  <div key={store.id} className="group cursor-pointer" onClick={() => navigate(`/store/${store.id}`)}>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {featuredStores.slice(0, 6).map((store) => (
+                  <div key={store.id} className="group cursor-pointer hidden md:block" onClick={() => navigate(`/store/${store.id}`)}>
+                    <div className="bg-white dark:bg-navy-900 rounded-lg p-4 hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600">
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-sm font-bold text-white">{store.name[0]}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">{store.name}</h4>
+                          <div className="flex items-center">
+                            <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+                            <span className="text-xs ml-1 text-gray-600 dark:text-gray-300">{store.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{store.productCount} products</p>
+                    </div>
+                  </div>
+                ))}
+                {featuredStores.slice(0, 4).map((store) => (
+                  <div key={`mobile-store-${store.id}`} className="group cursor-pointer md:hidden" onClick={() => navigate(`/store/${store.id}`)}>
                     <div className="bg-white dark:bg-navy-900 rounded-lg p-4 hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600">
                       <div className="flex items-center mb-3">
                         <div className="w-8 h-8 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mr-3">

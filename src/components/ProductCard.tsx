@@ -34,9 +34,9 @@ interface ProductCardProps {
 export const ProductCard = memo(function ProductCard({
   id,
   name,
-  price,
+  price = 0,
   originalPrice,
-  rating,
+  rating = 0,
   reviewCount = 0,
   image,
   vendor,

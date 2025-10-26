@@ -81,11 +81,13 @@ export function Header() {
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
   console.log('Current language:', i18n.language, 'Translation test:', t('freeShippingOnOrders'));
 
-  // Main navigation items with internationalized labels
+  // Main navigation items - Simplified
   const navigation = [
-    { name: t('home'), href: '/' },           // Homepage
-    { name: t('categories'), href: '/categories' }, // Categories page
-    { name: t('stores'), href: '/stores' },   // Stores page
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'Stores', href: '/stores' },
+    { name: 'Products', href: '/search' },
+    { name: 'Categories', href: '/categories' },
   ];
 
   return (
@@ -266,7 +268,7 @@ export function Header() {
                     {navigation.map((item) => (
                       <a
                         key={item.name}
-                        href={item.name === 'home' ? '/' : item.href}
+                        href={item.name === 'Home' ? '/' : item.href}
                         className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-3 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-navy-950/20 border-b border-gray-100 dark:border-navy-800"
                       >
                         {item.name}
@@ -313,18 +315,12 @@ export function Header() {
               {navigation.map((item) => (
                 <a
                   key={item.name}
-                  href={item.name === 'home' ? '/' : item.href}
+                  href={item.name === 'Home' ? '/' : item.href}
                   className="text-white hover:text-orange-300 transition-colors duration-200 font-medium"
                 >
                   {item.name}
                 </a>
               ))}
-              <a href="/categories" className="text-white hover:text-orange-300 transition-colors duration-200 font-medium">
-                {t('allCategories')}
-              </a>
-              <a href="/stores" className="text-white hover:text-orange-300 transition-colors duration-200 font-medium">
-                {t('topStores')}
-              </a>
             </nav>
             
             {/* Right side - Become Seller - Only show if not authenticated or not a vendor */}

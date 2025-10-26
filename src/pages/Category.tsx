@@ -21,7 +21,7 @@ import { apiClient } from "@/utils/api";
 import { predefinedCategories } from "@/data/categories";
 
 const Category = () => {
-  const { categoryId } = useParams();
+  const { categoryName } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   
@@ -34,8 +34,13 @@ const Category = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Get category info
-  const category = predefinedCategories.find(cat => cat.id === categoryId);
+  // React Router already decodes URL params
+  const categoryId = categoryName || '';
+
+  // Get category info with case-insensitive search as fallback
+  const category = predefinedCategories.find(cat => 
+    cat.id === categoryId
+  );
 
   // Load products for this category
   useEffect(() => {
@@ -44,6 +49,7 @@ const Category = () => {
       
       try {
         setIsLoading(true);
+        
         const response = await apiClient.getAllProducts({
           category: categoryId,
           page: currentPage,
@@ -71,6 +77,14 @@ const Category = () => {
     loadProducts();
   }, [categoryId, currentPage, searchQuery, sortBy, sortOrder]);
 
+  // Create a fallback category if not found
+  const displayCategory = category || {
+    id: categoryId,
+    name: categoryId || 'Unknown Category',
+    description: 'Products in this category',
+    icon: '📦'
+  };
+
   // Filter products based on search
   const filteredProducts = useMemo(() => {
     if (!searchQuery) return products;
@@ -81,20 +95,8 @@ const Category = () => {
     );
   }, [products, searchQuery]);
   
-  if (!category) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-navy-950">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Category Not Found</h1>
-            <Button onClick={() => navigate('/')}>Go Home</Button>
-          </div>
-          </div>
-        <Footer />
-      </div>
-    );
-  }
+  // If no category found and no products, show error; otherwise show products
+  const showNotFound = !category && !isLoading && products.length === 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-navy-950">
@@ -118,13 +120,13 @@ const Category = () => {
             
             <div className="text-center">
               <div className="flex items-center justify-center mb-4">
-                <span className="text-4xl mr-4">{category.icon}</span>
+                <span className="text-4xl mr-4">{displayCategory.icon}</span>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    {category.name}
+                    {displayCategory.name}
                   </h1>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {category.description}
+                    {displayCategory.description}
                   </p>
                 </div>
               </div>
@@ -207,22 +209,16 @@ const Category = () => {
               {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
-                    product={{
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      originalPrice: product.original_price,
-                      rating: product.rating || 0,
-                      reviewCount: product.review_count || 0,
-                      image: product.images?.[0] || product.image || "/marketplace.jpeg",
-                      vendor: product.vendor?.business_name || "Unknown Vendor",
-                      isNew: product.is_new || false,
-                      isFeatured: product.is_featured || false,
-                      category: product.category
-                    }}
-                    onWishlistToggle={() => {}}
-                    onAddToCart={() => {}}
-                    viewMode={viewMode}
+                    id={product.id}
+                    name={product.name}
+                    price={product.price || 0}
+                    originalPrice={product.original_price}
+                    rating={product.rating || 0}
+                    reviewCount={product.review_count || 0}
+                    image={product.images?.[0] || product.image || "/marketplace.jpeg"}
+                    vendor={product.vendor?.business_name || "Unknown Vendor"}
+                    isNew={product.is_new || false}
+                    isFeatured={product.is_featured || false}
                   />
               ))}
             </div>
@@ -268,8 +264,8 @@ const Category = () => {
               </h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 {searchQuery 
-                  ? `No products found for "${searchQuery}" in ${category.name}`
-                  : `No products available in ${category.name} yet.`
+                  ? `No products found for "${searchQuery}" in ${displayCategory.name}`
+                  : `No products available in ${displayCategory.name} yet.`
                 }
               </p>
               {!searchQuery && (

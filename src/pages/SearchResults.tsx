@@ -16,15 +16,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { filterBySearch, sortBy } from "@/utils";
+import { apiClient } from "@/utils/api";
+import { Loader2 } from "lucide-react";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const query = searchParams.get("q") || "";
+  const categoryParam = searchParams.get("category") || "";
+
+  // Products state
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filter state
   const [refineSearch, setRefineSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || "all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState(0);
@@ -34,8 +41,32 @@ const SearchResults = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Import all products data
-  const { allProducts } = require('@/data/products');
+  // Fetch products from API
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response: any = await apiClient.getAllProducts({
+          search: query,
+          category: categoryParam || undefined,
+          limit: 100
+        });
+        
+        if (response.success && response.data) {
+          setAllProducts(response.data.products || []);
+        } else {
+          setAllProducts([]);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setAllProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [query, categoryParam]);
 
   // Apply client-side filters
   const filteredProducts = useMemo(() => {
@@ -49,20 +80,20 @@ const SearchResults = () => {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+                    filtered = filtered.filter((product: any) => product.category === selectedCategory);
     }
 
     // Filter by price range
     if (minPrice) {
-      filtered = filtered.filter(product => product.price >= parseFloat(minPrice));
+      filtered = filtered.filter((product: any) => product.price >= parseFloat(minPrice));
     }
     if (maxPrice) {
-      filtered = filtered.filter(product => product.price <= parseFloat(maxPrice));
+      filtered = filtered.filter((product: any) => product.price <= parseFloat(maxPrice));
     }
 
     // Filter by minimum rating
     if (minRating > 0) {
-      filtered = filtered.filter(product => product.rating >= minRating);
+      filtered = filtered.filter((product: any) => (product.rating || 0) >= minRating);
     }
 
     // Sort products
@@ -90,6 +121,21 @@ const SearchResults = () => {
     setSortByValue("relevance");
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading products...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -101,11 +147,11 @@ const SearchResults = () => {
             <div className="flex items-center gap-3 mb-4">
               <Search className="h-8 w-8 text-primary" />
               <h1 className="text-3xl font-bold">
-                {t('searchResults')} "{query}"
+                {categoryParam ? `Products in ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : "All Products")}
               </h1>
             </div>
             <p className="text-muted-foreground">
-              Found {filteredProducts.length} results for "{query}"
+              Found {filteredProducts.length} {query ? `results for "${query}"` : "products"}
             </p>
           </div>
 
@@ -151,13 +197,13 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="cosmetics">Cosmetics</SelectItem>
-                      <SelectItem value="tech">Tech Products</SelectItem>
-                      <SelectItem value="clothes">Clothes</SelectItem>
-                      <SelectItem value="toys">Toys</SelectItem>
-                      <SelectItem value="food">Food</SelectItem>
-                      <SelectItem value="beverages">Beverages</SelectItem>
-                      <SelectItem value="para-pharmacy">Para-Pharmacy</SelectItem>
+                      <SelectItem value="Technology & Electronics">Electronics</SelectItem>
+                      <SelectItem value="Clothing & Fashion">Fashion & Clothing</SelectItem>
+                      <SelectItem value="Home & Garden">Home & Garden</SelectItem>
+                      <SelectItem value="Cosmetics & Beauty">Cosmetics & Beauty</SelectItem>
+                      <SelectItem value="Health & Wellness">Health & Wellness</SelectItem>
+                      <SelectItem value="Sports & Outdoors">Sports & Outdoors</SelectItem>
+                      <SelectItem value="Food & Beverages">Food & Beverages</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -260,18 +306,32 @@ const SearchResults = () => {
                 </div>
               </div>
 
-              {/* Promoted Results */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Star className="h-5 w-5 text-secondary mr-2" />
-                  Promoted Results
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProducts.filter(p => p.isFeatured).map((product) => (
-                    <ProductCard key={product.id} {...product} />
-                  ))}
-                </div>
-              </div>
+                {/* Promoted Results */}
+                {filteredProducts.filter(p => p.isFeatured || p.is_featured).length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold mb-4 flex items-center">
+                      <Star className="h-5 w-5 text-secondary mr-2" />
+                      Promoted Results
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredProducts.filter(p => p.isFeatured || p.is_featured).map((product) => (
+                        <ProductCard 
+                          key={product.id}
+                          id={product.id}
+                          name={product.name}
+                          price={product.price}
+                          originalPrice={product.original_price}
+                          rating={product.rating || 0}
+                          reviewCount={product.review_count || 0}
+                          image={product.images?.[0] || product.image || "/marketplace.jpeg"}
+                          vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                          isNew={product.is_new || product.isNew || false}
+                          isFeatured={product.is_featured || product.isFeatured || false}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
               {/* All Results */}
               <div>
@@ -283,8 +343,20 @@ const SearchResults = () => {
                 {paginatedProducts.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {paginatedProducts.map((product) => (
-                        <ProductCard key={product.id} {...product} />
+                      {paginatedProducts.map((product: any) => (
+                        <ProductCard 
+                          key={product.id}
+                          id={product.id}
+                          name={product.name}
+                          price={product.price}
+                          originalPrice={product.original_price}
+                          rating={product.rating || 0}
+                          reviewCount={product.review_count || 0}
+                          image={product.images?.[0] || product.image || "/marketplace.jpeg"}
+                          vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                          isNew={product.is_new || product.isNew || false}
+                          isFeatured={product.is_featured || product.isFeatured || false}
+                        />
                       ))}
                     </div>
 

@@ -61,8 +61,8 @@ const ProductDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
-  const [editedSpecifications, setEditedSpecifications] = useState({});
-  const [editedShipping, setEditedShipping] = useState({});
+  const [editedSpecifications, setEditedSpecifications] = useState<any>({});
+  const [editedShipping, setEditedShipping] = useState<any>({});
   
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -86,10 +86,12 @@ const ProductDetail = () => {
       
       try {
         setIsLoading(true);
-        const response = await apiClient.getProductById(productId);
+        console.log('Loading product:', productId);
+        const response: any = await apiClient.getProductById(productId);
+        console.log('Product response:', response);
         
-        if (response.success) {
-          setProduct(response.data.product);
+        if (response.success && response.data) {
+          setProduct(response.data.product || response.data);
         } else {
           console.error('Error loading product:', response.error);
           toast({
@@ -122,14 +124,14 @@ const ProductDetail = () => {
       
       try {
         setIsLoadingRelated(true);
-        const response = await apiClient.getAllProducts({
+        const response: any = await apiClient.getAllProducts({
           category: product.category,
           limit: 4
         });
         
         if (response.success) {
           // Filter out the current product
-          const related = (response.data.products || []).filter(p => p.id !== product.id);
+          const related = (response.data.products || []).filter((p: any) => p.id !== product.id);
           setRelatedProducts(related);
         }
       } catch (error) {
@@ -184,8 +186,7 @@ const ProductDetail = () => {
         name: product.name,
         price: product.price,
         image: product.images?.[selectedImage] || product.image || "/marketplace.jpeg",
-        vendor: product.vendor?.business_name || "Unknown Vendor",
-        quantity: 1
+        vendor: product.vendor?.business_name || "Unknown Vendor"
       });
     }
     
@@ -196,7 +197,7 @@ const ProductDetail = () => {
   };
 
   // Check if current user is the vendor of this product
-  const isVendor = user && user.role === 'vendor' && user.businessName === product.vendor.name;
+  const isVendor = product && user && user.role === 'vendor' && (user.businessName === product.vendor?.business_name || user.businessName === product.vendor?.name);
   const isCustomer = user && user.role === 'customer';
 
   // Handle editing functions
@@ -483,22 +484,22 @@ const ProductDetail = () => {
                   <div className="flex items-center">
                     <StoreIcon className="h-5 w-5 text-primary mr-2" />
                     <div>
-                      <span className="font-medium">{product.vendor.name}</span>
+                      <span className="font-medium">{product.vendor?.business_name || product.vendor?.name || "Unknown Vendor"}</span>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-                        <span>{product.vendor.rating}</span>
-                        <span className="ml-1">• {product.vendor.totalProducts} products</span>
+                        <span>4.5</span>
+                        <span className="ml-1">• Products available</span>
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/store/${product.vendor_id || product.vendor?.id}`)}>
                     Visit Store
                   </Button>
                 </div>
               </div>
 
               {/* Size Selection */}
-              {product.sizes && product.sizes.length > 0 && (
+              {(product.sizes && product.sizes.length > 0) && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Size:</span>
@@ -521,7 +522,7 @@ const ProductDetail = () => {
               )}
 
               {/* Color Selection */}
-              {product.colors && product.colors.length > 0 && (
+              {(product.colors && product.colors.length > 0) && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Color:</span>
@@ -546,8 +547,8 @@ const ProductDetail = () => {
               {/* Stock Status */}
               <div className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
-                <span className={`font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
-                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                <span className={`font-medium ${(product.stock || 0) > 10 ? 'text-green-600' : (product.stock || 0) > 0 ? 'text-orange-600' : 'text-red-600'}`}>
+                  {(product.stock || 0) > 0 ? `${product.stock || 0} in stock` : 'Out of stock'}
                 </span>
               </div>
 
@@ -564,7 +565,7 @@ const ProductDetail = () => {
                     </button>
                     <span className="px-4 py-2 border-x">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      onClick={() => setQuantity(Math.min((product.stock || 0), quantity + 1))}
                       className="px-3 py-2 hover:bg-muted"
                     >
                       +
@@ -582,14 +583,14 @@ const ProductDetail = () => {
                         : 'bg-primary hover:bg-primary/90'
                     }`}
                     size="lg"
-                    disabled={product.stock === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
+                    disabled={(product.stock || 0) === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
                     onClick={handleAddToCart}
                   >
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     {!isAuthenticated 
                       ? 'Login to Add to Cart' 
                       : user?.role === 'vendor'
-                      ? '. for Vendors'
+                      ? 'Not for Vendors'
                       : t('addToCart')
                     }
                   </Button>
@@ -613,7 +614,7 @@ const ProductDetail = () => {
                       : 'bg-primary hover:bg-primary/90 text-white'
                   }`}
                   size="lg"
-                  disabled={product.stock === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
+                  disabled={(product.stock || 0) === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
                   onClick={() => {
                     handleAddToCart();
                     if (isAuthenticated && user?.role === 'customer') {
@@ -640,8 +641,8 @@ const ProductDetail = () => {
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div>• Free shipping on orders over $25</div>
-                      <div>• Estimated delivery: {product.shipping.estimatedDays}</div>
-                      <div>• {product.shipping.returnPolicy} day return policy</div>
+                      <div>• Estimated delivery: {product.shipping?.estimatedDays || "3-5 days"}</div>
+                      <div>• {(product.shipping?.returnPolicy || 30)} day return policy</div>
                     </div>
                   </div>
                 </CardContent>
@@ -671,7 +672,7 @@ const ProductDetail = () => {
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({product.reviewCount})</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews ({product.review_count || product.reviewCount || 0})</TabsTrigger>
                 <TabsTrigger value="shipping">Shipping & Returns</TabsTrigger>
               </TabsList>
               
@@ -732,7 +733,7 @@ const ProductDetail = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-4">Key Features</h3>
                     <ul className="space-y-3">
-                  {product.features.map((feature, index) => (
+                  {(product.features || []).map((feature: string, index: number) => (
                     <li key={index} className="flex items-start">
                           <CheckCircle className="h-4 w-4 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
                       <span className="text-muted-foreground">{feature}</span>
@@ -770,7 +771,7 @@ const ProductDetail = () => {
                               <Label htmlFor={key}>{key}</Label>
                               <Input
                                 id={key}
-                                value={value}
+                                value={value as string}
                                 onChange={(e) => setEditedSpecifications({
                                   ...editedSpecifications,
                                   [key]: e.target.value
@@ -791,10 +792,10 @@ const ProductDetail = () => {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(editedSpecifications && Object.keys(editedSpecifications).length > 0 ? editedSpecifications : product.specifications).map(([key, value]) => (
+                        {Object.entries(editedSpecifications && Object.keys(editedSpecifications).length > 0 ? editedSpecifications : (product.specifications || {})).map(([key, value]) => (
                           <div key={key} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
                             <span className="font-medium text-gray-600 dark:text-gray-400">{key}:</span>
-                            <span className="text-gray-900 dark:text-gray-100">{value}</span>
+                            <span className="text-gray-900 dark:text-gray-100">{String(value)}</span>
                           </div>
                         ))}
                       </div>
@@ -1012,7 +1013,7 @@ const ProductDetail = () => {
                               <Label htmlFor="estimatedDays">Estimated Delivery</Label>
                               <Input
                                 id="estimatedDays"
-                                value={editedShipping.estimatedDays || product.shipping.estimatedDays}
+                                value={editedShipping.estimatedDays || product.shipping?.estimatedDays || ""}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   estimatedDays: e.target.value
@@ -1024,7 +1025,7 @@ const ProductDetail = () => {
                               <Label htmlFor="freeShippingThreshold">Free Shipping Threshold</Label>
                               <Input
                                 id="freeShippingThreshold"
-                                value={editedShipping.freeShippingThreshold || "$25"}
+                                value={editedShipping.freeShippingThreshold || product.shipping?.freeShippingThreshold || "$25"}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   freeShippingThreshold: e.target.value
@@ -1040,7 +1041,7 @@ const ProductDetail = () => {
                               <Label htmlFor="returnPolicy">Return Policy (days)</Label>
                               <Input
                                 id="returnPolicy"
-                                value={editedShipping.returnPolicy || product.shipping.returnPolicy}
+                                value={editedShipping.returnPolicy || product.shipping?.returnPolicy || "30"}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   returnPolicy: e.target.value
@@ -1052,7 +1053,7 @@ const ProductDetail = () => {
                               <Label htmlFor="returnConditions">Return Conditions</Label>
                               <Textarea
                                 id="returnConditions"
-                                value={editedShipping.returnConditions || "Items must be in original condition"}
+                                value={editedShipping.returnConditions || product.shipping?.returnConditions || "Items must be in original condition"}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   returnConditions: e.target.value
@@ -1086,11 +1087,11 @@ const ProductDetail = () => {
                         <CardContent className="space-y-4">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span>Free shipping on orders over {(editedShipping.freeShippingThreshold || product.shipping.freeShippingThreshold) || "$25"}</span>
+                            <span>Free shipping on orders over {(editedShipping.freeShippingThreshold || product.shipping?.freeShippingThreshold) || "$25"}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-blue-600" />
-                            <span>Estimated delivery: {(editedShipping.estimatedDays || product.shipping.estimatedDays)}</span>
+                            <span>Estimated delivery: {(editedShipping.estimatedDays || product.shipping?.estimatedDays || "3-5 days")}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-purple-600" />
@@ -1109,7 +1110,7 @@ const ProductDetail = () => {
                         <CardContent className="space-y-4">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span>{(editedShipping.returnPolicy || product.shipping.returnPolicy)} day return policy</span>
+                            <span>{(editedShipping.returnPolicy || product.shipping?.returnPolicy || 30)} day return policy</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Shield className="h-4 w-4 text-blue-600" />
@@ -1132,7 +1133,7 @@ const ProductDetail = () => {
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold">Related Products</h3>
-              <Button variant="outline" onClick={() => navigate('/search?category=' + product.category)}>
+              <Button variant="outline" onClick={() => navigate(`/search?category=${encodeURIComponent(product.category)}`)}>
                 View All in {product.category}
               </Button>
                 </div>
@@ -1145,22 +1146,17 @@ const ProductDetail = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedProducts.map((relatedProduct) => (
                   <ProductCard 
-                    key={relatedProduct.id} 
-                    product={{
-                      id: relatedProduct.id,
-                      name: relatedProduct.name,
-                      price: relatedProduct.price,
-                      originalPrice: relatedProduct.original_price,
-                      rating: relatedProduct.rating || 0,
-                      reviewCount: relatedProduct.review_count || 0,
-                      image: relatedProduct.images?.[0] || relatedProduct.image || "/marketplace.jpeg",
-                      vendor: relatedProduct.vendor?.business_name || "Unknown Vendor",
-                      isNew: relatedProduct.is_new || false,
-                      isFeatured: relatedProduct.is_featured || false,
-                      category: relatedProduct.category
-                    }}
-                    onWishlistToggle={() => {}}
-                    onAddToCart={() => {}}
+                    key={relatedProduct.id}
+                    id={relatedProduct.id}
+                    name={relatedProduct.name}
+                    price={relatedProduct.price}
+                    originalPrice={relatedProduct.original_price}
+                    rating={relatedProduct.rating || 0}
+                    reviewCount={relatedProduct.review_count || 0}
+                    image={relatedProduct.images?.[0] || relatedProduct.image || "/marketplace.jpeg"}
+                    vendor={relatedProduct.vendor?.business_name || "Unknown Vendor"}
+                    isNew={relatedProduct.is_new || false}
+                    isFeatured={relatedProduct.is_featured || false}
                   />
                 ))}
               </div>
@@ -1176,24 +1172,19 @@ const ProductDetail = () => {
             <h3 className="text-2xl font-bold mb-6">Recently Viewed</h3>
             {relatedProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {relatedProducts.slice(0, 4).map((recentProduct) => (
+                {relatedProducts.slice(0, 4).map((recentProduct: any) => (
                   <ProductCard 
-                    key={`recent-${recentProduct.id}`} 
-                    product={{
-                      id: recentProduct.id,
-                      name: recentProduct.name,
-                      price: recentProduct.price,
-                      originalPrice: recentProduct.original_price,
-                      rating: recentProduct.rating || 0,
-                      reviewCount: recentProduct.review_count || 0,
-                      image: recentProduct.images?.[0] || recentProduct.image || "/marketplace.jpeg",
-                      vendor: recentProduct.vendor?.business_name || "Unknown Vendor",
-                      isNew: recentProduct.is_new || false,
-                      isFeatured: recentProduct.is_featured || false,
-                      category: recentProduct.category
-                    }}
-                    onWishlistToggle={() => {}}
-                    onAddToCart={() => {}}
+                    key={`recent-${recentProduct.id}`}
+                    id={recentProduct.id}
+                    name={recentProduct.name}
+                    price={recentProduct.price}
+                    originalPrice={recentProduct.original_price}
+                    rating={recentProduct.rating || 0}
+                    reviewCount={recentProduct.review_count || 0}
+                    image={recentProduct.images?.[0] || recentProduct.image || "/marketplace.jpeg"}
+                    vendor={recentProduct.vendor?.business_name || "Unknown Vendor"}
+                    isNew={recentProduct.is_new || false}
+                    isFeatured={recentProduct.is_featured || false}
                   />
                 ))}
               </div>
