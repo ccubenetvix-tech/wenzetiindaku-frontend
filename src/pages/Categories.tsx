@@ -19,11 +19,14 @@ const Categories = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Load products for each category
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  
   useEffect(() => {
     const loadCategoryProducts = async () => {
       try {
         setIsLoading(true);
         const productsByCategory: Record<string, any[]> = {};
+        const countsByCategory: Record<string, number> = {};
         
         // Load products for each category
         for (const category of predefinedCategories) {
@@ -35,16 +38,21 @@ const Categories = () => {
             
             if (response.success) {
               productsByCategory[category.id] = response.data.products || [];
+              // Get the total count from pagination
+              countsByCategory[category.id] = response.data.pagination?.total || 0;
             } else {
               productsByCategory[category.id] = [];
+              countsByCategory[category.id] = 0;
             }
           } catch (error) {
             console.error(`Error loading products for category ${category.id}:`, error);
             productsByCategory[category.id] = [];
+            countsByCategory[category.id] = 0;
           }
         }
         
         setCategoryProducts(productsByCategory);
+        setCategoryCounts(countsByCategory);
       } catch (error) {
         console.error('Error loading category products:', error);
       } finally {
@@ -60,7 +68,7 @@ const Categories = () => {
     name: category.name,
     href: `/category/${encodeURIComponent(category.id)}`,
     description: category.description,
-    productCount: categoryProducts[category.id]?.length || 0,
+    productCount: categoryCounts[category.id] || 0,
     products: (categoryProducts[category.id] || []).map(product => ({
       id: product.id,
       name: product.name,

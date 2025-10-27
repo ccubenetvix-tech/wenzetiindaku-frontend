@@ -93,7 +93,8 @@ interface Order {
 interface Product {
   id: string;
   name: string;
-  image: string;
+  image?: string;
+  images?: string[];
   price: number;
   sales: number;
   revenue: number;
@@ -151,7 +152,7 @@ export default function VendorDashboard() {
     price: '',
     stock: '',
     category: '',
-    image_url: '',
+    images: [] as string[],
     status: 'active'
   });
   const [productImage, setProductImage] = useState<File | null>(null);
@@ -307,41 +308,77 @@ export default function VendorDashboard() {
     setIsCreatingProduct(true);
     
     try {
+      let productId = editingProduct?.id;
+      
+      // Create or update product
       const data = editingProduct 
         ? await apiClient.updateVendorProduct(editingProduct.id, productForm)
         : await apiClient.createVendorProduct(productForm);
       
-      if (data.success) {
-        toast({
-          title: editingProduct ? "Product Updated" : "Product Created",
-          description: data.message,
-        });
-        
-        setShowProductDialog(false);
-        setEditingProduct(null);
-        setProductForm({
-          name: '',
-          description: '',
-          price: '',
-          stock: '',
-          category: '',
-          image_url: '',
-          status: 'active'
-        });
-        setProductImage(null);
-        setProductImagePreview('');
-        
-        // Refresh products list and dashboard statistics
-        const statusFilter = productStatusFilter === 'all' ? '' : productStatusFilter;
-        fetchProducts(productsPage, productSearch, statusFilter);
-        fetchDashboardData(); // Refresh dashboard statistics
-      } else {
+      if (!data.success) {
         toast({
           title: "Error",
           description: data.error?.message || "Failed to save product",
           variant: "destructive",
         });
+        return;
       }
+      
+      // If this is a new product, get the product ID from the response
+      if (!editingProduct && data.data?.product) {
+        productId = data.data.product.id;
+      }
+      
+      // Upload image if provided
+      if (productImage && productId) {
+        try {
+          const reader = new FileReader();
+          const base64 = await new Promise<string>((resolve, reject) => {
+            reader.onload = (e) => {
+              const base64 = e.target?.result as string;
+              resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(productImage);
+          });
+          
+          const uploadResponse = await apiClient.uploadProductImage(productId, base64, productImage.name);
+          if (uploadResponse.success) {
+            console.log('Image uploaded successfully');
+          }
+        } catch (uploadErr) {
+          console.error('Image upload error:', uploadErr);
+          // Don't fail the whole operation if image upload fails
+          toast({
+            title: "Warning",
+            description: "Product created but image upload failed. You can add it later.",
+          });
+        }
+      }
+      
+      toast({
+        title: editingProduct ? "Product Updated" : "Product Created",
+        description: data.message,
+      });
+      
+      setShowProductDialog(false);
+      setEditingProduct(null);
+      setProductForm({
+        name: '',
+        description: '',
+        price: '',
+        stock: '',
+        category: '',
+        images: [],
+        status: 'active'
+      });
+      setProductImage(null);
+      setProductImagePreview('');
+      
+      // Refresh products list and dashboard statistics
+      const statusFilter = productStatusFilter === 'all' ? '' : productStatusFilter;
+      fetchProducts(productsPage, productSearch, statusFilter);
+      fetchDashboardData(); // Refresh dashboard statistics
     } catch (err) {
       console.error('Product save error:', err);
       toast({
@@ -362,9 +399,12 @@ export default function VendorDashboard() {
       price: product.price.toString(),
       stock: product.stock.toString(),
       category: product.category || '',
-      image_url: product.image,
+      images: product.images || [],
       status: product.status || 'active'
     });
+    if (product.images && product.images.length > 0) {
+      setProductImagePreview(product.images[0]);
+    }
     setShowProductDialog(true);
   };
 
@@ -739,7 +779,7 @@ export default function VendorDashboard() {
                           price: '',
                           stock: '',
                           category: '',
-                          image_url: '',
+                          images: [],
                           status: 'active'
                         });
                         setShowProductDialog(true);
@@ -781,7 +821,7 @@ export default function VendorDashboard() {
                           price: '',
                           stock: '',
                           category: '',
-                          image_url: '',
+                          images: [],
                           status: 'active'
                         });
                         setShowProductDialog(true);
@@ -843,11 +883,14 @@ export default function VendorDashboard() {
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">
                                 <div className="flex items-center space-x-3">
-                                  {(product.image || (product.images && product.images.length > 0)) ? (
+                                  {(product.images && product.images.length > 0) || product.image ? (
                                     <img
-                                      src={product.image || product.images[0]}
+                                      src={product.images?.[0] || product.image || '/marketplace.jpeg'}
                                       alt={product.name}
                                       className="w-10 h-10 rounded-lg object-cover border"
+                                      onError={(e) => {
+                                        e.currentTarget.src = '/marketplace.jpeg';
+                                      }}
                                     />
                                   ) : (
                                     <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -1100,10 +1143,10 @@ export default function VendorDashboard() {
             <div>
               <Label htmlFor="product_image">Product Image</Label>
               <div className="space-y-2">
-                {productImagePreview || productForm.image_url ? (
+                {productImagePreview || (productForm.images && productForm.images.length > 0) ? (
                   <div className="relative w-32 h-32">
                     <img
-                      src={productImagePreview || productForm.image_url}
+                      src={productImagePreview || (productForm.images?.[0])}
                       alt="Product preview"
                       className="w-32 h-32 object-cover rounded-lg border"
                     />
@@ -1117,7 +1160,7 @@ export default function VendorDashboard() {
                     onClick={() => document.getElementById('product-image-upload')?.click()}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    {productImagePreview || productForm.image_url ? 'Change Image' : 'Upload Image'}
+                    {productImagePreview || (productForm.images && productForm.images.length > 0) ? 'Change Image' : 'Upload Image'}
                   </Button>
                   <input
                     id="product-image-upload"

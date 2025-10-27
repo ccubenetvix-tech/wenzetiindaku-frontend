@@ -364,99 +364,270 @@ const Index = () => {
               </Button>
             </div>
 
-            {/* Top Stores - Minimal Section */}
-            <div className="mt-16">
-              <div className="flex items-center justify-between mb-6">
+            {/* Top Stores - Professional Premium Section */}
+            <div className="mt-20">
+              {/* Section Header */}
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     {t('topStores')}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-400 text-base">
                     {t('discoverAmazingStores')}
                   </p>
                 </div>
                 <Button 
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => navigate('/stores')}
-                  className="text-sm"
+                  className="hidden md:flex items-center gap-2 border-2 hover:bg-gradient-to-r hover:from-navy-600 hover:to-orange-500 hover:text-white hover:border-transparent transition-all duration-300"
                 >
                   {t('viewAll')}
-                  <ArrowRight className="ml-1 h-3 w-3" />
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {featuredStores.slice(0, 6).map((store) => (
-                  <div key={store.id} className="group cursor-pointer hidden md:block" onClick={() => navigate(`/store/${store.id}`)}>
-                    <div className="bg-white dark:bg-navy-900 rounded-lg p-4 hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600">
-                      <div className="flex items-center mb-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-                          <span className="text-sm font-bold text-white">{store.name[0]}</span>
+              {/* Desktop View - Professional Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 hidden md:grid">
+                {featuredStores.map((store, index) => (
+                  <div 
+                    key={store.id} 
+                    className="group cursor-pointer" 
+                    onClick={() => navigate(`/store/${store.id}`)}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="relative bg-white dark:bg-navy-900 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50 transform hover:-translate-y-2">
+                      {/* Gradient Header */}
+                      <div className="relative h-40 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
+                        {/* Animated Background Pattern */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_white_2px,_transparent_0)] bg-[size:40px_40px]"></div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">{store.name}</h4>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
-                            <span className="text-xs ml-1 text-gray-600 dark:text-gray-300">{store.rating}</span>
+                        
+                        {/* Store Avatar with Badge */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                          <div className="relative">
+                            <div className="w-24 h-24 bg-white dark:bg-navy-900 rounded-full p-1.5 shadow-2xl ring-4 ring-white/20">
+                              <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
+                                <span className="text-3xl font-bold text-white">{store.name[0]}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Verified Badge */}
+                            {store.verified && (
+                              <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-green-500 rounded-full flex items-center justify-center border-4 border-white dark:border-navy-900 shadow-xl">
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{store.productCount} products</p>
+
+                      {/* Store Content */}
+                      <div className="pt-16 pb-6 px-6">
+                        {/* Store Name and Location */}
+                        <div className="text-center mb-4">
+                          <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-orange-500 transition-colors duration-300">
+                            {store.name}
+                          </h4>
+                          <div className="flex items-center justify-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="truncate">{store.location}</span>
+                          </div>
+                        </div>
+
+                        {/* Rating and Stats */}
+                        <div className="flex items-center justify-center gap-6 mb-4">
+                          {/* Rating */}
+                          <div className="flex items-center gap-1">
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`h-4 w-4 ${
+                                    i < Math.floor(store.rating) 
+                                      ? 'text-orange-400 fill-orange-400' 
+                                      : 'text-gray-300 dark:text-gray-600'
+                                  }`} 
+                                />
+                              ))}
+                            </div>
+                            <span className="ml-1 text-sm font-semibold text-gray-900 dark:text-white">
+                              {store.rating}
+                            </span>
+                          </div>
+
+                          {/* Products Count */}
+                          <div className="flex items-center gap-1 text-sm">
+                            <ShoppingBag className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400 font-medium">
+                              {store.productCount || 0} products
+                            </span>
+                          </div>
+
+                          {/* Followers Count */}
+                          <div className="flex items-center gap-1 text-sm">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400 font-medium">
+                              {store.followers || 0}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Categories Tags */}
+                        {store.categories && store.categories.length > 0 && (
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {store.categories.slice(0, 2).map((category, idx) => (
+                              <span 
+                                key={idx}
+                                className="px-3 py-1 bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-800 dark:to-orange-900 text-xs font-medium text-gray-700 dark:text-gray-300 rounded-full"
+                              >
+                                {category}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Hover Effect Indicator */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-navy-600 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                      </div>
                     </div>
                   </div>
                 ))}
-                {featuredStores.slice(0, 4).map((store) => (
-                  <div key={`mobile-store-${store.id}`} className="group cursor-pointer md:hidden" onClick={() => navigate(`/store/${store.id}`)}>
-                    <div className="bg-white dark:bg-navy-900 rounded-lg p-4 hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600">
-                      <div className="flex items-center mb-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-                          <span className="text-sm font-bold text-white">{store.name[0]}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">{store.name}</h4>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
-                            <span className="text-xs ml-1 text-gray-600 dark:text-gray-300">{store.rating}</span>
+              </div>
+
+              {/* Mobile View - Compact Cards */}
+              <div className="grid grid-cols-2 gap-4 mb-6 md:hidden">
+                {featuredStores.slice(0, 4).map((store, index) => (
+                  <div 
+                    key={`mobile-store-${store.id}`} 
+                    className="group cursor-pointer"
+                    onClick={() => navigate(`/store/${store.id}`)}
+                  >
+                    <div className="relative bg-white dark:bg-navy-900 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50">
+                      {/* Compact Gradient Header */}
+                      <div className="relative h-24 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
+                        {/* Store Avatar */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                          <div className="relative">
+                            <div className="w-14 h-14 bg-white dark:bg-navy-900 rounded-full p-1 shadow-xl ring-2 ring-white/30">
+                              <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
+                                <span className="text-base font-bold text-white">{store.name[0]}</span>
+                              </div>
+                            </div>
+                            {store.verified && (
+                              <div className="absolute -bottom-0 -right-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white dark:border-navy-900 shadow-lg">
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{store.productCount} products</p>
+
+                      {/* Store Content */}
+                      <div className="pt-9 pb-4 px-3 text-center">
+                        <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1 truncate">
+                          {store.name}
+                        </h4>
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+                          <span className="text-xs font-semibold text-gray-900 dark:text-white">{store.rating}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {store.productCount || 0} products
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* View All Button - Mobile Only */}
+              <div className="text-center md:hidden">
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/stores')}
+                  className="w-full max-w-sm border-2 hover:bg-gradient-to-r hover:from-navy-600 hover:to-orange-500 hover:text-white hover:border-transparent transition-all duration-300"
+                >
+                  View All Stores
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Platform Statistics - Navy & Orange Balance */}
-        <section className="py-12 bg-gradient-to-r from-navy-600 to-orange-500">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">
-                {t('trustedByMillions')}
-              </h2>
-              <p className="text-white/80">
-                {t('joinGrowingCommunity')}
-              </p>
+        {/* Platform Statistics - Professional Design */}
+        <section className="py-16 bg-gradient-to-br from-navy-950 via-navy-900 to-orange-950 relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] bg-[size:60px_60px]"></div>
           </div>
           
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">50K+</div>
-                <div className="text-white/80 text-sm">{t('happyCustomers')}</div>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center mb-12">
+              <div className="inline-block mb-4">
+                <span className="bg-gradient-to-r from-orange-400 to-orange-600 text-transparent bg-clip-text text-sm font-semibold uppercase tracking-wider">
+                  Platform Excellence
+                </span>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">10K+</div>
-                <div className="text-white/80 text-sm">{t('activeSellers')}</div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                {t('trustedByMillions')}
+              </h2>
+              <p className="text-white/70 max-w-2xl mx-auto text-lg">
+                {t('joinGrowingCommunity')}
+              </p>
+            </div>
+          
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {/* Happy Customers */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/50 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">50K+</div>
+                <div className="text-white/70 text-sm font-medium">{t('happyCustomers')}</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">1M+</div>
-                <div className="text-white/80 text-sm">{t('productsSold')}</div>
+              
+              {/* Active Sellers */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-navy-400 to-navy-600 rounded-xl flex items-center justify-center shadow-lg shadow-navy-500/50 group-hover:scale-110 transition-transform duration-300">
+                    <ShoppingBag className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">10K+</div>
+                <div className="text-white/70 text-sm font-medium">{t('activeSellers')}</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">4.8★</div>
-                <div className="text-white/80 text-sm">{t('averageRating')}</div>
+              
+              {/* Products Sold */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/50 group-hover:scale-110 transition-transform duration-300">
+                    <TrendingUp className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">1M+</div>
+                <div className="text-white/70 text-sm font-medium">{t('productsSold')}</div>
+              </div>
+              
+              {/* Average Rating */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/50 group-hover:scale-110 transition-transform duration-300">
+                    <Star className="h-7 w-7 text-white fill-white" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">4.8<span className="text-2xl">★</span></div>
+                <div className="text-white/70 text-sm font-medium">{t('averageRating')}</div>
               </div>
             </div>
           </div>
