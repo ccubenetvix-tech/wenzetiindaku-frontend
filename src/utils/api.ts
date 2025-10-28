@@ -1,5 +1,3 @@
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 
 // Global auth state management for API client
 let authState: { 
@@ -53,7 +51,7 @@ export class ApiClient {
     
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
         ...options.headers,
       },
       ...options,
@@ -85,28 +83,20 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
-
+      const contentType = response.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      
       if (!response.ok) {
-        // Handle token expiration
-        if (response.status === 401) {
-          console.log('Token expired, clearing auth state');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          localStorage.removeItem('adminToken');
-          
-          // Use auth state if available, otherwise fallback to window redirect
-          if (authState) {
-            authState.clearAuth();
-            authState.redirectToLogin();
-          } else {
-            window.location.href = '/customer/login';
-          }
-        }
-        throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+        // read text to avoid JSON parse on HTML/text errors (e.g., 429)
+        const text = await response.text();
+        throw new Error(text || response.statusText || `HTTP ${response.status}`);
       }
 
-      return data;
+      if (isJson) {
+        return await response.json();
+      }
+      const text = await response.text();
+      return text as unknown as T;
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
@@ -491,14 +481,4 @@ export class ApiClient {
 // Create a singleton instance
 export const apiClient = new ApiClient();
 
-// Hook for using API client with auth context
-export const useApi = () => {
-  const { token } = useAuth();
-  
-  // Update token when it changes
-  React.useEffect(() => {
-    apiClient.setToken(token);
-  }, [token]);
-
-  return apiClient;
-};
+// Note: Do not import AuthContext here to avoid circular imports during HMR

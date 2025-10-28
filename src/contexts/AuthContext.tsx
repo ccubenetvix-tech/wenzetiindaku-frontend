@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiClient } from '@/utils/api';
 import { setAuthState } from '../utils/api';
 
 interface User {
@@ -135,6 +136,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initAuth();
   }, []);
+
+  // Keep API client token in sync with auth token
+  useEffect(() => {
+    apiClient.setToken(token);
+  }, [token]);
 
   // Handle Google OAuth callback
   useEffect(() => {
