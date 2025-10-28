@@ -268,7 +268,7 @@ const Store = () => {
               {/* Products and Controls Header - aligned side by side */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-2xl font-bold">All Products</h2>
+                  <h2 className="text-3xl md:text-4xl font-bold">All Products</h2>
                   
                   {/* Right side - Search and Sort Controls */}
                   <div className="flex items-center gap-3">

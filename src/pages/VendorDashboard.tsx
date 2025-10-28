@@ -6,7 +6,6 @@ import {
   Store,
   Package, 
   DollarSign, 
-  TrendingUp, 
   Users, 
   Star,
   Eye,
@@ -35,7 +34,6 @@ import {
   Image as ImageIcon,
   Tag,
   Award,
-  Target,
   Activity,
   Loader2,
   RefreshCw
@@ -76,8 +74,6 @@ interface DashboardStats {
   totalOrders: number;
   totalProducts: number;
   totalCustomers: number;
-  growth: number;
-  conversionRate: number;
 }
 
 interface Order {
@@ -569,7 +565,7 @@ export default function VendorDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Overview */}
           {stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center">
@@ -625,38 +621,10 @@ export default function VendorDashboard() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg">
-                      <TrendingUp className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Growth</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">+{stats?.growth || 0}%</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="p-2 bg-cyan-100 dark:bg-cyan-900/20 rounded-lg">
-                      <Target className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.conversionRate || 0}%</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[1, 2, 3, 4].map((i) => (
                 <Card key={i}>
                   <CardContent className="p-6">
                     <div className="flex items-center">

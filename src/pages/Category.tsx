@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { 
-  ArrowLeft,
   Filter,
   Grid3X3,
   List,
@@ -105,19 +104,7 @@ const Category = () => {
       <main className="flex-1">
         {/* Header Section */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-0">
-            <div className="flex items-center space-x-4 mb-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('back')}
-              </Button>
-            </div>
-            
+          <div className="container mx-auto px-4 py-4">
             <div className="text-center">
               <div className="flex items-center justify-center mb-0">
                 {displayCategory.icon ? (
@@ -133,8 +120,8 @@ const Category = () => {
                 </div>
               </div>
             </div>
-            </div>
           </div>
+        </div>
 
         {/* Filters and Search */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -190,9 +177,9 @@ const Category = () => {
                   </Button>
                 </div>
               </div>
-              </div>
             </div>
           </div>
+        </div>
 
         {/* Products Section */}
         <div className="container mx-auto px-4 py-4">
@@ -224,8 +211,8 @@ const Category = () => {
                     compact={viewMode === 'grid'}
                   />
               ))}
-            </div>
-            
+              </div>
+              
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-8">
@@ -248,13 +235,13 @@ const Category = () => {
                       </Button>
                     ))}
                     
-                <Button 
-                  variant="outline" 
+                    <Button 
+                      variant="outline" 
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                >
+                    >
                       Next
-                </Button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -276,9 +263,9 @@ const Category = () => {
                   Become a Vendor
                 </Button>
               )}
-              </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
       </main>
 
       <Footer />
