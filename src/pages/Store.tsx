@@ -201,23 +201,10 @@ const Store = () => {
       
       {/* Main content area that takes remaining space */}
       <main className="flex-1">
-        {/* Store Banner Section - Hero area with store info overlay */}
-        <section className="relative h-48 md:h-56 lg:h-64">
-          {/* Store banner image */}
-          <img 
-            src={store.banner} 
-            alt={`${store.name} banner`}
-            className="w-full h-full object-cover"
-          />
-          
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/40" />
-          
-        </section>
 
-        {/* Main Content Container */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
+      {/* Main Content Container - minimal top spacing */}
+      <div className="max-w-7xl mx-auto px-4 py-2">
+        <div className="flex flex-col lg:flex-row gap-8">
             {/* Store Info Sidebar - Left column */}
             <aside className="lg:w-1/4">
               {/* Store Information Card */}
@@ -277,53 +264,21 @@ const Store = () => {
 
             {/* Store Products - Right column (main content) */}
             <div className="lg:w-3/4">
-              {/* Search and Sort Controls */}
-              <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Search input container */}
-                  <div className="flex-1">
-                    <div className="relative">
-                      {/* Search icon positioned inside input */}
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        type="text"
-                        placeholder={`${t('search')} in ${store.name}...`}
-                        className="pl-10"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Sort dropdown container */}
-                  <div className="md:w-48">
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('sortBy')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="price-low">Price: Low to High</SelectItem>
-                        <SelectItem value="price-high">Price: High to Low</SelectItem>
-                        <SelectItem value="rating">Highest Rated</SelectItem>
-                        <SelectItem value="new">New Arrivals</SelectItem>
-                        <SelectItem value="alpha">Alphabetical</SelectItem>
-                        <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
+              {/* Products and Controls - cards on left, search/sort on right */}
+              <div className="flex gap-6 items-start">
+                {/* Left side - Product sections */}
+                <div className="flex-1">
 
               {/* Featured Products Section */}
-              <div className="mb-8">
+              <div className="mb-6">
                 {/* Section header with star icon */}
-                <h2 className="text-2xl font-bold mb-4 flex items-center">
+                <h2 className="text-2xl font-bold mb-3 flex items-center">
                   <Star className="h-6 w-6 text-secondary mr-2" />
                   Featured Products
                 </h2>
                 
                 {/* Featured products grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Filter and map through featured products only */}
                   {filteredProducts.filter(p => p.isFeatured).map((product) => (
                     <ProductCard key={product.id} {...product} />
@@ -334,7 +289,7 @@ const Store = () => {
               {/* All Products Section */}
               <div>
                 {/* Section header with product count */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold">All Products</h2>
                   <span className="text-muted-foreground">
                     Showing {filteredProducts.length} of {store.totalProducts} products
@@ -342,7 +297,7 @@ const Store = () => {
                 </div>
                 
                 {/* All products grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Map through all products */}
                   {filteredProducts.map((product) => (
                     <ProductCard key={product.id} {...product} />
@@ -350,7 +305,7 @@ const Store = () => {
                 </div>
                 
                 {filteredProducts.length === 0 && searchQuery && (
-                  <div className="text-center py-12">
+                  <div className="text-center py-8">
                     <p className="text-muted-foreground text-lg">
                       No products found for "{searchQuery}"
                     </p>
@@ -365,10 +320,52 @@ const Store = () => {
                 )}
 
                 {/* Load More Button */}
-                <div className="text-center mt-8">
+                <div className="text-center mt-6">
                   <Button variant="outline" size="lg">
                     Load More Products
                   </Button>
+                </div>
+              </div>
+                </div>
+                
+                {/* Right side - Search and Sort Controls */}
+                <div className="w-72">
+                  <div className="bg-card p-4 rounded-lg shadow-sm">
+                    <div className="space-y-3">
+                      {/* Search input */}
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Search</label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                          <Input
+                            type="text"
+                            placeholder={`${t('search')}...`}
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Sort dropdown */}
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Sort By</label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sort by" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="price-low">Price: Low to High</SelectItem>
+                            <SelectItem value="price-high">Price: High to Low</SelectItem>
+                            <SelectItem value="rating">Highest Rated</SelectItem>
+                            <SelectItem value="new">New Arrivals</SelectItem>
+                            <SelectItem value="alpha">Alphabetical</SelectItem>
+                            <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

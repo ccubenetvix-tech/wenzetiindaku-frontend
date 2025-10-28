@@ -3,73 +3,73 @@ export const predefinedCategories = [
     id: 'Technology & Electronics',
     name: 'Electronics',
     description: 'Electronic devices and gadgets',
-    icon: '📱'
+    icon: ''
   },
   {
     id: 'Clothing & Fashion',
     name: 'Fashion & Clothing',
     description: 'Clothing, shoes, and accessories',
-    icon: '👕'
+    icon: ''
   },
   {
     id: 'Home & Garden',
     name: 'Home & Garden',
     description: 'Home decor, furniture, and garden supplies',
-    icon: '🏠'
+    icon: ''
   },
   {
     id: 'Cosmetics & Beauty',
     name: 'Beauty & Health',
     description: 'Cosmetics, skincare, and health products',
-    icon: '💄'
+    icon: ''
   },
   {
     id: 'Health & Wellness',
     name: 'Health & Wellness',
     description: 'Health products and wellness items',
-    icon: '💊'
+    icon: ''
   },
   {
     id: 'Sports & Outdoors',
     name: 'Sports & Outdoors',
     description: 'Sports equipment and outdoor gear',
-    icon: '⚽'
+    icon: ''
   },
   {
     id: 'Books & Media',
     name: 'Books & Media',
     description: 'Books, movies, music, and educational materials',
-    icon: '📚'
+    icon: ''
   },
   {
     id: 'Toys & Games',
     name: 'Toys & Games',
     description: 'Children\'s toys and games',
-    icon: '🎮'
+    icon: ''
   },
   {
     id: 'Automotive',
     name: 'Automotive',
     description: 'Car parts, accessories, and automotive supplies',
-    icon: '🚗'
+    icon: ''
   },
   {
     id: 'Jewelry & Accessories',
     name: 'Jewelry & Accessories',
     description: 'Jewelry, watches, and fashion accessories',
-    icon: '💍'
+    icon: ''
   },
   {
     id: 'Food & Beverages',
     name: 'Food & Beverages',
     description: 'Food items, drinks, and culinary products',
-    icon: '🍎'
+    icon: ''
   },
   {
     id: 'Art & Collectibles',
     name: 'Art & Crafts',
     description: 'Art supplies, crafts, and handmade items',
-    icon: '🎨'
+    icon: ''
   }
 ];
 

@@ -120,7 +120,9 @@ const Category = () => {
             
             <div className="text-center">
               <div className="flex items-center justify-center mb-0">
-                <span className="text-3xl mr-2">{displayCategory.icon}</span>
+                {displayCategory.icon ? (
+                  <span className="text-3xl mr-2">{displayCategory.icon}</span>
+                ) : null}
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0">
                     {displayCategory.name}
