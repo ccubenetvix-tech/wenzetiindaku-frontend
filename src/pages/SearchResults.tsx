@@ -313,7 +313,7 @@ const SearchResults = () => {
                       <Star className="h-5 w-5 text-secondary mr-2" />
                       Promoted Results
                     </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
                       {filteredProducts.filter(p => p.isFeatured || p.is_featured).map((product) => (
                         <ProductCard 
                           key={product.id}
@@ -342,7 +342,7 @@ const SearchResults = () => {
                 
                 {paginatedProducts.length > 0 ? (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
                       {paginatedProducts.map((product: any) => (
                         <ProductCard 
                           key={product.id}

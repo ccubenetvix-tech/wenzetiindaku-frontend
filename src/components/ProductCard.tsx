@@ -123,7 +123,7 @@ export const ProductCard = memo(function ProductCard({
     >
       <CardContent className="p-0 flex flex-col h-full">
         {/* Professional Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-navy-800">
+        <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-navy-800">
           {!imageError ? (
             <img
               src={image}

@@ -202,7 +202,7 @@ const Store = () => {
       {/* Main content area that takes remaining space */}
       <main className="flex-1">
         {/* Store Banner Section - Hero area with store info overlay */}
-        <section className="relative h-64">
+        <section className="relative h-48 md:h-56 lg:h-64">
           {/* Store banner image */}
           <img 
             src={store.banner} 
@@ -216,7 +216,7 @@ const Store = () => {
         </section>
 
         {/* Main Content Container */}
-        <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Store Info Sidebar - Left column */}
             <aside className="lg:w-1/4">

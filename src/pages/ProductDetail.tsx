@@ -371,14 +371,14 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Product Images */}
             <div className="space-y-4">
               <div className="relative group">
                 <img
                   src={product?.images?.[selectedImage] || product?.image || "/marketplace.jpeg"}
                   alt={product?.name || "Product"}
-                  className="w-full aspect-square object-cover rounded-lg cursor-zoom-in"
+                  className="w-full mx-auto max-h-72 md:max-h-96 lg:max-h-[360px] object-contain bg-gray-50 rounded-lg cursor-zoom-in"
                 />
                 <div className="absolute top-4 right-4 flex gap-2">
                   <Button
@@ -466,7 +466,8 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-baseline gap-3 mb-3">
+                  <span className="text-3xl font-bold text-primary">Price</span>
                   <span className="text-3xl font-bold text-primary">
                     ${product?.price || 0}
                   </span>
@@ -479,7 +480,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Vendor Info */}
-              <div className="bg-card p-4 rounded-lg">
+              <div className="bg-primary/5 p-4 rounded-lg border-2 border-primary/30 dark:border-primary/30 shadow-md">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <StoreIcon className="h-5 w-5 text-primary mr-2" />
