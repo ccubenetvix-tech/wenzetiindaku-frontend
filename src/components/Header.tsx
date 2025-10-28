@@ -1,5 +1,5 @@
 // Import React hooks for state management
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // Import i18next for internationalization support
 import { useTranslation } from "react-i18next";
 // Import Lucide React icons for UI elements
@@ -61,6 +61,37 @@ export function Header() {
   // Local state management
   const [searchQuery, setSearchQuery] = useState("");           // Search input value
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Login modal visibility
+  const [isHidden, setIsHidden] = useState(false);                // Header visibility on scroll
+  const lastScrollYRef = useRef(0);
+  const scrollTickingRef = useRef(false);
+
+  // Hide header on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollTickingRef.current) return;
+      scrollTickingRef.current = true;
+
+      window.requestAnimationFrame(() => {
+        const currentY = window.scrollY || window.pageYOffset;
+        const lastY = lastScrollYRef.current;
+
+        // Add a small threshold to avoid jitter
+        const delta = Math.abs(currentY - lastY);
+        const threshold = 4;
+
+        if (delta > threshold) {
+          const scrollingDown = currentY > lastY && currentY > 64; // past header height
+          setIsHidden(scrollingDown);
+          lastScrollYRef.current = currentY;
+        }
+
+        scrollTickingRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Function to change the application language
   const changeLanguage = (lng: string) => {
@@ -92,7 +123,7 @@ export function Header() {
 
   return (
     // Professional e-commerce header with clean design
-    <header className="sticky top-0 z-50 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-navy-800 shadow-sm">
+    <header className={`sticky top-0 z-50 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-navy-800 shadow-sm transition-transform duration-300 will-change-transform ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
       {/* Top utility bar - Professional */}
       <div className="bg-gray-50 dark:bg-navy-950 border-b border-gray-200 dark:border-navy-800">
         <div className="container mx-auto px-4">

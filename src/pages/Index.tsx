@@ -386,18 +386,18 @@ const Index = () => {
                 </Button>
               </div>
               
-              {/* Desktop View - Professional Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 hidden md:grid">
+              {/* Desktop View - Professional Cards (reduced further for balance) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 hidden md:grid">
                 {featuredStores.map((store, index) => (
                   <div 
                     key={store.id} 
-                    className="group cursor-pointer" 
+                    className="group cursor-pointer"
                     onClick={() => navigate(`/store/${store.id}`)}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="relative bg-white dark:bg-navy-900 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50 transform hover:-translate-y-2">
+                    <div className="relative bg-white dark:bg-navy-900 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50 transform hover:-translate-y-1.5">
                       {/* Gradient Header */}
-                      <div className="relative h-40 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
+                      <div className="relative h-32 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
                         {/* Animated Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
                           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_white_2px,_transparent_0)] bg-[size:40px_40px]"></div>
@@ -406,16 +406,16 @@ const Index = () => {
                         {/* Store Avatar with Badge */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                           <div className="relative">
-                            <div className="w-24 h-24 bg-white dark:bg-navy-900 rounded-full p-1.5 shadow-2xl ring-4 ring-white/20">
+                            <div className="w-16 h-16 bg-white dark:bg-navy-900 rounded-full p-1.5 shadow-xl ring-2 ring-white/30">
                               <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
-                                <span className="text-3xl font-bold text-white">{store.name[0]}</span>
+                                <span className="text-xl font-bold text-white">{store.name[0]}</span>
                               </div>
                             </div>
                             
                             {/* Verified Badge */}
                             {store.verified && (
-                              <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-green-500 rounded-full flex items-center justify-center border-4 border-white dark:border-navy-900 shadow-xl">
-                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-4 border-white dark:border-navy-900 shadow-lg">
+                                <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               </div>
@@ -425,13 +425,13 @@ const Index = () => {
                       </div>
 
                       {/* Store Content */}
-                      <div className="pt-16 pb-6 px-6">
+                      <div className="pt-12 pb-4 px-4">
                         {/* Store Name and Location */}
                         <div className="text-center mb-4">
-                          <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-orange-500 transition-colors duration-300">
+                          <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1 group-hover:text-orange-500 transition-colors duration-300">
                             {store.name}
                           </h4>
-                          <div className="flex items-center justify-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center justify-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -441,14 +441,14 @@ const Index = () => {
                         </div>
 
                         {/* Rating and Stats */}
-                        <div className="flex items-center justify-center gap-6 mb-4">
+                        <div className="flex items-center justify-center gap-4 mb-2.5">
                           {/* Rating */}
                           <div className="flex items-center gap-1">
                             <div className="flex items-center">
                               {[...Array(5)].map((_, i) => (
                                 <Star 
                                   key={i} 
-                                  className={`h-4 w-4 ${
+                                  className={`h-3.5 w-3.5 ${
                                     i < Math.floor(store.rating) 
                                       ? 'text-orange-400 fill-orange-400' 
                                       : 'text-gray-300 dark:text-gray-600'
@@ -456,22 +456,22 @@ const Index = () => {
                                 />
                               ))}
                             </div>
-                            <span className="ml-1 text-sm font-semibold text-gray-900 dark:text-white">
+                            <span className="ml-1 text-[11px] font-semibold text-gray-900 dark:text-white">
                               {store.rating}
                             </span>
                           </div>
 
                           {/* Products Count */}
-                          <div className="flex items-center gap-1 text-sm">
-                            <ShoppingBag className="h-4 w-4 text-gray-400" />
+                          <div className="flex items-center gap-1 text-[11px]">
+                            <ShoppingBag className="h-3.5 w-3.5 text-gray-400" />
                             <span className="text-gray-600 dark:text-gray-400 font-medium">
                               {store.productCount || 0} products
                             </span>
                           </div>
 
                           {/* Followers Count */}
-                          <div className="flex items-center gap-1 text-sm">
-                            <Users className="h-4 w-4 text-gray-400" />
+                          <div className="flex items-center gap-1 text-[11px]">
+                            <Users className="h-3.5 w-3.5 text-gray-400" />
                             <span className="text-gray-600 dark:text-gray-400 font-medium">
                               {store.followers || 0}
                             </span>
@@ -484,7 +484,7 @@ const Index = () => {
                             {store.categories.slice(0, 2).map((category, idx) => (
                               <span 
                                 key={idx}
-                                className="px-3 py-1 bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-800 dark:to-orange-900 text-xs font-medium text-gray-700 dark:text-gray-300 rounded-full"
+                                className="px-2.5 py-0.5 bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-800 dark:to-orange-900 text-[11px] font-medium text-gray-700 dark:text-gray-300 rounded-full"
                               >
                                 {category}
                               </span>
@@ -493,35 +493,35 @@ const Index = () => {
                         )}
 
                         {/* Hover Effect Indicator */}
-                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-navy-600 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-navy-600 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Mobile View - Compact Cards */}
-              <div className="grid grid-cols-2 gap-4 mb-6 md:hidden">
+              {/* Mobile View - Compact Cards (slightly reduced) */}
+              <div className="grid grid-cols-2 gap-3 mb-6 md:hidden">
                 {featuredStores.slice(0, 4).map((store, index) => (
                   <div 
                     key={`mobile-store-${store.id}`} 
                     className="group cursor-pointer"
                     onClick={() => navigate(`/store/${store.id}`)}
                   >
-                    <div className="relative bg-white dark:bg-navy-900 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50">
+                    <div className="relative bg-white dark:bg-navy-900 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50">
                       {/* Compact Gradient Header */}
-                      <div className="relative h-24 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
+                      <div className="relative h-20 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
                         {/* Store Avatar */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                           <div className="relative">
-                            <div className="w-14 h-14 bg-white dark:bg-navy-900 rounded-full p-1 shadow-xl ring-2 ring-white/30">
+                            <div className="w-12 h-12 bg-white dark:bg-navy-900 rounded-full p-1 shadow-lg ring-2 ring-white/30">
                               <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
-                                <span className="text-base font-bold text-white">{store.name[0]}</span>
+                                <span className="text-sm font-bold text-white">{store.name[0]}</span>
                               </div>
                             </div>
                             {store.verified && (
-                              <div className="absolute -bottom-0 -right-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white dark:border-navy-900 shadow-lg">
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <div className="absolute -bottom-0 -right-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white dark:border-navy-900 shadow-md">
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               </div>
@@ -531,15 +531,15 @@ const Index = () => {
                       </div>
 
                       {/* Store Content */}
-                      <div className="pt-9 pb-4 px-3 text-center">
-                        <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1 truncate">
+                      <div className="pt-8 pb-3 px-3 text-center">
+                        <h4 className="font-bold text-xs text-gray-900 dark:text-white mb-1 truncate">
                           {store.name}
                         </h4>
                         <div className="flex items-center justify-center gap-1 mb-2">
                           <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
-                          <span className="text-xs font-semibold text-gray-900 dark:text-white">{store.rating}</span>
+                          <span className="text-[11px] font-semibold text-gray-900 dark:text-white">{store.rating}</span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
                           {store.productCount || 0} products
                         </p>
                       </div>
