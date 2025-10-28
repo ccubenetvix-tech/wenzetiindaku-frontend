@@ -105,8 +105,8 @@ const Category = () => {
       <main className="flex-1">
         {/* Header Section */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center space-x-4 mb-4">
+          <div className="container mx-auto px-4 py-0">
+            <div className="flex items-center space-x-4 mb-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -119,13 +119,13 @@ const Category = () => {
             </div>
             
             <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <span className="text-4xl mr-4">{displayCategory.icon}</span>
+              <div className="flex items-center justify-center mb-0">
+                <span className="text-3xl mr-2">{displayCategory.icon}</span>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0">
                     {displayCategory.name}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mt-0">
                     {displayCategory.description}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ const Category = () => {
 
         {/* Filters and Search */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               {/* Search */}
               <div className="relative flex-1 max-w-md">
@@ -193,7 +193,7 @@ const Category = () => {
           </div>
 
         {/* Products Section */}
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4">
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -201,7 +201,7 @@ const Category = () => {
             </div>
           ) : filteredProducts.length > 0 ? (
             <>
-              <div className={`grid gap-6 ${
+              <div className={`grid ${viewMode === 'grid' ? 'gap-4' : 'gap-6'} ${
                 viewMode === "grid" 
                   ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
                   : "grid-cols-1"
@@ -219,6 +219,7 @@ const Category = () => {
                     vendor={product.vendor?.business_name || "Unknown Vendor"}
                     isNew={product.is_new || false}
                     isFeatured={product.is_featured || false}
+                    compact={viewMode === 'grid'}
                   />
               ))}
             </div>

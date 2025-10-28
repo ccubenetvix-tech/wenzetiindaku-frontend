@@ -29,6 +29,7 @@ interface ProductCardProps {
   vendor: string;
   isNew?: boolean;
   isFeatured?: boolean;
+  compact?: boolean;
 }
 
 export const ProductCard = memo(function ProductCard({
@@ -42,6 +43,7 @@ export const ProductCard = memo(function ProductCard({
   vendor,
   isNew = false,
   isFeatured = false,
+  compact = false,
 }: ProductCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -118,17 +120,17 @@ export const ProductCard = memo(function ProductCard({
 
   return (
     <Card 
-      className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg h-full flex flex-col cursor-pointer"
+      className={`group relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg h-full flex flex-col cursor-pointer ${compact ? 'text-[0.95rem]' : ''}`}
       onClick={handleProductClick}
     >
       <CardContent className="p-0 flex flex-col h-full">
         {/* Professional Image Container */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-navy-800">
+        <div className={`relative ${compact ? 'aspect-video' : 'aspect-[4/3]'} overflow-hidden bg-gray-50 dark:bg-navy-800`}>
           {!imageError ? (
             <img
               src={image}
               alt={name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${compact ? '' : ''}`}
                onError={handleImageError}
               loading="lazy"
             />
@@ -168,11 +170,11 @@ export const ProductCard = memo(function ProductCard({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 bg-white/90 hover:bg-white w-8 h-8 shadow-sm hover:shadow-md z-10 rounded-full"
+            className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${compact ? 'w-7 h-7' : 'w-8 h-8'} shadow-sm hover:shadow-md z-10 rounded-full`}
             onClick={handleWishlistToggle}
           >
             <Heart
-              className={`h-4 w-4 transition-colors duration-200 ${
+              className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
                 isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
               }`}
             />
@@ -180,9 +182,9 @@ export const ProductCard = memo(function ProductCard({
 
           {/* Add to Cart Button - Professional overlay */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="p-3">
+            <div className={`${compact ? 'p-2' : 'p-3'}`}> 
             <Button
-              size="sm"
+              size={compact ? 'sm' : 'sm'}
               className={`w-full rounded-md ${
                 !isAuthenticated 
                   ? 'bg-gray-400 hover:bg-gray-500 text-white' 
@@ -193,7 +195,7 @@ export const ProductCard = memo(function ProductCard({
               onClick={handleAddToCart}
               disabled={user?.role === 'vendor'}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
+              <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
               {!isAuthenticated 
                 ? 'Login to Add' 
                 : user?.role === 'vendor'
@@ -206,14 +208,14 @@ export const ProductCard = memo(function ProductCard({
         </div>
 
         {/* Professional Product Information */}
-        <div className="p-3 space-y-2 flex-1 flex flex-col">
+        <div className={`${compact ? 'p-2 space-y-1.5' : 'p-3 space-y-2'} flex-1 flex flex-col`}>
           {/* Vendor Name */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+          <p className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-500 dark:text-gray-400 font-medium`}>
             {vendor}
           </p>
 
           {/* Product Name */}
-          <h3 className="font-medium text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 flex-1">
+          <h3 className={`font-medium text-gray-900 dark:text-white ${compact ? 'text-xs' : 'text-sm'} leading-tight line-clamp-2 flex-1`}>
             {name}
           </h3>
 
@@ -223,7 +225,7 @@ export const ProductCard = memo(function ProductCard({
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-3 w-3 ${
+                  className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${
                     i < Math.floor(rating)
                       ? 'text-orange-400 fill-orange-400'
                       : 'text-gray-300 dark:text-gray-600'
@@ -231,7 +233,7 @@ export const ProductCard = memo(function ProductCard({
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-500 dark:text-gray-400`}>
               ({reviewCount})
             </span>
           </div>
@@ -239,11 +241,11 @@ export const ProductCard = memo(function ProductCard({
           {/* Price Section - Professional layout */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
+              <span className={`${compact ? 'text-base' : 'text-lg'} font-bold text-gray-900 dark:text-white`}>
                 ${price.toFixed(2)}
               </span>
               {originalPrice && (
-                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-400 line-through`}>
                   ${originalPrice.toFixed(2)}
                 </span>
               )}
@@ -252,8 +254,8 @@ export const ProductCard = memo(function ProductCard({
 
           {/* Free Shipping Badge */}
           {price > 50 && (
-            <div className="flex items-center text-xs text-green-600 dark:text-green-400">
-              <span className="bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded text-xs font-medium">
+            <div className={`flex items-center ${compact ? 'text-[10px]' : 'text-xs'} text-green-6 00 dark:text-green-400`}>
+              <span className={`bg-green-100 dark:bg-green-900/30 ${compact ? 'px-1.5 py-0.5' : 'px-2 py-1'} rounded ${compact ? 'text-[10px]' : 'text-xs'} font-medium`}>
                 Free Shipping
                 </span>
               </div>

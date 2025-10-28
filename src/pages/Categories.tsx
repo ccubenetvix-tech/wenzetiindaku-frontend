@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { 
-  ArrowLeft,
   Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -90,26 +89,12 @@ const Categories = () => {
       <main className="flex-1">
         {/* Header Section */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center space-x-4 mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('back')}
-              </Button>
-            </div>
+          <div className="container mx-auto px-4 py-3">
             
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {t('allCategories')}
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                {t('exploreAllCategories')}
-              </p>
             </div>
           </div>
         </div>
