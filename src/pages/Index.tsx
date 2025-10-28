@@ -428,7 +428,7 @@ const Index = () => {
                       <div className="pt-12 pb-4 px-4">
                         {/* Store Name and Location */}
                         <div className="text-center mb-4">
-                          <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1 group-hover:text-orange-500 transition-colors duration-300">
+                          <h4 className="font-bold text-xl text-gray-900 dark:text-white mb-1 group-hover:text-orange-500 transition-colors duration-300">
                             {store.name}
                           </h4>
                           <div className="flex items-center justify-center gap-1 text-xs text-gray-500 dark:text-gray-400">
@@ -532,7 +532,7 @@ const Index = () => {
 
                       {/* Store Content */}
                       <div className="pt-8 pb-3 px-3 text-center">
-                        <h4 className="font-bold text-xs text-gray-900 dark:text-white mb-1 truncate">
+                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1 truncate">
                           {store.name}
                         </h4>
                         <div className="flex items-center justify-center gap-1 mb-2">

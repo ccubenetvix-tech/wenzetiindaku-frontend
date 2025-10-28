@@ -36,6 +36,7 @@ import { Header } from "@/components/Header";    // Site header with navigation
 import { Footer } from "@/components/Footer";    // Site footer
 import { Button } from "@/components/ui/button"; // Reusable button component
 import { Input } from "@/components/ui/input";   // Input field component
+import { Badge } from "@/components/ui/badge";   // Badge component
 import { ProductCard } from "@/components/ProductCard"; // Product card component
 import { apiClient } from "@/utils/api"; // API client for dynamic data
 
@@ -264,13 +265,59 @@ const Store = () => {
 
             {/* Store Products - Right column (main content) */}
             <div className="lg:w-3/4">
-              {/* Products and Controls - cards on left, search/sort on right */}
+              {/* Products and Controls Header - aligned side by side */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-2xl font-bold">All Products</h2>
+                  
+                  {/* Right side - Search and Sort Controls */}
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        type="text"
+                        placeholder={`${t('search')}...`}
+                        className="pl-10 w-48"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    
+                    <Select>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="price-low">Price: Low to High</SelectItem>
+                        <SelectItem value="price-high">Price: High to Low</SelectItem>
+                        <SelectItem value="rating">Highest Rated</SelectItem>
+                        <SelectItem value="new">New Arrivals</SelectItem>
+                        <SelectItem value="alpha">Alphabetical</SelectItem>
+                        <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Results count and Featured */}
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    {filteredProducts.length} results
+                  </span>
+                  <Badge variant="secondary">
+                    <Star className="h-3 w-3 mr-1" />
+                    Featured
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Products and Controls - cards below */}
               <div className="flex gap-6 items-start">
                 {/* Left side - Product sections */}
                 <div className="flex-1">
 
               {/* Featured Products Section */}
-              <div className="mb-6">
+              <div>
                 {/* Section header with star icon */}
                 <h2 className="text-2xl font-bold mb-3 flex items-center">
                   <Star className="h-6 w-6 text-secondary mr-2" />
@@ -288,14 +335,6 @@ const Store = () => {
 
               {/* All Products Section */}
               <div>
-                {/* Section header with product count */}
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">All Products</h2>
-                  <span className="text-muted-foreground">
-                    Showing {filteredProducts.length} of {store.totalProducts} products
-                  </span>
-                </div>
-                
                 {/* All products grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Map through all products */}
@@ -326,46 +365,6 @@ const Store = () => {
                   </Button>
                 </div>
               </div>
-                </div>
-                
-                {/* Right side - Search and Sort Controls */}
-                <div className="w-72">
-                  <div className="bg-card p-4 rounded-lg shadow-sm">
-                    <div className="space-y-3">
-                      {/* Search input */}
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Search</label>
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input
-                            type="text"
-                            placeholder={`${t('search')}...`}
-                            className="pl-10"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      
-                      {/* Sort dropdown */}
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Sort By</label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sort by" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="price-low">Price: Low to High</SelectItem>
-                            <SelectItem value="price-high">Price: High to Low</SelectItem>
-                            <SelectItem value="rating">Highest Rated</SelectItem>
-                            <SelectItem value="new">New Arrivals</SelectItem>
-                            <SelectItem value="alpha">Alphabetical</SelectItem>
-                            <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

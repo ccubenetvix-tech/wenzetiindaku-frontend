@@ -2,14 +2,13 @@
  * Stores.tsx - Stores Listing Page Component
  * 
  * This page displays a comprehensive list of all stores/vendors in the marketplace.
- * It includes search functionality, filters, and detailed store information cards.
+ * It includes search functionality and detailed store information cards.
  * 
  * Features:
  * - Page header with navigation back to home
- * - Search and filter functionality
+ * - Search functionality
  * - Grid layout of store cards
  * - Store information including ratings, location, categories
- * - Store policies display
  * - Action buttons for visiting store and messaging
  * 
  * @author WENZE TII NDAKU Team
@@ -27,11 +26,8 @@ import {
   Star,            // Star icon for ratings
   MapPin,          // Map pin icon for location
   MessageCircle,   // Message icon for messaging functionality
-  ArrowLeft,       // Back arrow for navigation
   Search,          // Search icon for search input
-  Filter,          // Filter icon for filter button
-  Grid3X3,         // Grid icon for grid view
-  List             // List icon for list view
+  Filter           // Filter icon for filter button
 } from "lucide-react";
 
 // Import UI components
@@ -49,9 +45,9 @@ import { useState as useStateHook, useEffect } from "react"; // React hooks
  * 
  * Renders a comprehensive stores listing page with:
  * - Page header with back navigation
- * - Search and filter controls
+ * - Search controls
  * - Grid of store cards with detailed information
- * - Store policies and action buttons
+ * - Action buttons for visiting store and messaging
  * 
  * @returns {JSX.Element} Complete stores listing page layout
  */
@@ -91,8 +87,6 @@ export default function Stores() {
             featured: vendor.featured || false,
             verified: vendor.verified || false,
             followers: 0, // Default followers
-            shipping: "Standard shipping",
-            returnPolicy: "30-day returns",
             specialties: vendor.categories || []
           }));
           
@@ -147,34 +141,18 @@ export default function Stores() {
           </div>
         </section>
 
-        {/* Search and Filters Section */}
+        {/* Search Section */}
         <section className="py-6 border-b border-muted">
           <div className="container mx-auto px-4">
             {/* Controls container with responsive layout */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              {/* Left side controls - Filters and view options */}
-              <div className="flex items-center gap-4">
-                {/* Filter button */}
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-                
-                {/* View toggle buttons */}
-                <div className="flex items-center gap-2">
-                  {/* Grid view button */}
-                  <Button variant="outline" size="sm">
-                    <Grid3X3 className="h-4 w-4" />
-                  </Button>
-                  
-                  {/* List view button */}
-                  <Button variant="outline" size="sm">
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              {/* Filter button */}
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
               
-              {/* Right side - Search input */}
+              {/* Search input */}
               <div className="relative w-full sm:w-80">
                 <Input
                   type="text"
@@ -216,18 +194,11 @@ export default function Stores() {
                     
                     {/* Store information container */}
                     <div className="flex-1 min-w-0">
-                      {/* Store name with verification and featured badges */}
+                      {/* Store name with featured badge */}
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-xl font-semibold text-foreground truncate">
                           {store.name}
                         </h3>
-                        
-                        {/* Verified badge - shown if store is verified */}
-                        {store.verified && (
-                          <div className="w-5 h-5 status-verified rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-white text-xs">✓</span>
-                          </div>
-                        )}
                         
                         {/* Featured badge - shown if store is featured */}
                         {store.featured && (
@@ -297,31 +268,6 @@ export default function Stores() {
                       <h4 className="text-sm font-medium text-foreground mb-2">Specialties</h4>
                       <div className="text-sm text-muted-foreground leading-relaxed">
                         {store.specialties.join(", ")}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Store Policies Section */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-foreground mb-3">Store Policies</h4>
-                    {/* Policies grid with responsive columns */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                      {/* Shipping policy */}
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="font-medium text-foreground mb-1">Shipping</div>
-                        <div className="text-muted-foreground leading-relaxed">{store.shipping}</div>
-                      </div>
-                      
-                      {/* Return policy */}
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="font-medium text-foreground mb-1">Returns</div>
-                        <div className="text-muted-foreground leading-relaxed">{store.returnPolicy}</div>
-                      </div>
-                      
-                      {/* Response time policy */}
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="font-medium text-foreground mb-1">Response</div>
-                        <div className="text-muted-foreground leading-relaxed">Quick response</div>
                       </div>
                     </div>
                   </div>

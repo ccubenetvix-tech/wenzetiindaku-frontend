@@ -141,18 +141,49 @@ const SearchResults = () => {
       <Header />
       
       <main className="flex-1">
-        <div className="container mx-auto px-4 pt-0 pb-8">
-          {/* Search Header */}
-          <div className="mb-1">
-            <div className="flex items-center gap-3 mb-1">
-              <Search className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">
-                {categoryParam ? `Products in ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : "All Products")}
-              </h1>
+        <div className="container mx-auto px-4 pt-4 pb-8">
+          {/* Header Section - aligned with controls */}
+          <div className="mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <Search className="h-6 w-6 text-primary" />
+                <h1 className="text-2xl font-bold">
+                  {categoryParam ? `Products in ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : "All Products")}
+                </h1>
+              </div>
+              
+              {/* Sort and View Options - aligned on same line */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Sort by:</span>
+                </div>
+                <Select value={sortByValue} onValueChange={setSortByValue}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Relevance" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="alpha">Alphabetical</SelectItem>
+                    <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <p className="text-muted-foreground">
-              Found {filteredProducts.length} {query ? `results for "${query}"` : "products"}
-            </p>
+            
+            {/* Results count and Featured */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                {filteredProducts.length} results
+              </span>
+              <Badge variant="secondary">
+                <Star className="h-3 w-3 mr-1" />
+                Featured
+              </Badge>
+            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
@@ -271,41 +302,6 @@ const SearchResults = () => {
 
             {/* Search Results */}
             <div className="lg:w-3/4">
-              {/* Sort and View Options */}
-              <div className="bg-card p-4 rounded-lg shadow-sm mb-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">
-                      {filteredProducts.length} results
-                    </span>
-                    <Badge variant="secondary">
-                      <Star className="h-3 w-3 mr-1" />
-                      Featured
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Sort by:</span>
-                    </div>
-                    <Select value={sortByValue} onValueChange={setSortByValue}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Relevance" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="relevance">Relevance</SelectItem>
-                        <SelectItem value="price-low">Price: Low to High</SelectItem>
-                        <SelectItem value="price-high">Price: High to Low</SelectItem>
-                        <SelectItem value="rating">Highest Rated</SelectItem>
-                        <SelectItem value="alpha">Alphabetical</SelectItem>
-                        <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
                 {/* Promoted Results */}
                 {filteredProducts.filter(p => p.isFeatured || p.is_featured).length > 0 && (
                   <div className="mb-8">
@@ -335,10 +331,10 @@ const SearchResults = () => {
 
               {/* All Results */}
               <div>
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Grid className="h-5 w-5 text-primary mr-2" />
-                  All Results
-                </h2>
+                <div className="flex items-center gap-2 mb-4">
+                  <Grid className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-bold">All Results</h2>
+                </div>
                 
                 {paginatedProducts.length > 0 ? (
                   <>

@@ -61,11 +61,11 @@ export function Header() {
   // Local state management
   const [searchQuery, setSearchQuery] = useState("");           // Search input value
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Login modal visibility
-  const [isHidden, setIsHidden] = useState(false);                // Header visibility on scroll
+  const [isNavbarHidden, setIsNavbarHidden] = useState(false);     // Navbar visibility on scroll
   const lastScrollYRef = useRef(0);
   const scrollTickingRef = useRef(false);
 
-  // Hide header on scroll down, show on scroll up
+  // Hide blue navbar on scroll down, show on scroll up
   useEffect(() => {
     const handleScroll = () => {
       if (scrollTickingRef.current) return;
@@ -81,7 +81,15 @@ export function Header() {
 
         if (delta > threshold) {
           const scrollingDown = currentY > lastY && currentY > 64; // past header height
-          setIsHidden(scrollingDown);
+          // Hide quickly on scroll down, show slowly on scroll up
+          if (scrollingDown) {
+            setIsNavbarHidden(true);
+          } else {
+            // Add slight delay for smooth appearance
+            setTimeout(() => {
+              setIsNavbarHidden(false);
+            }, 50);
+          }
           lastScrollYRef.current = currentY;
         }
 
@@ -123,89 +131,53 @@ export function Header() {
 
   return (
     // Professional e-commerce header with clean design
-    <header className={`sticky top-0 z-50 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-navy-800 shadow-sm transition-transform duration-300 will-change-transform ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-      {/* Top utility bar - Professional */}
-      <div className="bg-gray-50 dark:bg-navy-950 border-b border-gray-200 dark:border-navy-800">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-10 text-xs">
-            <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
-              <span className="hidden sm:inline">{t('freeShippingOnOrders')}</span>
-              <span className="hidden md:inline text-gray-400">•</span>
-              <span className="hidden md:inline">{t('customerSupport')}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Language Selector - Compact */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-gray-200 dark:hover:bg-navy-800 transition-colors">
-                    <Globe className="h-3 w-3 mr-1" />
-                    {currentLanguage.name}
-                </Button>
-              </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[120px]">
-                {languages.map((language) => (
-                  <DropdownMenuItem
-                    key={language.code}
-                    onClick={() => changeLanguage(language.code)}
-                      className={`text-xs ${i18n.language === language.code ? 'bg-accent' : ''}`}
-                  >
-                    {language.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-              <span className="text-gray-400 hidden sm:inline">|</span>
-              <span className="text-gray-600 dark:text-gray-400 hidden sm:inline hover:text-navy-600 dark:hover:text-navy-300 cursor-pointer transition-colors">{t('helpSupport')}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main header */}
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo section - Professional and clean */}
-          <div className="flex-shrink-0">
-            <div 
-              className="flex items-center cursor-pointer"
-              onClick={() => navigate('/')}
-            >
-              <img 
-                src="/marketplace.jpeg" 
-                alt="WENZE TII NDAKU" 
-                className="h-10 w-auto"
-              />
-              <div className="ml-3 hidden lg:block">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-navy-600 to-orange-500 bg-clip-text text-transparent">
-                  WENZE TII NDAKU
-                </h1>
-              </div>
-            </div>
-          </div>
-
-          {/* Center section - Search Bar */}
-          <div className="flex-1 max-w-2xl mx-8">
-            <form onSubmit={handleSearch} className="relative">
-              <div className="flex">
-                <Input
-                  type="text"
-                  placeholder={t('searchForProducts')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 h-10 pl-4 pr-12 border-2 border-gray-300 dark:border-navy-700 focus:border-navy-500 dark:focus:border-navy-400 rounded-l-md rounded-r-none"
+    <header className="sticky top-0 z-50 bg-gray-50 dark:bg-navy-950">
+      {/* Logo + Search Bar Card - Elevated white card with rounded corners */}
+      <div className="bg-white dark:bg-navy-900 shadow-lg border-b border-gray-200 dark:border-navy-800 rounded-b-xl overflow-hidden">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo section - Professional and clean */}
+            <div className="flex-shrink-0">
+              <div 
+                className="flex items-center cursor-pointer"
+                onClick={() => navigate('/')}
+              >
+                <img 
+                  src="/marketplace.jpeg" 
+                  alt="WENZE TII NDAKU" 
+                  className="h-10 w-auto"
                 />
-            <Button 
-                  type="submit"
-                  className="h-10 px-6 bg-navy-600 hover:bg-navy-700 text-white rounded-l-none rounded-r-md border-2 border-navy-600 hover:border-navy-700"
-                >
-                  <Search className="h-4 w-4" />
-            </Button>
+                <div className="ml-3 hidden lg:block">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-navy-600 to-orange-500 bg-clip-text text-transparent">
+                    WENZE TII NDAKU
+                  </h1>
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
 
-          {/* Right section - User Account & Cart */}
-          <div className="flex items-center space-x-2">
+            {/* Center section - Search Bar */}
+            <div className="flex-1 max-w-2xl mx-8">
+              <form onSubmit={handleSearch} className="relative">
+                <div className="flex">
+                  <Input
+                    type="text"
+                    placeholder={t('searchForProducts')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 h-10 pl-4 pr-12 border-2 border-gray-300 dark:border-navy-700 focus:border-navy-500 dark:focus:border-navy-400 rounded-l-md rounded-r-none"
+                  />
+              <Button 
+                    type="submit"
+                    className="h-10 px-6 bg-navy-600 hover:bg-navy-700 text-white rounded-l-none rounded-r-md border-2 border-navy-600 hover:border-navy-700"
+                  >
+                    <Search className="h-4 w-4" />
+              </Button>
+                </div>
+              </form>
+            </div>
+
+            {/* Right section - User Account & Cart */}
+            <div className="flex items-center space-x-2">
             {/* User Account */}
             {isAuthenticated && user ? (
               <DropdownMenu>
@@ -336,10 +308,11 @@ export function Header() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Navigation bar - Professional category navigation */}
-      <div className="bg-navy-600 dark:bg-navy-700">
-        <div className="container mx-auto px-4">
+      <div className={`bg-navy-600 dark:bg-navy-700 transition-all duration-300 ${isNavbarHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+        <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-10">
             {/* Left side - Main navigation centered */}
             <nav className="flex items-center space-x-8 text-sm">
@@ -354,14 +327,36 @@ export function Header() {
               ))}
             </nav>
             
-            {/* Right side - Become Seller - Only show if not authenticated or not a vendor */}
-            {(!isAuthenticated || (isAuthenticated && user?.role !== 'vendor')) && (
-              <div className="flex items-center">
-                <a href="/vendor/register" className="text-orange-300 hover:text-orange-200 transition-colors duration-200 font-medium">
-                  {t('becomeSeller')}
-                </a>
-              </div>
-            )}
+            {/* Right side - Language and Help & Support */}
+            <div className="flex items-center space-x-4">
+              {/* Language Selector */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-3 text-white hover:bg-navy-700 dark:hover:bg-navy-800 text-sm transition-colors"
+                  >
+                    <Globe className="h-4 w-4 mr-2" />
+                    {currentLanguage.name}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[120px]">
+                  {languages.map((language) => (
+                    <DropdownMenuItem
+                      key={language.code}
+                      onClick={() => changeLanguage(language.code)}
+                      className={`text-xs ${i18n.language === language.code ? 'bg-accent' : ''}`}
+                    >
+                      {language.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Help & Support */}
+              <span className="text-white/70 text-sm font-medium">{t('helpSupport')}</span>
+            </div>
           </div>
         </div>
       </div>
