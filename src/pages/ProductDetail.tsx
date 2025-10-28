@@ -145,7 +145,7 @@ const ProductDetail = () => {
     loadRelatedProducts();
   }, [product]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
     
     // Check if user is authenticated
@@ -179,21 +179,30 @@ const ProductDetail = () => {
       return;
     }
     
-    // Add the product to cart with the selected quantity
-    for (let i = 0; i < quantity; i++) {
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images?.[selectedImage] || product.image || "/marketplace.jpeg",
-        vendor: product.vendor?.business_name || "Unknown Vendor"
+    try {
+      // Add the product to cart with the selected quantity
+      for (let i = 0; i < quantity; i++) {
+        await addToCart({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.images?.[selectedImage] || product.image || "/marketplace.jpeg",
+          vendor: product.vendor?.business_name || "Unknown Vendor"
+        });
+      }
+      
+      toast({
+        title: "Added to cart",
+        description: `${quantity} x ${product.name} has been added to your cart.`,
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive"
       });
     }
-    
-    toast({
-      title: "Added to cart",
-      description: `${quantity} x ${product.name} has been added to your cart.`,
-    });
   };
 
   // Check if current user is the vendor of this product
