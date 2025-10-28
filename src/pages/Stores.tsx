@@ -132,19 +132,8 @@ export default function Stores() {
       {/* Main content area that takes remaining space */}
       <main className="flex-1">
         {/* Page Header Section - Hero area with title and navigation */}
-        <section className="bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-950/10 dark:to-orange-950/10 py-12">
+        <section className="bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-950/10 dark:to-orange-950/10 py-8">
           <div className="container mx-auto px-4">
-            {/* Back navigation button */}
-            <div className="flex items-center gap-4 mb-6">
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/')} // Navigate back to home page
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </div>
             
             {/* Page title and description */}
             <div className="text-center">
