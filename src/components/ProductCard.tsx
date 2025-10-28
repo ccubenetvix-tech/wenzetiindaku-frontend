@@ -62,7 +62,7 @@ export const ProductCard = memo(function ProductCard({
     navigate(`/product/${id}`);
   }, [navigate, id]);
 
-  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+  const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking add to cart
     
     // Check if user is authenticated
@@ -96,18 +96,27 @@ export const ProductCard = memo(function ProductCard({
       return;
     }
     
-    addToCart({
-      id,
-      name,
-      price,
-      image,
-      vendor,
-    });
-    
-    toast({
-      title: "Added to cart",
-      description: `${name} has been added to your cart.`,
-    });
+    try {
+      await addToCart({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+      });
+      
+      toast({
+        title: "Added to cart",
+        description: `${name} has been added to your cart.`,
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive"
+      });
+    }
   }, [addToCart, toast, id, name, price, image, vendor, isAuthenticated, user, navigate]);
 
   const handleImageError = useCallback(() => {

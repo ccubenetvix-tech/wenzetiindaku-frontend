@@ -18,7 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 
 const Cart = () => {
   const { t } = useTranslation();
-  const { items: cartItems, updateQuantity, removeFromCart } = useCart();
+  const { items: cartItems, updateQuantity, removeFromCart, isLoading } = useCart();
 
   // Group items by vendor
   const itemsByVendor = cartItems.reduce((acc, item) => {
@@ -33,6 +33,25 @@ const Cart = () => {
   const shipping = 5.99;
   const tax = subtotal * 0.1;
   const total = subtotal + shipping + tax;
+
+  // Handle quantity update
+  const handleUpdateQuantity = async (cartItemId: string, quantity: number) => {
+    if (quantity <= 0) return;
+    try {
+      await updateQuantity(cartItemId, quantity);
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+    }
+  };
+
+  // Handle remove from cart
+  const handleRemoveFromCart = async (cartItemId: string) => {
+    try {
+      await removeFromCart(cartItemId);
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -49,7 +68,12 @@ const Cart = () => {
             </Badge>
           </div>
 
-          {cartItems.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p>Loading cart...</p>
+            </div>
+          ) : cartItems.length === 0 ? (
             <div className="text-center py-16">
               <ShoppingCart className="h-24 w-24 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
@@ -100,7 +124,7 @@ const Cart = () => {
                                   variant="outline"
                                   size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                                 >
                                   <Minus className="h-3 w-3" />
                                 </Button>
@@ -111,7 +135,7 @@ const Cart = () => {
                                   variant="outline"
                                   size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                 >
                                   <Plus className="h-3 w-3" />
                                 </Button>
@@ -122,7 +146,7 @@ const Cart = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="text-destructive hover:text-destructive"
-                                onClick={() => removeFromCart(item.id)}
+                                onClick={() => handleRemoveFromCart(item.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
