@@ -105,8 +105,7 @@ const resources = {
       // Product cards
       by: "by",
       new: "NEW",
-      hot: "HOT",
-      addToCart: "Add to Cart"
+      hot: "HOT"
     }
   },
   fr: {
@@ -211,8 +210,7 @@ const resources = {
       // Product cards
       by: "par",
       new: "NOUVEAU",
-      hot: "TENDANCE",
-      addToCart: "Ajouter au Panier"
+      hot: "TENDANCE"
     }
   },
   af: {
@@ -317,8 +315,7 @@ const resources = {
       // Product cards
       by: "deur",
       new: "NUUT",
-      hot: "GEWILD",
-      addToCart: "Voeg by Mandjie"
+      hot: "GEWILD"
     }
   },
   sw: {
@@ -423,8 +420,7 @@ const resources = {
       // Product cards
       by: "na",
       new: "MPYA",
-      hot: "HOT",
-      addToCart: "Ongeza Kikarpuni"
+      hot: "HOT"
     }
   },
   zu: {
@@ -529,8 +525,7 @@ const resources = {
       // Product cards
       by: "ngu",
       new: "ENTSHA",
-      hot: "HOT",
-      addToCart: "Engeza Esitsheni"
+      hot: "HOT"
     }
   },
   yo: {
@@ -635,8 +630,7 @@ const resources = {
       // Product cards
       by: "nipasẹ",
       new: "TUNTUN",
-      hot: "HOT",
-      addToCart: "Fi Kun Apoti"
+      hot: "HOT"
     }
   }
 };
