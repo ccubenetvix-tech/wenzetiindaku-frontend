@@ -10,7 +10,7 @@ export const setAuthState = (state: typeof authState) => {
 };
 
 // Environment-based API URL configuration
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   // If VITE_API_URL is explicitly set, use it
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
@@ -89,7 +89,9 @@ export class ApiClient {
       if (!response.ok) {
         // read text to avoid JSON parse on HTML/text errors (e.g., 429)
         const text = await response.text();
-        throw new Error(text || response.statusText || `HTTP ${response.status}`);
+        const error = new Error(text || response.statusText || `HTTP ${response.status}`);
+        (error as Error & { status?: number }).status = response.status;
+        throw error;
       }
 
       if (isJson) {

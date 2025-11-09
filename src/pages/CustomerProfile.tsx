@@ -50,7 +50,7 @@ const CustomerProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [profileImagePreview, setProfileImagePreview] = useState<string>(user?.profilePhoto || '');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -101,12 +101,14 @@ const CustomerProfile = () => {
       gender: user.gender || '',
       address: user.address || '',
       phoneNumber: user.phoneNumber || '',
-      dateOfBirth: user.dateOfBirth || '',
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
       profilePhoto: user.profilePhoto || '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     });
+
+    setProfileImagePreview(user.profilePhoto || '');
   }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -182,14 +184,22 @@ const CustomerProfile = () => {
       if (formData.newPassword || formData.confirmPassword) {
         if (!formData.currentPassword) {
           setError('Current password is required to change password.');
+          setIsLoading(false);
           return;
         }
         if (formData.newPassword !== formData.confirmPassword) {
           setError('New passwords do not match.');
+          setIsLoading(false);
           return;
         }
         if (formData.newPassword.length < 8) {
           setError('New password must be at least 8 characters long.');
+          setIsLoading(false);
+          return;
+        }
+        if (user?.registrationMethod === 'google') {
+          setError('Password changes must be managed via your Google account.');
+          setIsLoading(false);
           return;
         }
       }
@@ -210,34 +220,47 @@ const CustomerProfile = () => {
         updateData.newPassword = formData.newPassword;
       }
 
-      const response = await fetch('/api/customer/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await apiClient.updateCustomerProfile(updateData) as {
+        success: boolean;
+        message?: string;
+        data?: {
+          customer?: {
+            firstName?: string;
+            lastName?: string;
+            gender?: string;
+            address?: string;
+            phoneNumber?: string;
+            dateOfBirth?: string;
+            profilePhoto?: string;
+            profile_completed?: boolean;
+          }
+        };
+        error?: { message?: string };
+      };
 
-      const data = await response.json();
+      if (response.success) {
+        const updatedCustomer = response.data?.customer;
+        const updatedProfilePhoto = updatedCustomer?.profilePhoto ?? (profileImagePreview || formData.profilePhoto);
+        const updatedDateOfBirth = updatedCustomer?.dateOfBirth ?? formData.dateOfBirth;
 
-      if (data.success) {
         toast({
           title: "Profile Updated",
-          description: data.message,
+          description: response.message,
         });
 
         // Update user context
         updateUser({
-          ...user,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gender: formData.gender,
-          address: formData.address,
-          phoneNumber: formData.phoneNumber,
-          dateOfBirth: formData.dateOfBirth,
-          profilePhoto: profileImagePreview || formData.profilePhoto
+          firstName: updatedCustomer?.firstName ?? formData.firstName,
+          lastName: updatedCustomer?.lastName ?? formData.lastName,
+          gender: updatedCustomer?.gender ?? formData.gender,
+          address: updatedCustomer?.address ?? formData.address,
+          phoneNumber: updatedCustomer?.phoneNumber ?? formData.phoneNumber,
+          dateOfBirth: updatedDateOfBirth,
+          profilePhoto: updatedProfilePhoto,
+          profile_completed: updatedCustomer?.profile_completed ?? user?.profile_completed
         });
+
+        setProfileImagePreview(updatedProfilePhoto);
 
         setIsEditing(false);
         setFormData(prev => ({
@@ -247,19 +270,33 @@ const CustomerProfile = () => {
           confirmPassword: ''
         }));
       } else {
-        setError(data.error?.message || 'Failed to update profile');
+        const errorMessage = response.error?.message || 'Failed to update profile';
+        setError(errorMessage);
         toast({
           title: "Update Failed",
-          description: data.error?.message || "Failed to update profile",
+          description: errorMessage,
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      setError('Network error. Please try again.');
+      const status = (error as { status?: number })?.status;
+      if (status === 401) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        logout();
+        navigate('/customer/login');
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : 'Network error. Please try again.';
+      setError(message);
       toast({
         title: "Update Failed",
-        description: "Network error. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {

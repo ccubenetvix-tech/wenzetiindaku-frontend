@@ -22,15 +22,16 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/utils/api';
 
 const UpdateProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, clearSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [profileImagePreview, setProfileImagePreview] = useState<string>(user?.profilePhoto || '');
   const [dobError, setDobError] = useState('');
 
   // Age validation function
@@ -74,13 +75,18 @@ const UpdateProfile = () => {
     }
 
     // Pre-fill form with existing data
-    setFormData(prev => ({
-      ...prev,
+    setFormData({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       email: user.email || '',
+      gender: user.gender || '',
+      address: user.address || '',
+      phoneNumber: user.phoneNumber || '',
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
       profilePhoto: user.profilePhoto || ''
-    }));
+    });
+
+    setProfileImagePreview(user.profilePhoto || '');
   }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -159,6 +165,7 @@ const UpdateProfile = () => {
       // Validate required fields
       if (!formData.gender || !formData.address || !formData.phoneNumber || !formData.dateOfBirth) {
         setError('Please fill in all required fields.');
+        setIsLoading(false);
         return;
       }
 
@@ -174,52 +181,78 @@ const UpdateProfile = () => {
       };
 
       // Make API call
-      const response = await fetch('/api/customer/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify(submitData),
-      });
+      const response = await apiClient.updateCustomerProfile(submitData) as {
+        success: boolean;
+        message?: string;
+        data?: {
+          customer?: {
+            firstName?: string;
+            lastName?: string;
+            gender?: string;
+            address?: string;
+            phoneNumber?: string;
+            dateOfBirth?: string;
+            profilePhoto?: string;
+            profile_completed?: boolean;
+          }
+        };
+        error?: { message?: string };
+      };
 
-      const data = await response.json();
+      if (response.success) {
+        const updatedCustomer = response.data?.customer;
+        const updatedProfilePhoto = updatedCustomer?.profilePhoto ?? (profileImagePreview || formData.profilePhoto);
+        const updatedDateOfBirth = updatedCustomer?.dateOfBirth ?? formData.dateOfBirth;
 
-      if (data.success) {
         toast({
           title: "Profile Updated",
-          description: data.message,
+          description: response.message,
         });
 
         // Update user context
         updateUser({
-          ...user,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gender: formData.gender,
-          address: formData.address,
-          phoneNumber: formData.phoneNumber,
-          dateOfBirth: formData.dateOfBirth,
-          profilePhoto: profileImagePreview || formData.profilePhoto,
-          profile_completed: true
+          firstName: updatedCustomer?.firstName ?? formData.firstName,
+          lastName: updatedCustomer?.lastName ?? formData.lastName,
+          gender: updatedCustomer?.gender ?? formData.gender,
+          address: updatedCustomer?.address ?? formData.address,
+          phoneNumber: updatedCustomer?.phoneNumber ?? formData.phoneNumber,
+          dateOfBirth: updatedDateOfBirth,
+          profilePhoto: updatedProfilePhoto,
+          profile_completed: updatedCustomer?.profile_completed ?? true
         });
+
+        setProfileImagePreview(updatedProfilePhoto);
 
         // Redirect to home page
         navigate('/');
       } else {
-        setError(data.error?.message || 'Failed to update profile');
+        const errorMessage = response.error?.message || 'Failed to update profile';
+        setError(errorMessage);
         toast({
           title: "Update Failed",
-          description: data.error?.message || "Failed to update profile",
+          description: errorMessage,
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      setError('Network error. Please try again.');
+      const status = (error as { status?: number })?.status;
+      if (status === 401) {
+        clearSession();
+        navigate('/customer/login');
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : 'Network error. Please try again.';
+      setError(message);
       toast({
         title: "Update Failed",
-        description: "Network error. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {

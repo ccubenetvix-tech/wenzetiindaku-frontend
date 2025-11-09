@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiClient } from '@/utils/api';
-import { setAuthState } from '../utils/api';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { apiClient, setAuthState, getApiBaseUrl } from '@/utils/api';
 
 interface User {
   id: string;
@@ -45,28 +44,11 @@ interface AuthContextType {
   googleLogin: () => void;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  setSession: (sessionToken: string, sessionUser: User) => void;
+  clearSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Environment-based API URL configuration
-const getApiBaseUrl = () => {
-  // If VITE_API_URL is explicitly set, use it
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  
-  // Check environment setting
-  const environment = import.meta.env.VITE_ENVIRONMENT || 'production';
-  
-  if (environment === 'development') {
-    // In development, use local backend
-    return import.meta.env.VITE_LOCAL_BACKEND_URL || 'http://localhost:5000/api';
-  } else {
-    // In production, use deployed backend
-    return import.meta.env.VITE_PRODUCTION_BACKEND_URL || 'https://wenzetiindaku-backend.onrender.com/api';
-  }
-};
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -142,47 +124,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     apiClient.setToken(token);
   }, [token]);
 
-  // Handle Google OAuth callback
-  useEffect(() => {
-    const handleGoogleCallback = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const isNewUser = urlParams.get('isNewUser') === 'true';
+  const clearSession = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    apiClient.setToken(null);
+  }, []);
 
-      if (token) {
-        // Get user info from token
-        fetch(`${API_BASE_URL}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Google callback - User data received:', data);
-            if (data.success) {
-              setToken(token);
-              setUser(data.data.user);
-              localStorage.setItem('auth_token', token);
-              localStorage.setItem('auth_user', JSON.stringify(data.data.user));
-              // Redirect to appropriate page
-              if (isNewUser) {
-                window.location.href = '#';
-              } else {
-                window.location.href = '#';
-              }
-            }
-          })
-          .catch(error => {
-            console.error('Google callback error:', error);
-          });
-      }
-    };
-
-    // Check if this is a Google OAuth callback
-    if (window.location.pathname === '/auth/callback') {
-      handleGoogleCallback();
-    }
+  const setSession = useCallback((sessionToken: string, sessionUser: User) => {
+    setToken(sessionToken);
+    setUser(sessionUser);
+    localStorage.setItem('auth_token', sessionToken);
+    localStorage.setItem('auth_user', JSON.stringify(sessionUser));
+    apiClient.setToken(sessionToken);
   }, []);
 
   const login = async (email: string, password: string, role: 'customer' | 'vendor') => {
@@ -203,10 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.success) {
-        setToken(data.data.token);
-        setUser(data.data.user);
-        localStorage.setItem('auth_token', data.data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.data.user));
+        setSession(data.data.token, data.data.user);
         return { user: data.data.user, token: data.data.token };
       }
     } catch (error) {
@@ -295,36 +247,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const googleLogin = () => {
+  const googleLogin = useCallback(() => {
     window.location.href = `${API_BASE_URL}/auth/google`;
-  };
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
+  const logout = useCallback(() => {
+    clearSession();
     window.location.href = '/';
-  };
+  }, [clearSession]);
 
-  const redirectToLogin = () => {
+  const redirectToLogin = useCallback(() => {
     window.location.href = '/customer/login';
-  };
+  }, []);
 
   // Set up auth state for API client
   useEffect(() => {
     setAuthState({
       clearAuth: logout,
-      redirectToLogin: redirectToLogin
+      redirectToLogin,
     });
-  }, []);
+  }, [logout, redirectToLogin]);
 
   const updateUser = (userData: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...userData };
-      setUser(updatedUser);
+    setUser((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      const updatedUser = { ...currentUser, ...userData };
       localStorage.setItem('auth_user', JSON.stringify(updatedUser));
-    }
+      return updatedUser;
+    });
   };
 
   const value: AuthContextType = {
@@ -339,6 +292,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     googleLogin,
     logout,
     updateUser,
+    setSession,
+    clearSession,
   };
 
   return (
