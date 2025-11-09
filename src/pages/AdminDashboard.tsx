@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Shield, 
   Users, 
@@ -120,15 +121,9 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
   // Dashboard stats
-  const [stats, setStats] = useState<DashboardStats>({
-    totalVendors: 0,
-    totalProducts: 0,
-    totalCustomers: 0,
-    totalOrders: 0,
-    totalSales: 0,
-    pendingVendors: 0,
-    flaggedProducts: 0
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
   // Vendors state
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -184,10 +179,12 @@ const AdminDashboard = () => {
 
   // Fetch dashboard overview data
   const fetchDashboardData = async () => {
+    setIsStatsLoading(true);
     try {
       const response = await apiClient.getAdminDashboard();
       if (response.success) {
         setStats(response.data);
+        setLastUpdated(new Date());
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -196,6 +193,9 @@ const AdminDashboard = () => {
         description: "Failed to fetch dashboard data",
         variant: "destructive",
       });
+    }
+    finally {
+      setIsStatsLoading(false);
     }
   };
 
@@ -522,31 +522,31 @@ const AdminDashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
            {/* Professional Tab Navigation - Navy & Orange Balance */}
            <div className="bg-white dark:bg-navy-900 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-navy-800">
-             <TabsList className="grid w-full grid-cols-4 bg-transparent gap-1">
+             <TabsList className="tabs-scroll no-scrollbar bg-transparent gap-1 sm:grid-cols-4">
                <TabsTrigger 
                  value="overview" 
-                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
+                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
                >
                  <TrendingUp className="h-4 w-4 mr-2" />
                  Overview
                </TabsTrigger>
                <TabsTrigger 
                  value="vendors" 
-                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
+                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
                >
                  <Store className="h-4 w-4 mr-2" />
                  Vendors
                </TabsTrigger>
                <TabsTrigger 
                  value="products" 
-                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
+                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
                >
                  <Package className="h-4 w-4 mr-2" />
                  Products
                </TabsTrigger>
                <TabsTrigger 
                  value="customers" 
-                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
+                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
                >
                  <Users className="h-4 w-4 mr-2" />
                  Customers
@@ -563,10 +563,19 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-navy-600 dark:text-navy-400">Total Vendors</p>
-                      <p className="text-3xl font-bold text-navy-900 dark:text-navy-100">{stats.totalVendors}</p>
-                      <p className="text-xs text-navy-600 dark:text-navy-400 mt-1">
-                    {stats.pendingVendors} pending approval
-                  </p>
+                      {isStatsLoading ? (
+                        <div className="mt-2 space-y-2">
+                          <Skeleton className="h-8 w-20" />
+                          <Skeleton className="h-3 w-28" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold text-navy-900 dark:text-navy-100">{stats?.totalVendors ?? 0}</p>
+                          <p className="text-xs text-navy-600 dark:text-navy-400 mt-1">
+                            {stats?.pendingVendors ?? 0} pending approval
+                          </p>
+                        </>
+                      )}
                     </div>
                     <div className="w-12 h-12 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center">
                       <Store className="h-6 w-6 text-white" />
@@ -580,10 +589,19 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Products</p>
-                      <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats.totalProducts}</p>
-                      <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                    {stats.flaggedProducts} flagged
-                  </p>
+                      {isStatsLoading ? (
+                        <div className="mt-2 space-y-2">
+                          <Skeleton className="h-8 w-20" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats?.totalProducts ?? 0}</p>
+                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                            {stats?.flaggedProducts ?? 0} flagged
+                          </p>
+                        </>
+                      )}
                     </div>
                     <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center">
                       <Package className="h-6 w-6 text-white" />
@@ -597,10 +615,19 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-navy-600 dark:text-navy-400">Total Customers</p>
-                      <p className="text-3xl font-bold text-navy-900 dark:text-navy-100">{stats.totalCustomers}</p>
-                      <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                        Active users
-                      </p>
+                      {isStatsLoading ? (
+                        <div className="mt-2 space-y-2">
+                          <Skeleton className="h-8 w-20" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold text-navy-900 dark:text-navy-100">{stats?.totalCustomers ?? 0}</p>
+                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                            Active users
+                          </p>
+                        </>
+                      )}
                     </div>
                     <div className="w-12 h-12 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center">
                       <Users className="h-6 w-6 text-white" />
@@ -614,11 +641,22 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Sales</p>
-                      <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">${stats.totalSales?.toLocaleString() || 0}</p>
-                      <p className="text-xs text-navy-600 dark:text-navy-400 mt-1">
-                        {stats.totalOrders} orders
-                      </p>
-            </div>
+                      {isStatsLoading ? (
+                        <div className="mt-2 space-y-2">
+                          <Skeleton className="h-8 w-24" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">
+                            ${stats ? stats.totalSales.toLocaleString() : 0}
+                          </p>
+                          <p className="text-xs text-navy-600 dark:text-navy-400 mt-1">
+                            {stats?.totalOrders ?? 0} orders
+                          </p>
+                        </>
+                      )}
+                    </div>
                     <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center">
                       <DollarSign className="h-6 w-6 text-white" />
                     </div>
@@ -694,24 +732,33 @@ const AdminDashboard = () => {
                     <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Online</Badge>
                   </div>
                   
-                  {stats.pendingVendors > 0 && (
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="h-5 w-5 text-yellow-600" />
-                        <span className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Pending Approvals</span>
-                      </div>
-                      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{stats.pendingVendors}</Badge>
+                  {isStatsLoading ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
                     </div>
-                  )}
-                  
-                  {stats.flaggedProducts > 0 && (
-                    <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                      <div className="flex items-center space-x-3">
-                        <AlertTriangle className="h-5 w-5 text-red-600" />
-                        <span className="text-sm font-medium text-red-900 dark:text-red-100">Flagged Products</span>
-                      </div>
-                      <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{stats.flaggedProducts}</Badge>
-                    </div>
+                  ) : (
+                    <>
+                      {(stats?.pendingVendors ?? 0) > 0 && (
+                        <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                          <div className="flex items-center space-x-3">
+                            <Clock className="h-5 w-5 text-yellow-600" />
+                            <span className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Pending Approvals</span>
+                          </div>
+                          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{stats?.pendingVendors ?? 0}</Badge>
+                        </div>
+                      )}
+                      
+                      {(stats?.flaggedProducts ?? 0) > 0 && (
+                        <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                          <div className="flex items-center space-x-3">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            <span className="text-sm font-medium text-red-900 dark:text-red-100">Flagged Products</span>
+                          </div>
+                          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{stats?.flaggedProducts ?? 0}</Badge>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -719,7 +766,13 @@ const AdminDashboard = () => {
                       <Calendar className="h-5 w-5 text-blue-600" />
                       <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Last Updated</span>
                     </div>
-                    <span className="text-sm text-blue-600 dark:text-blue-400">{new Date().toLocaleTimeString()}</span>
+                    {isStatsLoading && !lastUpdated ? (
+                      <Skeleton className="h-4 w-24" />
+                    ) : (
+                      <span className="text-sm text-blue-600 dark:text-blue-400">
+                        {lastUpdated ? lastUpdated.toLocaleTimeString() : '—'}
+                      </span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -781,7 +834,8 @@ const AdminDashboard = () => {
 
                 {/* Professional Vendor Table */}
                 <div className="bg-white dark:bg-navy-900 rounded-lg border border-gray-200 dark:border-navy-800 overflow-hidden shadow-sm">
-                  <Table>
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50 dark:bg-navy-800/50 border-b border-gray-200 dark:border-navy-700">
                         <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Business Details</TableHead>
@@ -950,7 +1004,8 @@ const AdminDashboard = () => {
                         ))
                       )}
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -995,7 +1050,8 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="rounded-md border">
-                  <Table>
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Product Name</TableHead>
@@ -1107,7 +1163,8 @@ const AdminDashboard = () => {
                         ))
                       )}
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1141,7 +1198,8 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="rounded-md border">
-                  <Table>
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
@@ -1227,7 +1285,8 @@ const AdminDashboard = () => {
                         ))
                       )}
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -32,6 +32,7 @@ const Index = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [categoryCounts, setCategoryCounts] = useState<{[key: string]: number}>({});
+  const [isLoadingCategoryCounts, setIsLoadingCategoryCounts] = useState(true);
 
   // Hero slider images
   const heroImages = [
@@ -102,27 +103,31 @@ const Index = () => {
   // Load product counts for each category
   useEffect(() => {
     const loadCategoryCounts = async () => {
+      setIsLoadingCategoryCounts(true);
       const counts: {[key: string]: number} = {};
       
-      for (const category of predefinedCategories) {
-        try {
-          const response = await apiClient.getAllProducts({
-            category: category.id,
-            limit: 1
-          }) as any;
-          
-          if (response.success && response.data) {
-            counts[category.id] = response.data.pagination?.total || 0;
-          } else {
+      try {
+        for (const category of predefinedCategories) {
+          try {
+            const response = await apiClient.getAllProducts({
+              category: category.id,
+              limit: 1
+            }) as any;
+            
+            if (response.success && response.data) {
+              counts[category.id] = response.data.pagination?.total || 0;
+            } else {
+              counts[category.id] = 0;
+            }
+          } catch (error) {
+            console.error(`Error loading count for category ${category.id}:`, error);
             counts[category.id] = 0;
           }
-        } catch (error) {
-          console.error(`Error loading count for category ${category.id}:`, error);
-          counts[category.id] = 0;
         }
+      } finally {
+        setCategoryCounts(counts);
+        setIsLoadingCategoryCounts(false);
       }
-      
-      setCategoryCounts(counts);
     };
 
     loadCategoryCounts();
@@ -252,9 +257,10 @@ const Index = () => {
                       name: category.name,
                       href: `/category/${encodeURIComponent(category.id)}`,
                       description: category.description,
-                      productCount: categoryCounts[category.id] || 0
+                      productCount: isLoadingCategoryCounts ? undefined : (categoryCounts[category.id] || 0)
                     }}
                     index={index}
+                    isLoading={isLoadingCategoryCounts}
                   />
                 </div>
               ))}

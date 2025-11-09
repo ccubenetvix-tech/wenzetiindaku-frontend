@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { 
@@ -14,7 +14,8 @@ import {
   Globe,
   FileText,
   CheckCircle,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/utils/api";
 
 const VendorRegister = () => {
   const { t } = useTranslation();
@@ -51,6 +53,10 @@ const VendorRegister = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showOTPForm, setShowOTPForm] = useState(false);
   const [otp, setOtp] = useState("");
+  const [emailStatus, setEmailStatus] = useState<{
+    state: "idle" | "checking" | "available" | "blocked";
+    message: string;
+  }>({ state: "idle", message: "" });
 
   const businessTypes = [
     "Individual/Sole Proprietor",
@@ -76,8 +82,69 @@ const VendorRegister = () => {
     "Art & Collectibles"
   ];
 
+  useEffect(() => {
+    const email = formData.businessEmail.trim();
+
+    if (!email) {
+      setEmailStatus({ state: "idle", message: "" });
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+      setEmailStatus({ state: "idle", message: "" });
+      return;
+    }
+
+    const controller = new AbortController();
+    setEmailStatus({ state: "checking", message: "" });
+
+    const debounceId = window.setTimeout(async () => {
+      try {
+        const response = await apiClient.getEmailStatus(email, "vendor", controller.signal);
+
+        if (response?.success) {
+          const { isRegistered, registeredAs, label, message } = response.data ?? {};
+
+          if (isRegistered && registeredAs) {
+            setEmailStatus({
+              state: "blocked",
+              message: message || `This email is already registered as a ${label || (registeredAs === "customer" ? "Customer" : "Vendor")}. Please use a different email.`,
+            });
+          } else {
+            setEmailStatus({ state: "available", message: "" });
+          }
+        } else {
+          setEmailStatus({ state: "idle", message: "" });
+        }
+      } catch (error) {
+        if ((error as Error)?.name === "AbortError") {
+          return;
+        }
+
+        console.error("Email availability check failed:", error);
+        setEmailStatus({ state: "idle", message: "" });
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(debounceId);
+    };
+  }, [formData.businessEmail]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (emailStatus.state === "blocked") {
+      toast({
+        title: "Email Unavailable",
+        description: emailStatus.message,
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       await signup(formData, 'vendor');
@@ -148,7 +215,8 @@ const VendorRegister = () => {
       formData.password.length >= 8 &&
       formData.password === formData.confirmPassword &&
       formData.agreeToTerms &&
-      formData.agreeToVendorTerms
+      formData.agreeToVendorTerms &&
+      emailStatus.state !== "blocked"
     );
   };
 
@@ -269,6 +337,15 @@ const VendorRegister = () => {
                         className="pl-10 border-muted focus:border-orange-600 focus:ring-orange-600"
                       />
                     </div>
+                {emailStatus.state === "checking" && (
+                  <p className="text-xs text-muted-foreground">Checking email availability...</p>
+                )}
+                {emailStatus.state === "blocked" && (
+                  <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                    <AlertCircle className="mt-0.5 h-4 w-4" />
+                    <span>{emailStatus.message}</span>
+                  </div>
+                )}
                   </div>
                   
                   <div className="space-y-2">
@@ -575,7 +652,7 @@ const VendorRegister = () => {
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isLoading || !isFormValid()}
+                disabled={isLoading || !isFormValid() || emailStatus.state === "checking"}
                 className="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (

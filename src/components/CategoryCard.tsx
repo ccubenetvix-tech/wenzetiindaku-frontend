@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { memo } from "react";
 
 interface CategoryCardProps {
@@ -10,6 +11,7 @@ interface CategoryCardProps {
     productCount?: number;
   };
   index?: number;
+  isLoading?: boolean;
 }
 
 // Function to get the appropriate image for each category
@@ -247,7 +249,7 @@ const getCategoryColors = (categoryName: string) => {
   };
 };
 
-export const CategoryCard = memo(function CategoryCard({ category, index }: CategoryCardProps) {
+export const CategoryCard = memo(function CategoryCard({ category, index, isLoading = false }: CategoryCardProps) {
   const navigate = useNavigate();
   const categoryImage = getCategoryImage(category.name);
 
@@ -290,11 +292,17 @@ export const CategoryCard = memo(function CategoryCard({ category, index }: Cate
         )}
         
         {/* Product count */}
-        {category.productCount !== undefined && (
-          <p className="text-xs text-primary font-medium">
-            {category.productCount} products
-          </p>
-        )}
+        <div className="h-5 flex items-center justify-center">
+          {isLoading ? (
+            <Skeleton className="h-4 w-20" />
+          ) : (
+            category.productCount !== undefined && (
+              <p className="text-xs text-primary font-medium">
+                {category.productCount} products
+              </p>
+            )
+          )}
+        </div>
       </CardContent>
     </Card>
   );

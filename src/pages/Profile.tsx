@@ -135,24 +135,24 @@ const Profile = () => {
           </div>
 
           <Tabs defaultValue="personal" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-              <TabsTrigger value="personal" className="flex items-center gap-2">
+            <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-2 lg:grid-cols-5">
+              <TabsTrigger value="personal" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <User className="h-4 w-4" />
                 Personal Info
               </TabsTrigger>
-              <TabsTrigger value="addresses" className="flex items-center gap-2">
+              <TabsTrigger value="addresses" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <MapPin className="h-4 w-4" />
                 Addresses
               </TabsTrigger>
-              <TabsTrigger value="payment" className="flex items-center gap-2">
+              <TabsTrigger value="payment" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <CreditCard className="h-4 w-4" />
                 Payment
               </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center gap-2">
+              <TabsTrigger value="orders" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <Clock className="h-4 w-4" />
                 Order History
               </TabsTrigger>
-              <TabsTrigger value="wishlist" className="flex items-center gap-2">
+              <TabsTrigger value="wishlist" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <Heart className="h-4 w-4" />
                 Wishlist
               </TabsTrigger>

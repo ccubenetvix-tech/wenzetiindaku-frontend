@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -627,13 +628,11 @@ export default function VendorDashboard() {
               {[1, 2, 3, 4].map((i) => (
                 <Card key={i}>
                   <CardContent className="p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <div className="h-6 w-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading...</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">-</p>
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="h-10 w-10 rounded-lg" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-6 w-16" />
                       </div>
                     </div>
                   </CardContent>
@@ -644,12 +643,12 @@ export default function VendorDashboard() {
 
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="products">Products</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="customers">Customers</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-5">
+              <TabsTrigger value="overview" className="min-w-[140px] sm:min-w-0">Overview</TabsTrigger>
+              <TabsTrigger value="products" className="min-w-[140px] sm:min-w-0">Products</TabsTrigger>
+              <TabsTrigger value="orders" className="min-w-[140px] sm:min-w-0">Orders</TabsTrigger>
+              <TabsTrigger value="customers" className="min-w-[140px] sm:min-w-0">Customers</TabsTrigger>
+              <TabsTrigger value="settings" className="min-w-[140px] sm:min-w-0">Settings</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -828,74 +827,76 @@ export default function VendorDashboard() {
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead>Stock</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {!products || products.length === 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                              No products found
-                            </TableCell>
+                            <TableHead>Product</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Price</TableHead>
+                            <TableHead>Stock</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Actions</TableHead>
                           </TableRow>
-                        ) : (
-                          products.map((product) => (
-                            <TableRow key={product.id}>
-                              <TableCell className="font-medium">
-                                <div className="flex items-center space-x-3">
-                                  {(product.images && product.images.length > 0) || product.image ? (
-                                    <img
-                                      src={product.images?.[0] || product.image || '/marketplace.jpeg'}
-                                      alt={product.name}
-                                      className="w-10 h-10 rounded-lg object-cover border"
-                                      onError={(e) => {
-                                        e.currentTarget.src = '/marketplace.jpeg';
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                                      <Package className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                  )}
-                                  <span>{product.name}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>{product.category}</TableCell>
-                              <TableCell>${product.price}</TableCell>
-                              <TableCell>{product.stock}</TableCell>
-                              <TableCell>
-                                <Badge className={getStatusColor(product.status || 'Active')}>
-                                  {product.status || 'Active'}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center space-x-2">
-                                  <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => handleDeleteProduct(product.id)}
-                                    className="text-red-600 hover:text-red-700"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                        </TableHeader>
+                        <TableBody>
+                          {!products || products.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                No products found
                               </TableCell>
                             </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
+                          ) : (
+                            products.map((product) => (
+                              <TableRow key={product.id}>
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center space-x-3">
+                                    {(product.images && product.images.length > 0) || product.image ? (
+                                      <img
+                                        src={product.images?.[0] || product.image || '/marketplace.jpeg'}
+                                        alt={product.name}
+                                        className="w-10 h-10 rounded-lg object-cover border"
+                                        onError={(e) => {
+                                          e.currentTarget.src = '/marketplace.jpeg';
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <Package className="h-5 w-5 text-gray-400" />
+                                      </div>
+                                    )}
+                                    <span>{product.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{product.category}</TableCell>
+                                <TableCell>${product.price}</TableCell>
+                                <TableCell>{product.stock}</TableCell>
+                                <TableCell>
+                                  <Badge className={getStatusColor(product.status || 'Active')}>
+                                    {product.status || 'Active'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center space-x-2">
+                                    <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      onClick={() => handleDeleteProduct(product.id)}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -928,58 +929,60 @@ export default function VendorDashboard() {
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order ID</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {!orders || orders.length === 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                              No orders found
-                            </TableCell>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead>Actions</TableHead>
                           </TableRow>
-                        ) : (
-                          orders.map((order) => (
-                            <TableRow key={order.id}>
-                              <TableCell className="font-medium">{order.id}</TableCell>
-                              <TableCell>{order.customer}</TableCell>
-                              <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
-                              <TableCell>
-                                <Badge className={getStatusColor(order.status)}>
-                                  {order.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>${order.total}</TableCell>
-                              <TableCell>
-                                <Select 
-                                  value={order.status} 
-                                  onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
-                                >
-                                  <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="processing">Processing</SelectItem>
-                                    <SelectItem value="shipped">Shipped</SelectItem>
-                                    <SelectItem value="delivered">Delivered</SelectItem>
-                                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                        </TableHeader>
+                        <TableBody>
+                          {!orders || orders.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                No orders found
                               </TableCell>
                             </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
+                          ) : (
+                            orders.map((order) => (
+                              <TableRow key={order.id}>
+                                <TableCell className="font-medium">{order.id}</TableCell>
+                                <TableCell>{order.customer}</TableCell>
+                                <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                  <Badge className={getStatusColor(order.status)}>
+                                    {order.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>${order.total}</TableCell>
+                                <TableCell>
+                                  <Select 
+                                    value={order.status} 
+                                    onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
+                                  >
+                                    <SelectTrigger className="w-32">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="pending">Pending</SelectItem>
+                                      <SelectItem value="processing">Processing</SelectItem>
+                                      <SelectItem value="shipped">Shipped</SelectItem>
+                                      <SelectItem value="delivered">Delivered</SelectItem>
+                                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>

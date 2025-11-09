@@ -118,6 +118,19 @@ export class ApiClient {
     });
   }
 
+  async getEmailStatus(email: string, role?: 'customer' | 'vendor', signal?: AbortSignal) {
+    const params = new URLSearchParams({ email });
+    if (role) {
+      params.append('role', role);
+    }
+
+    const query = params.toString();
+    return this.request(`/auth/email-status?${query}`, {
+      method: 'GET',
+      signal,
+    });
+  }
+
   async verifyOTP(email: string, otp: string, role: 'customer' | 'vendor') {
     return this.request(`/auth/${role}/verify-otp`, {
       method: 'POST',

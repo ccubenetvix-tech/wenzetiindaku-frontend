@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 // Import i18next for internationalization support
 import { useTranslation } from "react-i18next";
 // Import Lucide React icons for UI elements
-import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, Settings } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, LifeBuoy } from "lucide-react";
 // Import UI components from the design system
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // Import custom components
 import { LoginModal } from "@/components/LoginModal";
@@ -62,6 +62,7 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");           // Search input value
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Login modal visibility
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);     // Navbar visibility on scroll
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile sheet state
   const lastScrollYRef = useRef(0);
   const scrollTickingRef = useRef(false);
 
@@ -113,7 +114,13 @@ export function Header() {
     // Navigate to search results page with encoded query
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsMobileMenuOpen(false);
     }
+  };
+
+  const handleNavigation = (path: string) => {
+    setIsMobileMenuOpen(false);
+    navigate(path);
   };
 
   // Get current language object for display
@@ -129,18 +136,70 @@ export function Header() {
     { name: 'Categories', href: '/categories' },
   ];
 
+  const MobileNavigationBar = () => (
+    <div className="md:hidden bg-navy-600 text-white border-b border-navy-500/30">
+      <div className="container mx-auto px-4 py-3 space-y-3">
+        <nav className="tabs-scroll no-scrollbar">
+          {navigation.map((item) => (
+            <button
+              key={`mobile-nav-${item.name}`}
+              type="button"
+              onClick={() => handleNavigation(item.href)}
+              className="flex-shrink-0 whitespace-nowrap rounded-md bg-white/10 px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/20"
+            >
+              {item.name}
+            </button>
+          ))}
+        </nav>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex flex-shrink-0 items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+              >
+                <Globe className="h-4 w-4" />
+                <span className="font-medium">{currentLanguage.name}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-40">
+              {languages.map((language) => (
+                <DropdownMenuItem
+                  key={`mobile-language-${language.code}`}
+                  onClick={() => changeLanguage(language.code)}
+                >
+                  {language.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            variant="ghost"
+            onClick={() => handleNavigation('/help')}
+            className="flex flex-1 items-center justify-center gap-2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/20"
+          >
+            <LifeBuoy className="h-4 w-4" />
+            {t('helpSupport')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     // Professional e-commerce header with clean design
     <header className="sticky top-0 z-50 bg-gray-50 dark:bg-navy-950">
       {/* Logo + Search Bar Card - Elevated white card with rounded corners */}
       <div className="bg-white dark:bg-navy-900 shadow-lg border-b border-gray-200 dark:border-navy-800 rounded-b-xl overflow-hidden">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-3 md:gap-6 flex-wrap md:flex-nowrap">
             {/* Logo section - Professional and clean */}
             <div className="flex-shrink-0">
               <div 
                 className="flex items-center cursor-pointer"
-                onClick={() => navigate('/')}
+                onClick={() => handleNavigation('/')}
               >
                 <img 
                   src="/marketplace.jpeg" 
@@ -156,7 +215,7 @@ export function Header() {
             </div>
 
             {/* Center section - Search Bar */}
-            <div className="flex-1 max-w-2xl mx-8">
+            <div className="hidden md:block md:flex-1 md:max-w-2xl w-full md:mx-6 lg:mx-8">
               <form onSubmit={handleSearch} className="relative">
                 <div className="flex">
                   <Input
@@ -166,23 +225,23 @@ export function Header() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="flex-1 h-10 pl-4 pr-12 border-2 border-gray-300 dark:border-navy-700 focus:border-navy-500 dark:focus:border-navy-400 rounded-l-md rounded-r-none"
                   />
-              <Button 
+                  <Button 
                     type="submit"
                     className="h-10 px-6 bg-navy-600 hover:bg-navy-700 text-white rounded-l-none rounded-r-md border-2 border-navy-600 hover:border-navy-700"
                   >
                     <Search className="h-4 w-4" />
-              </Button>
+                  </Button>
                 </div>
               </form>
             </div>
 
             {/* Right section - User Account & Cart */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-1 sm:gap-2 ml-auto">
             {/* User Account */}
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2 h-10 px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
+                  <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
                     <Avatar className="h-6 w-6">
                       <AvatarImage src={user.profilePhoto} alt={user.firstName || user.businessName} />
                       <AvatarFallback className="bg-navy-100 text-navy-600 text-xs">
@@ -216,7 +275,7 @@ export function Header() {
             ) : (
               <Button 
                 variant="ghost" 
-                className="flex items-center space-x-1 h-10 px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
+                className="flex items-center gap-1 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
                 onClick={() => setIsLoginModalOpen(true)}
               >
                 <User className="h-4 w-4" />
@@ -230,7 +289,7 @@ export function Header() {
             {/* Cart */}
             <Button 
               variant="ghost" 
-              className="relative flex items-center space-x-1 h-10 px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
+              className="relative flex items-center gap-1 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
               onClick={() => navigate('/cart')}
             >
               <ShoppingCart className="h-5 w-5" />
@@ -246,14 +305,14 @@ export function Header() {
             </Button>
 
             {/* Mobile Menu */}
-            <Sheet>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <div className="flex flex-col space-y-4 mt-8">
+              <SheetContent side="right" className="w-[85vw] max-w-sm px-6">
+                <div className="flex flex-col space-y-6 mt-8">
                   {/* Mobile Search */}
                   <form onSubmit={handleSearch} className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -269,36 +328,79 @@ export function Header() {
                   {/* Mobile Navigation */}
                   <nav className="flex flex-col space-y-2">
                     {navigation.map((item) => (
-                      <a
+                      <SheetClose
                         key={item.name}
-                        href={item.name === 'Home' ? '/' : item.href}
-                        className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-3 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-navy-950/20 border-b border-gray-100 dark:border-navy-800"
+                        asChild
                       >
-                        {item.name}
-                      </a>
+                        <button
+                          type="button"
+                          onClick={() => handleNavigation(item.href)}
+                          className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-3 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-navy-950/20 border border-transparent hover:border-gray-200 dark:hover:border-navy-800 text-left"
+                        >
+                          {item.name}
+                        </button>
+                      </SheetClose>
                     ))}
                   </nav>
+
+                  {/* Language Selector */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                      {t('language', { defaultValue: 'Language' })}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {languages.map((language) => (
+                        <SheetClose asChild key={language.code}>
+                          <Button
+                            variant={i18n.language === language.code ? "default" : "outline"}
+                            onClick={() => changeLanguage(language.code)}
+                            className="justify-start"
+                          >
+                            {language.name}
+                          </Button>
+                        </SheetClose>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Help & Support */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
+                    <SheetClose asChild>
+                      <button
+                        type="button"
+                        onClick={() => handleNavigation('/help')}
+                        className="flex items-center gap-3 w-full py-3 px-4 rounded-md text-foreground hover:bg-gray-50 dark:hover:bg-navy-950/20 text-left font-medium"
+                      >
+                        <LifeBuoy className="h-5 w-5 text-navy-500 dark:text-navy-300" />
+                        {t('helpSupport')}
+                      </button>
+                    </SheetClose>
+                  </div>
 
                   {/* Mobile Auth Options - Only show if not authenticated */}
                   {!isAuthenticated && (
                     <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
                       <div className="space-y-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => navigate('/customer/login')}
-                          className="w-full justify-start"
-                        >
-                          <LogIn className="mr-2 h-4 w-4" />
-                          {t('customerLogin')}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => navigate('/vendor/login')}
-                          className="w-full justify-start"
-                        >
-                          <Store className="mr-2 h-4 w-4" />
-                          {t('sellerLogin')}
-                        </Button>
+                        <SheetClose asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleNavigation('/customer/login')}
+                            className="w-full justify-start"
+                          >
+                            <LogIn className="mr-2 h-4 w-4" />
+                            {t('customerLogin')}
+                          </Button>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleNavigation('/vendor/login')}
+                            className="w-full justify-start"
+                          >
+                            <Store className="mr-2 h-4 w-4" />
+                            {t('sellerLogin')}
+                          </Button>
+                        </SheetClose>
                       </div>
                     </div>
                   )}
@@ -310,20 +412,23 @@ export function Header() {
       </div>
       </div>
 
+      <MobileNavigationBar />
+
       {/* Navigation bar - Professional category navigation */}
-      <div className={`bg-navy-600 dark:bg-navy-700 transition-all duration-300 ${isNavbarHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
-        <div className="container mx-auto px-6">
+      <div className={`hidden md:block bg-navy-600 dark:bg-navy-700 transition-all duration-300 ${isNavbarHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-10">
             {/* Left side - Main navigation centered */}
-            <nav className="flex items-center space-x-8 text-sm">
+            <nav className="flex items-center gap-6 lg:gap-8 text-sm overflow-x-auto">
               {navigation.map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.name === 'Home' ? '/' : item.href}
-                  className="text-white hover:text-orange-300 transition-colors duration-200 font-medium"
+                  type="button"
+                  onClick={() => navigate(item.href)}
+                  className="text-white hover:text-orange-300 transition-colors duration-200 font-medium whitespace-nowrap"
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
             </nav>
             

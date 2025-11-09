@@ -15,6 +15,7 @@ import { Star, Heart, ShoppingCart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -47,16 +48,64 @@ export const ProductCard = memo(function ProductCard({
 }: ProductCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
+  const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
+  const wishlisted = isProductWishlisted(id);
 
-  const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
+  const handleWishlistToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
-    setIsWishlisted(prev => !prev);
-  }, []);
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to manage your wishlist.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Action not allowed",
+        description: "Only customers can manage wishlists.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const added = await toggleWishlist({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+        originalPrice,
+        rating,
+        reviewCount,
+        isNew,
+        isFeatured,
+      });
+
+      toast({
+        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        description: added
+          ? `${name} has been added to your wishlist.`
+          : `${name} has been removed from your wishlist.`,
+      });
+    } catch (error) {
+      console.error('Failed to toggle wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Unable to update wishlist. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [isAuthenticated, navigate, originalPrice, price, image, isFeatured, isNew, name, reviewCount, toggleWishlist, toast, user?.role, vendor, id, rating]);
 
   const handleProductClick = useCallback(() => {
     navigate(`/product/${id}`);
@@ -181,10 +230,11 @@ export const ProductCard = memo(function ProductCard({
             size="icon"
             className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${compact ? 'w-7 h-7' : 'w-8 h-8'} shadow-sm hover:shadow-md z-10 rounded-full`}
             onClick={handleWishlistToggle}
+            disabled={isWishlistProcessing}
           >
             <Heart
               className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
-                isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+                wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
               }`}
             />
           </Button>

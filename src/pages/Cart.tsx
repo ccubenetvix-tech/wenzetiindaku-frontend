@@ -7,7 +7,9 @@ import {
   ArrowRight,
   Shield,
   CreditCard,
-  Truck
+  Truck,
+  Heart,
+  Loader2
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,10 +17,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
+import type { WishlistItem } from "@/contexts/WishlistContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Cart = () => {
   const { t } = useTranslation();
-  const { items: cartItems, updateQuantity, removeFromCart, isLoading } = useCart();
+  const { toast } = useToast();
+  const { items: cartItems, updateQuantity, removeFromCart, addToCart, isLoading } = useCart();
+  const { items: wishlistItems, removeFromWishlist, isLoading: wishlistLoading, isProcessing: wishlistProcessing } = useWishlist();
 
   // Group items by vendor
   const itemsByVendor = cartItems.reduce((acc, item) => {
@@ -30,8 +37,8 @@ const Cart = () => {
   }, {} as Record<string, typeof cartItems>);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 5.99;
-  const tax = subtotal * 0.1;
+  const shipping = cartItems.length > 0 ? 5.99 : 0;
+  const tax = cartItems.length > 0 ? subtotal * 0.1 : 0;
   const total = subtotal + shipping + tax;
 
   // Handle quantity update
@@ -53,6 +60,49 @@ const Cart = () => {
     }
   };
 
+  const handleMoveToCart = async (wishlistItem: WishlistItem) => {
+    try {
+      await addToCart({
+        productId: wishlistItem.productId,
+        name: wishlistItem.name,
+        price: wishlistItem.price,
+        image: wishlistItem.image,
+        vendor: wishlistItem.vendor,
+      });
+
+      await removeFromWishlist(wishlistItem.productId);
+
+      toast({
+        title: "Added to cart",
+        description: `${wishlistItem.name} has been moved from your wishlist to the cart.`,
+      });
+    } catch (error) {
+      console.error('Failed to move item to cart:', error);
+      toast({
+        title: "Error",
+        description: "Could not move the item to your cart. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRemoveFromWishlist = async (productId: string, productName: string) => {
+    try {
+      await removeFromWishlist(productId);
+      toast({
+        title: "Removed",
+        description: `${productName} has been removed from your wishlist.`,
+      });
+    } catch (error) {
+      console.error('Failed to remove from wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Could not remove the item from your wishlist. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -68,27 +118,28 @@ const Cart = () => {
             </Badge>
           </div>
 
-          {isLoading ? (
-            <div className="text-center py-16">
-              <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p>Loading cart...</p>
-            </div>
-          ) : cartItems.length === 0 ? (
-            <div className="text-center py-16">
-              <ShoppingCart className="h-24 w-24 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
-              <p className="text-muted-foreground mb-6">Start shopping to add items to your cart</p>
-              <Button size="lg">
-                Continue Shopping
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
+            {/* Cart and Wishlist Column */}
+            <div className="space-y-8">
               {/* Cart Items */}
-              <div className="lg:col-span-2">
-                <div className="bg-card rounded-lg shadow-sm">
-                  {Object.entries(itemsByVendor).map(([vendor, items], vendorIndex) => (
+              <div className="bg-card rounded-lg shadow-sm">
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground">Loading cart...</p>
+                  </div>
+                ) : cartItems.length === 0 ? (
+                  <div className="text-center py-12 px-6">
+                    <ShoppingCart className="h-20 w-20 mx-auto text-muted-foreground mb-4" />
+                    <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
+                    <p className="text-muted-foreground mb-6">Start shopping to add items to your cart</p>
+                    <Button size="lg">
+                      Continue Shopping
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  Object.entries(itemsByVendor).map(([vendor, items], vendorIndex) => (
                     <div key={vendor}>
                       {vendorIndex > 0 && <Separator />}
                       
@@ -103,23 +154,23 @@ const Cart = () => {
                           <div key={item.id}>
                             {itemIndex > 0 && <Separator className="my-4" />}
                             
-                            <div className="flex items-center gap-4 py-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-4">
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                className="w-20 h-20 object-cover rounded-lg"
+                                className="h-32 w-full rounded-lg object-cover sm:h-20 sm:w-20"
                               />
                               
-                              <div className="flex-1">
-                                <h4 className="font-medium text-lg mb-1">{item.name}</h4>
-                                <p className="text-muted-foreground text-sm">{item.vendor}</p>
-                                <p className="text-lg font-semibold text-primary mt-1">
-                                  ${item.price}
+                              <div className="flex-1 w-full">
+                                <h4 className="mb-1 text-lg font-medium">{item.name}</h4>
+                                <p className="text-sm text-muted-foreground">{item.vendor}</p>
+                                <p className="mt-1 text-lg font-semibold text-primary">
+                                  ${item.price.toFixed(2)}
                                 </p>
                               </div>
 
                               {/* Quantity Controls */}
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 sm:self-center">
                                 <Button
                                   variant="outline"
                                   size="icon"
@@ -142,14 +193,16 @@ const Cart = () => {
                               </div>
 
                               {/* Remove Button */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => handleRemoveFromCart(item.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex w-full justify-end sm:w-auto sm:justify-start">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => handleRemoveFromCart(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -164,63 +217,131 @@ const Cart = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  ))
+                )}
               </div>
 
-              {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="bg-card rounded-lg shadow-sm p-6 sticky top-8">
-                  <h3 className="text-xl font-semibold mb-6">Order Summary</h3>
-                  
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span>${shipping.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tax</span>
-                      <span>${tax.toFixed(2)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between text-lg font-semibold">
-                      <span>Total</span>
-                      <span className="text-primary">${total.toFixed(2)}</span>
-                    </div>
+              {/* Wishlisted Section */}
+              <div className="bg-card rounded-lg shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Heart className="h-6 w-6 text-red-500" />
+                  <h3 className="text-xl font-semibold">Wishlisted</h3>
+                  <Badge variant="outline" className="ml-auto">
+                    {wishlistItems.length}
+                  </Badge>
+                </div>
+
+                {wishlistLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground">Loading wishlist...</p>
                   </div>
+                ) : wishlistItems.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-6">
+                    <p>You haven't wishlisted any products yet.</p>
+                    <p className="text-sm mt-1">Tap the heart icon on a product to save it for later.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {wishlistItems.map((item) => (
+                      <div key={item.productId} className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <img
+                          src={item.image || "/marketplace.jpeg"}
+                          alt={item.name}
+                          className="h-28 w-full rounded-md object-cover sm:h-16 sm:w-16"
+                        />
+                        <div className="flex-1 w-full">
+                          <h4 className="text-sm font-medium">{item.name}</h4>
+                          <p className="text-xs text-muted-foreground">{item.vendor}</p>
+                          <p className="mt-1 text-sm font-semibold text-primary">${item.price.toFixed(2)}</p>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-auto">
+                          <Button
+                            size="sm"
+                            className="w-full sm:w-auto"
+                            onClick={() => handleMoveToCart(item)}
+                            disabled={wishlistProcessing}
+                          >
+                            Add to Cart
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => handleRemoveFromWishlist(item.productId, item.name)}
+                            disabled={wishlistProcessing}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
-                  <Button size="lg" className="w-full mb-4">
-                    Proceed to Checkout
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+            {/* Order Summary */}
+            <div>
+              <div className="bg-card rounded-lg shadow-sm p-6 sticky top-8">
+                <h3 className="text-xl font-semibold mb-6">Order Summary</h3>
+                
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground">Calculating...</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span>${shipping.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tax</span>
+                        <span>${tax.toFixed(2)}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between text-lg font-semibold">
+                        <span>Total</span>
+                        <span className="text-primary">${total.toFixed(2)}</span>
+                      </div>
+                    </div>
 
-                  <Button variant="outline" className="w-full mb-6">
-                    Continue Shopping
-                  </Button>
+                    <Button size="lg" className="w-full mb-4" disabled={cartItems.length === 0}>
+                      Proceed to Checkout
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
 
-                  {/* Security Badges */}
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-success" />
-                      <span>Secured by SSL encryption</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-success" />
-                      <span>Multiple payment options</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-success" />
-                      <span>Fast & reliable delivery</span>
-                    </div>
+                    <Button variant="outline" className="w-full mb-6">
+                      Continue Shopping
+                    </Button>
+                  </>
+                )}
+
+                {/* Security Badges */}
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-success" />
+                    <span>Secured by SSL encryption</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-success" />
+                    <span>Multiple payment options</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-success" />
+                    <span>Fast & reliable delivery</span>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </main>
 

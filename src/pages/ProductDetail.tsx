@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +40,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
 import { Loader2 } from "lucide-react";
@@ -51,7 +52,6 @@ const ProductDetail = () => {
   const { user, isAuthenticated } = useAuth();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
@@ -78,6 +78,67 @@ const ProductDetail = () => {
   
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
+
+  const productWishlisted = useMemo(() => {
+    if (!product?.id) {
+      return false;
+    }
+    return isProductWishlisted(product.id);
+  }, [isProductWishlisted, product?.id]);
+  const handleWishlistToggle = useCallback(async () => {
+    if (!product) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to manage your wishlist.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Action not allowed",
+        description: "Only customers can manage wishlists.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const added = await toggleWishlist({
+        productId: product.id,
+        name: product.name,
+        price: typeof product.price === 'string' ? parseFloat(product.price) : product.price ?? 0,
+        image: product.images?.[0] || product.image || "/marketplace.jpeg",
+        vendor: product.vendor?.business_name || product.vendor_name || "Unknown Vendor",
+        originalPrice: typeof product.original_price === 'string' ? parseFloat(product.original_price) : product.original_price,
+        rating: typeof product.rating === 'string' ? parseFloat(product.rating) : product.rating,
+        reviewCount: product.review_count,
+        isNew: product.is_new,
+        isFeatured: product.is_featured,
+      });
+
+      toast({
+        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        description: added
+          ? `${product.name} has been added to your wishlist.`
+          : `${product.name} has been removed from your wishlist.`,
+      });
+    } catch (error) {
+      console.error('Failed to toggle wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Unable to update wishlist. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [isAuthenticated, navigate, product, toast, toggleWishlist, user?.role]);
 
   // Load product data
   useEffect(() => {
@@ -607,10 +668,11 @@ const ProductDetail = () => {
                   <Button 
                     variant="outline" 
                     size="lg"
-                    onClick={() => setIsWishlisted(!isWishlisted)}
-                    className={isWishlisted ? "text-red-500 border-red-500" : ""}
+                    onClick={handleWishlistToggle}
+                    className={productWishlisted ? "text-red-500 border-red-500" : ""}
+                    disabled={isWishlistProcessing}
                   >
-                    <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500" : ""}`} />
+                    <Heart className={`h-5 w-5 ${productWishlisted ? "fill-red-500" : ""}`} />
                   </Button>
                 </div>
                 
@@ -679,11 +741,11 @@ const ProductDetail = () => {
           {/* Product Details Tabs */}
           <div className="mb-12">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({product.review_count || product.reviewCount || 0})</TabsTrigger>
-                <TabsTrigger value="shipping">Shipping & Returns</TabsTrigger>
+              <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-4">
+                <TabsTrigger value="description" className="min-w-[140px] sm:min-w-0">Description</TabsTrigger>
+                <TabsTrigger value="specifications" className="min-w-[140px] sm:min-w-0">Specifications</TabsTrigger>
+                <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">Reviews ({product.review_count || product.reviewCount || 0})</TabsTrigger>
+                <TabsTrigger value="shipping" className="min-w-[140px] sm:min-w-0">Shipping & Returns</TabsTrigger>
               </TabsList>
               
               <TabsContent value="description" className="mt-6">

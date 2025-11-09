@@ -15,6 +15,7 @@ import { Star, Heart, ShoppingCart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,8 +34,8 @@ interface Product {
 
 interface MinimalProductCardProps {
   product: Product;
-  onWishlistToggle: () => void;
-  onAddToCart: () => void;
+  onWishlistToggle?: () => void;
+  onAddToCart?: () => void;
 }
 
 export const MinimalProductCard = memo(function MinimalProductCard({
@@ -46,16 +47,66 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const navigate = useNavigate();
   const { id, name, price, originalPrice, rating, reviewCount = 0, image, vendor, isNew = false, isFeatured = false } = product;
   
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
+  const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
+  const wishlisted = isProductWishlisted(id);
 
-  const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
+  const handleWishlistToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
-    setIsWishlisted(prev => !prev);
-  }, []);
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to manage your wishlist.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Action not allowed",
+        description: "Only customers can manage wishlists.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const added = await toggleWishlist({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+        originalPrice,
+        rating,
+        reviewCount,
+        isNew,
+        isFeatured,
+      });
+
+      toast({
+        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        description: added
+          ? `${name} has been added to your wishlist.`
+          : `${name} has been removed from your wishlist.`,
+      });
+
+      onWishlistToggle?.();
+    } catch (error) {
+      console.error('Failed to toggle wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Unable to update wishlist. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [isAuthenticated, navigate, onWishlistToggle, originalPrice, price, image, isFeatured, isNew, name, reviewCount, toggleWishlist, toast, user?.role, vendor, id, rating]);
 
   const handleProductClick = useCallback(() => {
     navigate(`/product/${id}`);
@@ -108,6 +159,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
         title: "Added to cart",
         description: `${name} has been added to your cart.`,
       });
+
+      onAddToCart?.();
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
@@ -116,7 +169,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
         variant: "destructive"
       });
     }
-  }, [addToCart, toast, id, name, price, image, vendor, isAuthenticated, user, navigate]);
+  }, [addToCart, toast, id, name, price, image, vendor, isAuthenticated, user, navigate, onAddToCart]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -145,12 +198,13 @@ export const MinimalProductCard = memo(function MinimalProductCard({
           <button
             onClick={handleWishlistToggle}
             className="absolute top-2 right-2 p-1 rounded-full bg-white/90 dark:bg-navy-800/90 shadow-sm hover:shadow-md transition-all duration-200"
-            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            disabled={isWishlistProcessing}
           >
             <Heart 
               className={`h-3 w-3 transition-colors duration-200 ${
-                isWishlisted 
-                  ? 'text-red-500 fill-red-500' 
+                wishlisted 
+                ? 'text-red-500 fill-red-500' 
                   : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
               }`} 
             />
