@@ -264,12 +264,13 @@ export class ApiClient {
     return this.request(`/vendor/dashboard`);
   }
 
-  async getVendorProducts(page = 1, limit = 10, status?: string) {
+  async getVendorProducts(page = 1, limit = 10, status?: string, search?: string) {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
     if (status) params.append('status', status);
+    if (search) params.append('search', search);
     
     return this.request(`/vendor/products?${params}`);
   }

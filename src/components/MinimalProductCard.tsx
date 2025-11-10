@@ -11,7 +11,7 @@
 import { useState, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Star, Heart, ShoppingCart } from "lucide-react";
+import { Star, Heart, ShoppingCart, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -53,6 +53,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const { user, isAuthenticated } = useAuth();
   const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
   const wishlisted = isProductWishlisted(id);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isCartLoading, setIsCartLoading] = useState(false);
 
   const handleWishlistToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
@@ -77,6 +79,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
     }
 
     try {
+      setIsWishlistLoading(true);
       const added = await toggleWishlist({
         productId: id,
         name,
@@ -105,8 +108,10 @@ export const MinimalProductCard = memo(function MinimalProductCard({
         description: "Unable to update wishlist. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsWishlistLoading(false);
     }
-  }, [isAuthenticated, navigate, onWishlistToggle, originalPrice, price, image, isFeatured, isNew, name, reviewCount, toggleWishlist, toast, user?.role, vendor, id, rating]);
+  }, [id, image, isAuthenticated, isFeatured, isNew, name, navigate, onWishlistToggle, originalPrice, price, rating, reviewCount, toast, toggleWishlist, user?.role, vendor]);
 
   const handleProductClick = useCallback(() => {
     navigate(`/product/${id}`);
@@ -147,6 +152,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
     }
     
     try {
+      setIsCartLoading(true);
       await addToCart({
         productId: id,
         name,
@@ -168,8 +174,10 @@ export const MinimalProductCard = memo(function MinimalProductCard({
         description: "Failed to add item to cart. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsCartLoading(false);
     }
-  }, [addToCart, toast, id, name, price, image, vendor, isAuthenticated, user, navigate, onAddToCart]);
+  }, [addToCart, id, image, isAuthenticated, name, navigate, onAddToCart, price, toast, user, vendor]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -199,15 +207,19 @@ export const MinimalProductCard = memo(function MinimalProductCard({
             onClick={handleWishlistToggle}
             className="absolute top-2 right-2 p-1 rounded-full bg-white/90 dark:bg-navy-800/90 shadow-sm hover:shadow-md transition-all duration-200"
             aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-            disabled={isWishlistProcessing}
+            disabled={isWishlistProcessing || isWishlistLoading}
           >
-            <Heart 
-              className={`h-3 w-3 transition-colors duration-200 ${
-                wishlisted 
-                ? 'text-red-500 fill-red-500' 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-              }`} 
-            />
+            {isWishlistProcessing || isWishlistLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Heart 
+                className={`h-3 w-3 transition-colors duration-200 ${
+                  wishlisted 
+                  ? 'text-red-500 fill-red-500' 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
+                }`} 
+              />
+            )}
           </button>
 
           {/* Minimal Badges - Only if needed */}
@@ -266,14 +278,20 @@ export const MinimalProductCard = memo(function MinimalProductCard({
                   ? 'bg-orange-500 hover:bg-orange-600 text-white'
                   : 'bg-navy-600 hover:bg-navy-700 text-white'
               }`}
-              disabled={user?.role === 'vendor'}
+              disabled={user?.role === 'vendor' || isCartLoading}
             >
-              {!isAuthenticated 
-                ? 'Login to Add' 
-                : user?.role === 'vendor'
-                ? '.'
-                : t('addToCart')
-              }
+              {isCartLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t('addingToCart', 'Adding...')}
+                </span>
+              ) : (
+                (!isAuthenticated 
+                  ? 'Login to Add' 
+                  : user?.role === 'vendor'
+                  ? '.'
+                  : t('addToCart'))
+              )}
             </Button>
           </div>
         </div>

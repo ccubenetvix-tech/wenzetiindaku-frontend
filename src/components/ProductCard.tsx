@@ -11,7 +11,7 @@
 import { useState, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Star, Heart, ShoppingCart } from "lucide-react";
+import { Star, Heart, ShoppingCart, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -54,6 +54,8 @@ export const ProductCard = memo(function ProductCard({
   const { user, isAuthenticated } = useAuth();
   const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
   const wishlisted = isProductWishlisted(id);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isCartLoading, setIsCartLoading] = useState(false);
 
   const handleWishlistToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
@@ -78,6 +80,7 @@ export const ProductCard = memo(function ProductCard({
     }
 
     try {
+      setIsWishlistLoading(true);
       const added = await toggleWishlist({
         productId: id,
         name,
@@ -104,8 +107,10 @@ export const ProductCard = memo(function ProductCard({
         description: "Unable to update wishlist. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsWishlistLoading(false);
     }
-  }, [isAuthenticated, navigate, originalPrice, price, image, isFeatured, isNew, name, reviewCount, toggleWishlist, toast, user?.role, vendor, id, rating]);
+  }, [id, image, isAuthenticated, isFeatured, isNew, name, navigate, originalPrice, price, rating, reviewCount, toast, toggleWishlist, user?.role, vendor]);
 
   const handleProductClick = useCallback(() => {
     navigate(`/product/${id}`);
@@ -146,6 +151,7 @@ export const ProductCard = memo(function ProductCard({
     }
     
     try {
+      setIsCartLoading(true);
       await addToCart({
         productId: id,
         name,
@@ -165,8 +171,10 @@ export const ProductCard = memo(function ProductCard({
         description: "Failed to add item to cart. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsCartLoading(false);
     }
-  }, [addToCart, toast, id, name, price, image, vendor, isAuthenticated, user, navigate]);
+  }, [addToCart, id, image, isAuthenticated, name, navigate, price, toast, user, vendor]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -230,13 +238,17 @@ export const ProductCard = memo(function ProductCard({
             size="icon"
             className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${compact ? 'w-7 h-7' : 'w-8 h-8'} shadow-sm hover:shadow-md z-10 rounded-full`}
             onClick={handleWishlistToggle}
-            disabled={isWishlistProcessing}
+            disabled={isWishlistProcessing || isWishlistLoading}
           >
-            <Heart
-              className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
-                wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
-              }`}
-            />
+            {isWishlistProcessing || isWishlistLoading ? (
+              <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} animate-spin`} />
+            ) : (
+              <Heart
+                className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
+                  wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+                }`}
+              />
+            )}
           </Button>
 
           {/* Add to Cart Button - Professional overlay */}
@@ -252,15 +264,24 @@ export const ProductCard = memo(function ProductCard({
                   : 'bg-navy-600 hover:bg-navy-700 text-white'
               }`}
               onClick={handleAddToCart}
-              disabled={user?.role === 'vendor'}
+              disabled={user?.role === 'vendor' || isCartLoading}
             >
-              <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
-              {!isAuthenticated 
-                ? 'Login to Add' 
-                : user?.role === 'vendor'
-                ? '.'
-                : t('addToCart')
-              }
+              {isCartLoading ? (
+                <>
+                  <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2 animate-spin`} />
+                  {t('addingToCart', 'Adding...')}
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
+                  {!isAuthenticated 
+                    ? 'Login to Add' 
+                    : user?.role === 'vendor'
+                    ? '.'
+                    : t('addToCart')
+                  }
+                </>
+              )}
             </Button>
             </div>
           </div>

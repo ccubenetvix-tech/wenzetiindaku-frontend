@@ -259,7 +259,7 @@ export function Header() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/dashboard' : '/vendor/dashboard')}>
                     <User className="mr-2 h-4 w-4" />
-                    {user.role === 'customer' ? t('My Dashboard') : t('Dashboard')}
+                    {user.role === 'customer' ? t('Dashboard') : t('Dashboard')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/profile' : '/vendor/profile')}>
                     <User className="mr-2 h-4 w-4" />

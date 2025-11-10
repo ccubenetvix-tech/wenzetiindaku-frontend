@@ -79,6 +79,8 @@ const ProductDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingRelated, setIsLoadingRelated] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isAddToCartLoading, setIsAddToCartLoading] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const loadStartedAt = useRef<number>(0);
   const loadingTimeoutRef = useRef<number | null>(null);
   const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
@@ -123,6 +125,7 @@ const ProductDetail = () => {
     }
 
     try {
+      setIsWishlistLoading(true);
       const added = await toggleWishlist({
         productId: product.id,
         name: product.name,
@@ -139,8 +142,8 @@ const ProductDetail = () => {
       toast({
         title: added ? "Added to Wishlist" : "Removed from Wishlist",
         description: added
-          ? `${product.name} has been added to your wishlist.`
-          : `${product.name} has been removed from your wishlist.`,
+          ? `${product.name ?? 'Product'} has been added to your wishlist.`
+          : `${product.name ?? 'Product'} has been removed from your wishlist.`,
       });
     } catch (error) {
       console.error('Failed to toggle wishlist:', error);
@@ -149,6 +152,8 @@ const ProductDetail = () => {
         description: "Unable to update wishlist. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsWishlistLoading(false);
     }
   }, [isAuthenticated, navigate, product, toast, toggleWishlist, user?.role]);
 
@@ -244,10 +249,9 @@ const ProductDetail = () => {
     loadRelatedProducts();
   }, [product]);
 
-  const handleAddToCart = async () => {
-    if (!product) return;
-    
-    // Check if user is authenticated
+  const handleAddToCart = useCallback(async (): Promise<boolean> => {
+    if (!product) return false;
+
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -255,45 +259,49 @@ const ProductDetail = () => {
         variant: "destructive"
       });
       navigate('/login');
-      return;
+      return false;
     }
-    
-    // Check if user is a vendor (vendors cannot add to cart)
+
     if (user?.role === 'vendor') {
       toast({
         title: "Not Available",
         description: "Vendors cannot add products to cart.",
         variant: "destructive"
       });
-      return;
+      return false;
     }
-    
-    // Only customers can add to cart
+
     if (user?.role !== 'customer') {
       toast({
         title: "Access Denied",
         description: "Only customers can add products to cart.",
         variant: "destructive"
       });
-      return;
+      return false;
     }
-    
+
+    const itemImage = product.images?.[selectedImage] || product.image || "/marketplace.jpeg";
+    const itemPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+    const itemName = product.name ?? 'Product';
+    const itemVendor = product.vendor?.business_name || "Unknown Vendor";
+
     try {
-      // Add the product to cart with the selected quantity
+      setIsAddToCartLoading(true);
       for (let i = 0; i < quantity; i++) {
         await addToCart({
           productId: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.images?.[selectedImage] || product.image || "/marketplace.jpeg",
-          vendor: product.vendor?.business_name || "Unknown Vendor"
+          name: itemName,
+          price: itemPrice,
+          image: itemImage,
+          vendor: itemVendor
         });
       }
-      
+
       toast({
         title: "Added to cart",
-        description: `${quantity} x ${product.name} has been added to your cart.`,
+        description: `${quantity} x ${itemName} has been added to your cart.`,
       });
+      return true;
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
@@ -301,8 +309,11 @@ const ProductDetail = () => {
         description: "Failed to add item to cart. Please try again.",
         variant: "destructive"
       });
+      return false;
+    } finally {
+      setIsAddToCartLoading(false);
     }
-  };
+  }, [addToCart, isAuthenticated, navigate, product, quantity, selectedImage, toast, user?.role]);
 
   // Check if current user is the vendor of this product
   const isVendor = product && user && user.role === 'vendor' && (user.businessName === product.vendor?.business_name || user.businessName === product.vendor?.name);
@@ -440,6 +451,49 @@ const ProductDetail = () => {
     );
   }
 
+  const productData = product ?? {};
+  const productCategory = productData.category || t("productDetail.allProducts", "Products");
+  const productName = productData.name || t("productDetail.productName", "Product");
+  const productImages = Array.isArray(productData.images) && productData.images.length > 0
+    ? productData.images
+    : [productData.image || "/marketplace.jpeg"];
+  const productVendorName =
+    productData.vendor?.business_name ||
+    productData.vendor?.name ||
+    productData.vendor_name ||
+    "Unknown Vendor";
+  const isProductNew = Boolean(productData.isNew ?? productData.is_new);
+  const isProductFeatured = Boolean(productData.isFeatured ?? productData.is_featured);
+  const productRating = Number(
+    typeof productData.rating === "string" ? parseFloat(productData.rating) : productData.rating || 0,
+  );
+  const productReviewCount =
+    productData.review_count ??
+    productData.reviewCount ??
+    0;
+  const productStock = Number.isFinite(productData.stock)
+    ? productData.stock
+    : Number.parseInt(productData.stock, 10) || 0;
+  const productOriginalPrice =
+    typeof productData.original_price === "string"
+      ? parseFloat(productData.original_price)
+      : productData.original_price;
+  const productPrice =
+    typeof productData.price === "string"
+      ? parseFloat(productData.price)
+      : productData.price || 0;
+  const productShipping = productData.shipping || {};
+  const productSizes = Array.isArray(productData.sizes) ? productData.sizes : [];
+  const productColors = Array.isArray(productData.colors) ? productData.colors : [];
+  const productFeatures = Array.isArray(productData.features) ? productData.features : [];
+  const productSpecifications =
+    productData.specifications && typeof productData.specifications === "object"
+      ? productData.specifications
+      : {};
+  const showSizeSelector = productSizes.length > 0;
+  const showColorSelector = productColors.length > 0;
+  const canNavigateToCategory = Boolean(productData.category);
+
   return (
     <div className="relative min-h-screen bg-background">
       {showLoader && (
@@ -472,9 +526,9 @@ const ProductDetail = () => {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/')}>Home</span>
             <span>/</span>
-              <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/categories')}>{product.category}</span>
+              <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/categories')}>{productCategory}</span>
             <span>/</span>
-            <span className="text-foreground">{product.name}</span>
+            <span className="text-foreground">{productName}</span>
             </div>
           </div>
 
@@ -483,8 +537,8 @@ const ProductDetail = () => {
             <div className="space-y-4">
               <div className="relative group">
                 <img
-                  src={product?.images?.[selectedImage] || product?.image || "/marketplace.jpeg"}
-                  alt={product?.name || "Product"}
+                  src={productImages[selectedImage] || "/marketplace.jpeg"}
+                  alt={productName}
                   className="w-full mx-auto max-h-72 md:max-h-96 lg:max-h-[360px] object-contain bg-gray-50 rounded-lg cursor-zoom-in"
                 />
                 <div className="absolute top-4 right-4 flex gap-2">
@@ -504,17 +558,17 @@ const ProductDetail = () => {
                 </Button>
                 </div>
                 {/* Discount Badge */}
-                {product?.original_price && (
+                {productOriginalPrice && (
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-red-500 text-white">
-                      -{Math.round(((product?.original_price - product?.price) / product?.original_price) * 100)}% OFF
+                      -{Math.round(((productOriginalPrice - productPrice) / productOriginalPrice) * 100)}% OFF
                     </Badge>
                   </div>
                 )}
               </div>
               
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {(product?.images || [product?.image || "/marketplace.jpeg"]).map((image, index) => (
+                {productImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -524,7 +578,7 @@ const ProductDetail = () => {
                   >
                     <img
                       src={image}
-                      alt={`${product?.name || "Product"} ${index + 1}`}
+                      alt={`${productName} ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -536,12 +590,12 @@ const ProductDetail = () => {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  {product.isNew && (
+                  {isProductNew && (
                     <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
                       New
                     </Badge>
                   )}
-                  {product.isFeatured && (
+                  {isProductFeatured && (
                     <Badge variant="outline" className="border-primary text-primary">
                       <Star className="h-3 w-3 mr-1" />
                       Featured
@@ -550,7 +604,7 @@ const ProductDetail = () => {
                 </div>
                 
                 <h1 className="text-3xl font-bold text-foreground mb-2">
-                  {product?.name || "Product Name"}
+                  {productName}
                 </h1>
                 
                 <div className="flex items-center gap-4 mb-4">
@@ -560,7 +614,7 @@ const ProductDetail = () => {
                         <Star
                           key={i}
                           className={`h-4 w-4 ${
-                            i < Math.floor(product?.rating || 0)
+                            i < Math.floor(productRating)
                               ? 'fill-yellow-400 text-yellow-400'
                               : 'text-gray-300'
                           }`}
@@ -568,7 +622,7 @@ const ProductDetail = () => {
                       ))}
                     </div>
                     <span className="ml-2 text-sm text-muted-foreground">
-                      {product?.rating || 0} ({product?.review_count || 0} reviews)
+                      {productRating} ({productReviewCount} reviews)
                     </span>
                   </div>
                 </div>
@@ -576,11 +630,11 @@ const ProductDetail = () => {
                 <div className="flex items-baseline gap-3 mb-3">
                   <span className="text-3xl font-bold text-primary">Price</span>
                   <span className="text-3xl font-bold text-primary">
-                    ${product?.price || 0}
+                    ${productPrice}
                   </span>
-                  {product?.original_price && (
+                  {productOriginalPrice && (
                     <span className="text-xl text-muted-foreground line-through">
-                      ${product.original_price}
+                      ${productOriginalPrice}
                     </span>
                   )}
                 </div>
@@ -592,7 +646,7 @@ const ProductDetail = () => {
                   <div className="flex items-center">
                     <StoreIcon className="h-5 w-5 text-primary mr-2" />
                     <div>
-                      <span className="font-medium">{product.vendor?.business_name || product.vendor?.name || "Unknown Vendor"}</span>
+                      <span className="font-medium">{productVendorName}</span>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
                         <span>4.5</span>
@@ -600,21 +654,25 @@ const ProductDetail = () => {
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/store/${product.vendor_id || product.vendor?.id}`)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/store/${productData.vendor_id || productData.vendor?.id}`)}
+                  >
                     Visit Store
                   </Button>
                 </div>
               </div>
 
               {/* Size Selection */}
-              {(product.sizes && product.sizes.length > 0) && (
+              {showSizeSelector && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Size:</span>
                     <span className="text-sm text-muted-foreground">{selectedSize || 'Select size'}</span>
                   </div>
                   <div className="flex gap-2">
-                    {product.sizes.map((size) => (
+                    {productSizes.map((size) => (
                       <Button
                         key={size}
                         variant={selectedSize === size ? "default" : "outline"}
@@ -630,14 +688,14 @@ const ProductDetail = () => {
               )}
 
               {/* Color Selection */}
-              {(product.colors && product.colors.length > 0) && (
+              {showColorSelector && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Color:</span>
                     <span className="text-sm text-muted-foreground">{selectedColor || 'Select color'}</span>
                   </div>
                   <div className="flex gap-2">
-                    {product.colors.map((color) => (
+                    {productColors.map((color) => (
                       <Button
                         key={color}
                         variant={selectedColor === color ? "default" : "outline"}
@@ -655,8 +713,8 @@ const ProductDetail = () => {
               {/* Stock Status */}
               <div className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
-                <span className={`font-medium ${(product.stock || 0) > 10 ? 'text-green-600' : (product.stock || 0) > 0 ? 'text-orange-600' : 'text-red-600'}`}>
-                  {(product.stock || 0) > 0 ? `${product.stock || 0} in stock` : 'Out of stock'}
+                <span className={`font-medium ${productStock > 10 ? 'text-green-600' : productStock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
+                  {productStock > 0 ? `${productStock} in stock` : 'Out of stock'}
                 </span>
               </div>
 
@@ -673,7 +731,10 @@ const ProductDetail = () => {
                     </button>
                     <span className="px-4 py-2 border-x">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(Math.min((product.stock || 0), quantity + 1))}
+                      onClick={() => {
+                        const maxQuantity = productStock > 0 ? productStock : 1;
+                        setQuantity(Math.min(maxQuantity, quantity + 1));
+                      }}
                       className="px-3 py-2 hover:bg-muted"
                     >
                       +
@@ -691,25 +752,38 @@ const ProductDetail = () => {
                         : 'bg-primary hover:bg-primary/90'
                     }`}
                     size="lg"
-                    disabled={(product.stock || 0) === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
+                    disabled={productStock === 0 || (!selectedSize && showSizeSelector) || user?.role === 'vendor' || isAddToCartLoading}
                     onClick={handleAddToCart}
                   >
-                    <ShoppingCart className="h-5 w-5 mr-2" />
-                    {!isAuthenticated 
-                      ? 'Login to Add to Cart' 
-                      : user?.role === 'vendor'
-                      ? 'Not for Vendors'
-                      : t('addToCart')
-                    }
+                    {isAddToCartLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        {t('addingToCart', 'Adding...')}
+                      </span>
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        {!isAuthenticated 
+                          ? 'Login to Add to Cart' 
+                          : user?.role === 'vendor'
+                          ? 'Not for Vendors'
+                          : t('addToCart')
+                        }
+                      </>
+                    )}
                   </Button>
                   <Button 
                     variant="outline" 
                     size="lg"
                     onClick={handleWishlistToggle}
                     className={productWishlisted ? "text-red-500 border-red-500" : ""}
-                    disabled={isWishlistProcessing}
+                    disabled={isWishlistProcessing || isWishlistLoading}
                   >
-                    <Heart className={`h-5 w-5 ${productWishlisted ? "fill-red-500" : ""}`} />
+                    {isWishlistProcessing || isWishlistLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Heart className={`h-5 w-5 ${productWishlisted ? "fill-red-500" : ""}`} />
+                    )}
                   </Button>
                 </div>
                 
@@ -723,10 +797,10 @@ const ProductDetail = () => {
                       : 'bg-primary hover:bg-primary/90 text-white'
                   }`}
                   size="lg"
-                  disabled={(product.stock || 0) === 0 || (!selectedSize && product.sizes?.length > 0) || user?.role === 'vendor'}
-                  onClick={() => {
-                    handleAddToCart();
-                    if (isAuthenticated && user?.role === 'customer') {
+                  disabled={productStock === 0 || (!selectedSize && showSizeSelector) || user?.role === 'vendor' || isAddToCartLoading}
+                  onClick={async () => {
+                    const added = await handleAddToCart();
+                    if (added && isAuthenticated && user?.role === 'customer') {
                       navigate('/checkout');
                     }
                   }}
@@ -750,8 +824,8 @@ const ProductDetail = () => {
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div>• Free shipping on orders over $25</div>
-                      <div>• Estimated delivery: {product.shipping?.estimatedDays || "3-5 days"}</div>
-                      <div>• {(product.shipping?.returnPolicy || 30)} day return policy</div>
+                      <div>• Estimated delivery: {productShipping.estimatedDays || "3-5 days"}</div>
+                      <div>• {(productShipping.returnPolicy || 30)} day return policy</div>
                     </div>
                   </div>
                 </CardContent>
@@ -781,7 +855,7 @@ const ProductDetail = () => {
               <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-4">
                 <TabsTrigger value="description" className="min-w-[140px] sm:min-w-0">Description</TabsTrigger>
                 <TabsTrigger value="specifications" className="min-w-[140px] sm:min-w-0">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">Reviews ({product.review_count || product.reviewCount || 0})</TabsTrigger>
+                <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">Reviews ({productReviewCount})</TabsTrigger>
                 <TabsTrigger value="shipping" className="min-w-[140px] sm:min-w-0">Shipping & Returns</TabsTrigger>
               </TabsList>
               
@@ -822,9 +896,9 @@ const ProductDetail = () => {
                       </div>
                     ) : (
                       <div className="text-muted-foreground leading-relaxed space-y-4">
-                        <p>{editedDescription || product.description}</p>
+                        <p>{editedDescription || productData.description}</p>
                         {showFullDescription && (
-                          <p>{product.longDescription}</p>
+                          <p>{productData.longDescription}</p>
                         )}
                         <Button 
                           variant="ghost" 
@@ -842,7 +916,7 @@ const ProductDetail = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-4">Key Features</h3>
                     <ul className="space-y-3">
-                  {(product.features || []).map((feature: string, index: number) => (
+                  {productFeatures.map((feature: string, index: number) => (
                     <li key={index} className="flex items-start">
                           <CheckCircle className="h-4 w-4 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
                       <span className="text-muted-foreground">{feature}</span>
@@ -901,7 +975,7 @@ const ProductDetail = () => {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(editedSpecifications && Object.keys(editedSpecifications).length > 0 ? editedSpecifications : (product.specifications || {})).map(([key, value]) => (
+                        {Object.entries(editedSpecifications && Object.keys(editedSpecifications).length > 0 ? editedSpecifications : productSpecifications).map(([key, value]) => (
                           <div key={key} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
                             <span className="font-medium text-gray-600 dark:text-gray-400">{key}:</span>
                             <span className="text-gray-900 dark:text-gray-100">{String(value)}</span>
@@ -1122,7 +1196,7 @@ const ProductDetail = () => {
                               <Label htmlFor="estimatedDays">Estimated Delivery</Label>
                               <Input
                                 id="estimatedDays"
-                                value={editedShipping.estimatedDays || product.shipping?.estimatedDays || ""}
+                                value={editedShipping.estimatedDays || productShipping.estimatedDays || ""}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   estimatedDays: e.target.value
@@ -1134,7 +1208,7 @@ const ProductDetail = () => {
                               <Label htmlFor="freeShippingThreshold">Free Shipping Threshold</Label>
                               <Input
                                 id="freeShippingThreshold"
-                                value={editedShipping.freeShippingThreshold || product.shipping?.freeShippingThreshold || "$25"}
+                                value={editedShipping.freeShippingThreshold || productShipping.freeShippingThreshold || "$25"}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   freeShippingThreshold: e.target.value
@@ -1150,7 +1224,7 @@ const ProductDetail = () => {
                               <Label htmlFor="returnPolicy">Return Policy (days)</Label>
                               <Input
                                 id="returnPolicy"
-                                value={editedShipping.returnPolicy || product.shipping?.returnPolicy || "30"}
+                                value={editedShipping.returnPolicy || productShipping.returnPolicy || "30"}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   returnPolicy: e.target.value
@@ -1162,7 +1236,7 @@ const ProductDetail = () => {
                               <Label htmlFor="returnConditions">Return Conditions</Label>
                               <Textarea
                                 id="returnConditions"
-                                value={editedShipping.returnConditions || product.shipping?.returnConditions || "Items must be in original condition"}
+                                value={editedShipping.returnConditions || productShipping.returnConditions || "Items must be in original condition"}
                                 onChange={(e) => setEditedShipping({
                                   ...editedShipping,
                                   returnConditions: e.target.value
@@ -1196,11 +1270,11 @@ const ProductDetail = () => {
                         <CardContent className="space-y-4">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span>Free shipping on orders over {(editedShipping.freeShippingThreshold || product.shipping?.freeShippingThreshold) || "$25"}</span>
+                            <span>Free shipping on orders over {(editedShipping.freeShippingThreshold || productShipping.freeShippingThreshold) || "$25"}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-blue-600" />
-                            <span>Estimated delivery: {(editedShipping.estimatedDays || product.shipping?.estimatedDays || "3-5 days")}</span>
+                            <span>Estimated delivery: {(editedShipping.estimatedDays || productShipping.estimatedDays || "3-5 days")}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-purple-600" />
@@ -1219,7 +1293,7 @@ const ProductDetail = () => {
                         <CardContent className="space-y-4">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span>{(editedShipping.returnPolicy || product.shipping?.returnPolicy || 30)} day return policy</span>
+                            <span>{(editedShipping.returnPolicy || productShipping.returnPolicy || 30)} day return policy</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Shield className="h-4 w-4 text-blue-600" />
@@ -1242,8 +1316,12 @@ const ProductDetail = () => {
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold">Related Products</h3>
-              <Button variant="outline" onClick={() => navigate(`/search?category=${encodeURIComponent(product.category)}`)}>
-                View All in {product.category}
+              <Button
+                variant="outline"
+                onClick={() => canNavigateToCategory && navigate(`/search?category=${encodeURIComponent(String(productCategory))}`)}
+                disabled={!canNavigateToCategory}
+              >
+                View All in {productCategory}
               </Button>
                 </div>
             {isLoadingRelated ? (

@@ -107,6 +107,7 @@ interface Vendor {
   businessEmail: string;
   approved: boolean;
   verified: boolean;
+  profilePhoto?: string;
 }
 
 export default function VendorDashboard() {
@@ -210,7 +211,7 @@ export default function VendorDashboard() {
     setProductsLoading(true);
     
     try {
-      const data = await apiClient.getVendorProducts(page, 10, status, search);
+      const data = await apiClient.getVendorProducts(page, 10, status, search) as any;
       
       if (data.success) {
         setProducts(data.data.products);
@@ -240,7 +241,7 @@ export default function VendorDashboard() {
     setOrdersLoading(true);
     
     try {
-      const data = await apiClient.getVendorOrders(page, 10, status);
+      const data = await apiClient.getVendorOrders(page, 10, status) as any;
       
       if (data.success) {
         setOrders(data.data.orders);
@@ -305,13 +306,43 @@ export default function VendorDashboard() {
     setIsCreatingProduct(true);
     
     try {
-      let productId = editingProduct?.id;
-      
-      // Create or update product
-      const data = editingProduct 
-        ? await apiClient.updateVendorProduct(editingProduct.id, productForm)
-        : await apiClient.createVendorProduct(productForm);
-      
+      let primaryImageBase64: string | undefined;
+      let primaryImageName: string | undefined;
+
+      if (productImage) {
+        try {
+          primaryImageBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => resolve(event.target?.result as string);
+            reader.onerror = () => reject(new Error('Failed to read image file'));
+            reader.readAsDataURL(productImage);
+          });
+          primaryImageName = productImage.name;
+        } catch (readError) {
+          console.error('Product image encoding error:', readError);
+          toast({
+            title: "Image Error",
+            description: "We couldn't process the product image. Please try a different file.",
+            variant: "destructive",
+          });
+          setIsCreatingProduct(false);
+          return;
+        }
+      }
+
+      const payload: any = {
+        ...productForm,
+      };
+
+      if (primaryImageBase64 && primaryImageName) {
+        payload.primaryImage = primaryImageBase64;
+        payload.primaryImageName = primaryImageName;
+      }
+
+      const data: any = editingProduct
+        ? await apiClient.updateVendorProduct(editingProduct.id, payload)
+        : await apiClient.createVendorProduct(payload);
+
       if (!data.success) {
         toast({
           title: "Error",
@@ -320,39 +351,7 @@ export default function VendorDashboard() {
         });
         return;
       }
-      
-      // If this is a new product, get the product ID from the response
-      if (!editingProduct && data.data?.product) {
-        productId = data.data.product.id;
-      }
-      
-      // Upload image if provided
-      if (productImage && productId) {
-        try {
-          const reader = new FileReader();
-          const base64 = await new Promise<string>((resolve, reject) => {
-            reader.onload = (e) => {
-              const base64 = e.target?.result as string;
-              resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(productImage);
-          });
-          
-          const uploadResponse = await apiClient.uploadProductImage(productId, base64, productImage.name);
-          if (uploadResponse.success) {
-            console.log('Image uploaded successfully');
-          }
-        } catch (uploadErr) {
-          console.error('Image upload error:', uploadErr);
-          // Don't fail the whole operation if image upload fails
-          toast({
-            title: "Warning",
-            description: "Product created but image upload failed. You can add it later.",
-          });
-        }
-      }
-      
+
       toast({
         title: editingProduct ? "Product Updated" : "Product Created",
         description: data.message,
@@ -409,7 +408,7 @@ export default function VendorDashboard() {
     if (!confirm('Are you sure you want to delete this product?')) return;
     
     try {
-      const data = await apiClient.deleteVendorProduct(productId);
+      const data = await apiClient.deleteVendorProduct(productId) as any;
       
       if (data.success) {
         toast({
@@ -440,7 +439,7 @@ export default function VendorDashboard() {
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const data = await apiClient.updateVendorOrderStatus(orderId, newStatus);
+      const data = await apiClient.updateVendorOrderStatus(orderId, newStatus) as any;
       
       if (data.success) {
         toast({

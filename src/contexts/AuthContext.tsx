@@ -268,7 +268,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   }, [logout, redirectToLogin]);
 
-  const updateUser = (userData: Partial<User>) => {
+  const updateUser = useCallback((userData: Partial<User>) => {
     setUser((currentUser) => {
       if (!currentUser) {
         return currentUser;
@@ -278,7 +278,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('auth_user', JSON.stringify(updatedUser));
       return updatedUser;
     });
-  };
+  }, []);
 
   const value: AuthContextType = {
     user,
