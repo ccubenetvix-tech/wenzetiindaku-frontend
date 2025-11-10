@@ -10,12 +10,21 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/utils/api";
 import { predefinedCategories } from "@/data/categories";
+import { PageLoader } from "@/components/PageLoader";
+import { useLoaderTransition } from "@/hooks/useLoaderTransition";
+import { cn } from "@/lib/utils";
 
 const Categories = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [categoryProducts, setCategoryProducts] = useState<Record<string, any[]>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
+    minimumVisibleMs: 1600,
+    fadeDurationMs: 400,
+  });
+  const contentVisibilityClass =
+    showLoader && !isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100";
 
   // Load products for each category
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -83,10 +92,25 @@ const Categories = () => {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-navy-950">
+    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-navy-950">
       <Header />
-      
-      <main className="flex-1">
+
+      <main className="relative flex-1">
+        {showLoader && (
+          <PageLoader
+            variant="categories"
+            title="Exploring categories"
+            subtitle="Organising collections tailored to you"
+            fadingOut={isFadingOut}
+          />
+        )}
+
+        <div
+          className={cn(
+            "h-full transition-opacity duration-500",
+            contentVisibilityClass
+          )}
+        >
         {/* Header Section */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="container mx-auto px-4 py-3">
@@ -135,9 +159,10 @@ const Categories = () => {
             </div>
           )}
         </div>
+        </div>
       </main>
 
-      <Footer />
+      {!isLoading && <Footer />}
     </div>
   );
 };

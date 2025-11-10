@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,8 +44,11 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
 import { Loader2 } from "lucide-react";
+import { PageLoader } from "@/components/PageLoader";
+import { useLoaderTransition } from "@/hooks/useLoaderTransition";
 
 const ProductDetail = () => {
+  const MIN_LOADING_DURATION = 400;
   const { productId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -75,6 +78,15 @@ const ProductDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingRelated, setIsLoadingRelated] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadStartedAt = useRef<number>(0);
+  const loadingTimeoutRef = useRef<number | null>(null);
+  const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
+    minimumVisibleMs: 900,
+    fadeDurationMs: 400,
+  });
+  const contentVisibilityClass =
+    showLoader && !isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100";
   
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -146,7 +158,15 @@ const ProductDetail = () => {
       if (!productId) return;
       
       try {
+        if (loadingTimeoutRef.current !== null) {
+          clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
+        loadStartedAt.current = performance.now();
         setIsLoading(true);
+        setLoadError(null);
+        setProduct(null);
+        setRelatedProducts([]);
         console.log('Loading product:', productId);
         const response: any = await apiClient.getProductById(productId);
         console.log('Product response:', response);
@@ -155,6 +175,7 @@ const ProductDetail = () => {
           setProduct(response.data.product || response.data);
         } else {
           console.error('Error loading product:', response.error);
+          setLoadError("Product not found");
           toast({
             title: "Error",
             description: "Product not found",
@@ -164,6 +185,7 @@ const ProductDetail = () => {
         }
       } catch (error) {
         console.error('Error loading product:', error);
+        setLoadError("Failed to load product");
         toast({
           title: "Error",
           description: "Failed to load product",
@@ -171,11 +193,27 @@ const ProductDetail = () => {
         });
         navigate('/');
       } finally {
-        setIsLoading(false);
+        const finalizeLoading = () => {
+          setIsLoading(false);
+          loadingTimeoutRef.current = null;
+        };
+
+        const elapsed = performance.now() - loadStartedAt.current;
+        if (elapsed < MIN_LOADING_DURATION) {
+          loadingTimeoutRef.current = window.setTimeout(finalizeLoading, MIN_LOADING_DURATION - elapsed);
+        } else {
+          finalizeLoading();
+        }
       }
     };
 
     loadProduct();
+
+    return () => {
+      if (loadingTimeoutRef.current !== null) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
   }, [productId, navigate, toast]);
 
   // Load related products
@@ -385,28 +423,15 @@ const ProductDetail = () => {
     }
   ];
 
-  if (isLoading) {
+  if (!isLoading && (loadError || !product)) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading product...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Product Not Found</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              {loadError || "Product Not Found"}
+            </h1>
             <Button onClick={() => navigate('/')}>Go Home</Button>
           </div>
         </div>
@@ -416,10 +441,22 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
-      
-      <main className="flex-1">
+    <div className="relative min-h-screen bg-background">
+      {showLoader && (
+        <PageLoader
+          variant="product"
+          title="Gathering product details"
+          subtitle="We are pulling the latest information for you"
+          fadingOut={isFadingOut}
+        />
+      )}
+
+      <div
+        className={`min-h-screen flex flex-col transition-opacity duration-500 ${contentVisibilityClass}`}
+      >
+        <Header />
+
+        <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           {/* Back Button & Breadcrumb */}
           <div className="flex items-center gap-4 mb-8">
@@ -1267,9 +1304,10 @@ const ProductDetail = () => {
             )}
           </div>
         </div>
-      </main>
+        </main>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 };

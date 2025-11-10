@@ -17,7 +17,9 @@ import {
 } from "@/components/ui/select";
 import { filterBySearch, sortBy } from "@/utils";
 import { apiClient } from "@/utils/api";
-import { Loader2 } from "lucide-react";
+import { PageLoader } from "@/components/PageLoader";
+import { useLoaderTransition } from "@/hooks/useLoaderTransition";
+import { cn } from "@/lib/utils";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -28,6 +30,12 @@ const SearchResults = () => {
   // Products state
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
+    minimumVisibleMs: 1600,
+    fadeDurationMs: 400,
+  });
+  const contentVisibilityClass =
+    showLoader && !isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100";
 
   // Filter state
   const [refineSearch, setRefineSearch] = useState("");
@@ -121,27 +129,27 @@ const SearchResults = () => {
     setSortByValue("relevance");
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading products...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      
-      <main className="flex-1">
-        <div className="container mx-auto px-4 pt-4 pb-8">
+
+      <main className="relative flex-1">
+        {showLoader && (
+          <PageLoader
+            variant="product"
+            title="Loading products"
+            subtitle="Bringing the best items for you"
+            fadingOut={isFadingOut}
+          />
+        )}
+
+        <div
+          className={cn(
+            "min-h-full flex flex-col transition-opacity duration-500",
+            contentVisibilityClass
+          )}
+        >
+          <div className="container mx-auto px-4 pt-4 pb-8 flex-1">
           {/* Header Section - aligned with controls */}
           <div className="mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
@@ -400,9 +408,10 @@ const SearchResults = () => {
             </div>
           </div>
         </div>
+        </div>
       </main>
 
-      <Footer />
+      {!isLoading && <Footer />}
     </div>
   );
 };

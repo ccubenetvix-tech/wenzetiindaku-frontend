@@ -39,6 +39,9 @@ import { Input } from "@/components/ui/input";   // Input field component
 import { Badge } from "@/components/ui/badge";   // Badge component
 import { ProductCard } from "@/components/ProductCard"; // Product card component
 import { apiClient } from "@/utils/api"; // API client for dynamic data
+import { PageLoader } from "@/components/PageLoader";
+import { useLoaderTransition } from "@/hooks/useLoaderTransition";
+import { cn } from "@/lib/utils";
 
 // Import Select components for sorting functionality
 import {
@@ -76,6 +79,11 @@ const Store = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
+    minimumVisibleMs: 1600,
+    fadeDurationMs: 400,
+  });
+  const contentVisibilityClass = showLoader && !isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100";
 
   // Load store data
   useEffect(() => {
@@ -91,7 +99,7 @@ const Store = () => {
         setError(null);
 
         // Load vendor data
-        const vendorResponse = await apiClient.getVendorById(storeId);
+        const vendorResponse = await apiClient.getVendorById(storeId) as any;
         
         if (vendorResponse.success) {
           const vendor = vendorResponse.data.vendor;
@@ -112,9 +120,11 @@ const Store = () => {
           setStore(storeData);
 
           // Load products from this vendor
-          const productsResponse = await apiClient.getAllProducts({
-            vendor_id: storeId
-          });
+          const productsResponse = await apiClient.getAllProducts(
+            {
+              vendor_id: storeId
+            } as any
+          ) as any;
           
           if (productsResponse.success) {
             const vendorProducts = (productsResponse.data.products || []).map((product: any) => ({
@@ -160,24 +170,8 @@ const Store = () => {
     );
   }, [products, searchQuery]);
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading store...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   // Error state
-  if (error || !store) {
+  if (!isLoading && (error || !store)) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -195,176 +189,187 @@ const Store = () => {
   }
 
   return (
-    // Main page container with full height and flex layout
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Site header with navigation menu */}
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      
-      {/* Main content area that takes remaining space */}
-      <main className="flex-1">
 
-      {/* Main Content Container - minimal top spacing */}
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        <div className="flex flex-col lg:flex-row gap-8">
-            {/* Store Info Sidebar - Left column */}
-            <aside className="lg:w-1/4">
-              {/* Store Information Card */}
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">Store Information</h3>
-                
-                {/* Store description */}
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
-                  {store.description}
-                </p>
-                
-                {/* Store location */}
-                <div className="mb-8">
-                  <div className="flex items-center text-sm">
-                    <MapPin className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                    <span className="text-gray-900 dark:text-white">{store.location}</span>
-                  </div>
-                </div>
+      <main className="relative flex-1">
+        {showLoader && (
+          <PageLoader
+            variant="store"
+            title="Exploring stores"
+            subtitle="Discovering places near you"
+            fadingOut={isFadingOut}
+          />
+        )}
 
-                {/* Message store button */}
-                <Button 
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
-                  onClick={() => {
-                    // TODO: Implement message store functionality
-                    console.log(`Message store: ${store.name}`);
-                  }}
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Message Store
-                </Button>
-              </div>
-
-              {/* Store Stats Card */}
-              <div className="bg-card p-6 rounded-lg shadow-sm">
-                <h3 className="font-semibold text-lg mb-4">Store Stats</h3>
-                <div className="space-y-3">
-                  {/* Total products stat */}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Products</span>
-                    <span className="font-medium">{store.totalProducts}</span>
-                  </div>
+        <div
+          className={cn(
+            "min-h-full flex flex-col transition-opacity duration-500",
+            contentVisibilityClass
+          )}
+        >
+          <div className="max-w-7xl mx-auto px-4 py-2 flex-1">
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Store Info Sidebar - Left column */}
+              <aside className="lg:w-1/4">
+                {/* Store Information Card */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-6 border border-gray-200 dark:border-gray-700">
+                  <h3 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">Store Information</h3>
                   
-                  {/* Average rating stat */}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Average Rating</span>
-                    <span className="font-medium">{store.rating}/5</span>
-                  </div>
+                  {/* Store description */}
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
+                    {store?.description}
+                  </p>
                   
-                  {/* Reviews count stat */}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reviews</span>
-                    <span className="font-medium">{store.reviewCount}</span>
-                  </div>
-                </div>
-              </div>
-            </aside>
-
-            {/* Store Products - Right column (main content) */}
-            <div className="lg:w-3/4">
-              {/* Products and Controls Header - aligned side by side */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-3xl md:text-4xl font-bold">All Products</h2>
-                  
-                  {/* Right side - Search and Sort Controls */}
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        type="text"
-                        placeholder={`${t('search')}...`}
-                        className="pl-10 w-48"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
+                  {/* Store location */}
+                  <div className="mb-8">
+                    <div className="flex items-center text-sm">
+                      <MapPin className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <span className="text-gray-900 dark:text-white">{store?.location}</span>
                     </div>
-                    
-                    <Select>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Sort by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="price-low">Price: Low to High</SelectItem>
-                        <SelectItem value="price-high">Price: High to Low</SelectItem>
-                        <SelectItem value="rating">Highest Rated</SelectItem>
-                        <SelectItem value="new">New Arrivals</SelectItem>
-                        <SelectItem value="alpha">Alphabetical</SelectItem>
-                        <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
-                </div>
-                
-                {/* Results count and Featured */}
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">
-                    {filteredProducts.length} results
-                  </span>
-                  <Badge variant="secondary">
-                    <Star className="h-3 w-3 mr-1" />
-                    Featured
-                  </Badge>
-                </div>
-              </div>
 
-              {/* Products and Controls - cards below */}
-              <div className="flex gap-6 items-start">
-                {/* Left side - Product sections */}
-                <div className="flex-1">
-
-              {/* Featured Products Section */}
-              <div>
-                {/* Section header with star icon */}
-                <h2 className="text-2xl font-bold mb-3 flex items-center">
-                  <Star className="h-6 w-6 text-secondary mr-2" />
-                  Featured Products
-                </h2>
-                
-                {/* Featured products grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Filter and map through featured products only */}
-                  {filteredProducts.filter(p => p.isFeatured).map((product) => (
-                    <ProductCard key={product.id} {...product} />
-                  ))}
-                </div>
-              </div>
-
-              {/* All Products Section */}
-              <div>
-                {/* All products grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Map through all products */}
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} {...product} />
-                  ))}
-                </div>
-                
-                {filteredProducts.length === 0 && searchQuery && (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground text-lg">
-                      No products found for "{searchQuery}"
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      Clear Search
-                    </Button>
-                  </div>
-                )}
-
-                {/* Load More Button */}
-                <div className="text-center mt-6">
-                  <Button variant="outline" size="lg">
-                    Load More Products
+                  {/* Message store button */}
+                  <Button 
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
+                    onClick={() => {
+                      // TODO: Implement message store functionality
+                      console.log(`Message store: ${store?.name ?? "Store"}`);
+                    }}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Message Store
                   </Button>
                 </div>
-              </div>
+
+                {/* Store Stats Card */}
+                <div className="bg-card p-6 rounded-lg shadow-sm">
+                  <h3 className="font-semibold text-lg mb-4">Store Stats</h3>
+                  <div className="space-y-3">
+                    {/* Total products stat */}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Products</span>
+                      <span className="font-medium">{store?.totalProducts ?? 0}</span>
+                    </div>
+                    
+                    {/* Average rating stat */}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Average Rating</span>
+                      <span className="font-medium">{store?.rating}/5</span>
+                    </div>
+                    
+                    {/* Reviews count stat */}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reviews</span>
+                      <span className="font-medium">{store?.reviewCount}</span>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+
+              {/* Store Products - Right column (main content) */}
+              <div className="lg:w-3/4">
+                {/* Products and Controls Header - aligned side by side */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-3xl md:text-4xl font-bold">All Products</h2>
+                    
+                    {/* Right side - Search and Sort Controls */}
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                        <Input
+                          type="text"
+                          placeholder={`${t('search')}...`}
+                          className="pl-10 w-48"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+                      
+                      <Select>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="price-low">Price: Low to High</SelectItem>
+                          <SelectItem value="price-high">Price: High to Low</SelectItem>
+                          <SelectItem value="rating">Highest Rated</SelectItem>
+                          <SelectItem value="new">New Arrivals</SelectItem>
+                          <SelectItem value="alpha">Alphabetical</SelectItem>
+                          <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Results count and Featured */}
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-muted-foreground">
+                      {filteredProducts.length} results
+                    </span>
+                    <Badge variant="secondary">
+                      <Star className="h-3 w-3 mr-1" />
+                      Featured
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Products and Controls - cards below */}
+                <div className="flex gap-6 items-start">
+                  {/* Left side - Product sections */}
+                  <div className="flex-1">
+
+                    {/* Featured Products Section */}
+                    <div>
+                      {/* Section header with star icon */}
+                      <h2 className="text-2xl font-bold mb-3 flex items-center">
+                        <Star className="h-6 w-6 text-secondary mr-2" />
+                        Featured Products
+                      </h2>
+                      
+                      {/* Featured products grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Filter and map through featured products only */}
+                        {filteredProducts.filter(p => p.isFeatured).map((product) => (
+                          <ProductCard key={product.id} {...product} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* All Products Section */}
+                    <div>
+                      {/* All products grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Map through all products */}
+                        {filteredProducts.map((product) => (
+                          <ProductCard key={product.id} {...product} />
+                        ))}
+                      </div>
+                      
+                      {filteredProducts.length === 0 && searchQuery && (
+                        <div className="text-center py-8">
+                          <p className="text-muted-foreground text-lg">
+                            No products found for "{searchQuery}"
+                          </p>
+                          <Button 
+                            variant="outline" 
+                            className="mt-4"
+                            onClick={() => setSearchQuery("")}
+                          >
+                            Clear Search
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Load More Button */}
+                      <div className="text-center mt-6">
+                        <Button variant="outline" size="lg">
+                          Load More Products
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -372,8 +377,7 @@ const Store = () => {
         </div>
       </main>
 
-      {/* Site footer */}
-      <Footer />
+      {!isLoading && <Footer />}
     </div>
   );
 };
