@@ -13,7 +13,7 @@ Create a `.env` file in your `wenzetiindaku-frontend` directory:
 # For local development
 VITE_ENVIRONMENT=development
 VITE_LOCAL_BACKEND_URL=http://localhost:5000/api
-VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
+VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
 ```
 
 ### 2. This file stays local
@@ -29,7 +29,7 @@ VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
 2. **Add these variables:**
    ```
    VITE_ENVIRONMENT = production
-   VITE_PRODUCTION_BACKEND_URL = https://wenzetiindaku-backend.onrender.com/api
+   VITE_PRODUCTION_BACKEND_URL = https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
    ```
 3. **Redeploy** your site
 
@@ -39,7 +39,7 @@ VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
 2. **Add these variables:**
    ```
    VITE_ENVIRONMENT = production
-   VITE_PRODUCTION_BACKEND_URL = https://wenzetiindaku-backend.onrender.com/api
+   VITE_PRODUCTION_BACKEND_URL = https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
    ```
 3. **Redeploy** your site
 
@@ -49,7 +49,7 @@ VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
 2. **Add these variables:**
    ```
    VITE_ENVIRONMENT = production
-   VITE_PRODUCTION_BACKEND_URL = https://wenzetiindaku-backend.onrender.com/api
+   VITE_PRODUCTION_BACKEND_URL = https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
    ```
 3. **Redeploy** your site
 
@@ -80,7 +80,7 @@ The code already defaults to production values, so you can just run `npm run bui
 # 1. Create .env file
 echo "VITE_ENVIRONMENT=development" > .env
 echo "VITE_LOCAL_BACKEND_URL=http://localhost:5000/api" >> .env
-echo "VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api" >> .env
+echo "VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api" >> .env
 
 # 2. Start development
 npm run dev
@@ -98,7 +98,7 @@ VITE_ENVIRONMENT=production npm run build
 |----------|---------|---------------|
 | `VITE_ENVIRONMENT` | Controls which backend to use | `development` or `production` |
 | `VITE_LOCAL_BACKEND_URL` | Local backend URL | `http://localhost:5000/api` |
-| `VITE_PRODUCTION_BACKEND_URL` | Production backend URL | `https://wenzetiindaku-backend.onrender.com/api` |
+| `VITE_PRODUCTION_BACKEND_URL` | Production backend URL | `https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api` |
 | `VITE_API_URL` | Direct override (highest priority) | `http://custom-backend.com/api` |
 
 ## 🎯 Your Workflow

@@ -37,7 +37,7 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const API_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend.onrender.com/api');
+      const API_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api');
       const response = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: {

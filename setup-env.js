@@ -43,7 +43,7 @@ VITE_ENVIRONMENT=development
 
 # Backend URLs
 VITE_LOCAL_BACKEND_URL=http://localhost:5000/api
-VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
+VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
 
 # You can also override the backend URL directly (highest priority)
 # VITE_API_URL=http://localhost:5000/api

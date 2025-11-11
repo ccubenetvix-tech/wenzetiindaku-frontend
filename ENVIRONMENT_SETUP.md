@@ -13,7 +13,7 @@ VITE_ENVIRONMENT=development
 
 # Backend URLs
 VITE_LOCAL_BACKEND_URL=http://localhost:5000/api
-VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
+VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
 
 # You can also override the backend URL directly
 # VITE_API_URL=http://localhost:5000/api
@@ -26,7 +26,7 @@ The application uses the following priority order for determining the backend UR
 1. **VITE_API_URL** (if set) - Direct override, highest priority
 2. **VITE_ENVIRONMENT** - Controls which backend to use
    - `development` → Uses `VITE_LOCAL_BACKEND_URL` (default: `http://localhost:5000/api`)
-   - `production` → Uses `VITE_PRODUCTION_BACKEND_URL` (default: `https://wenzetiindaku-backend.onrender.com/api`)
+   - `production` → Uses `VITE_PRODUCTION_BACKEND_URL` (default: `https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api`)
 
 ## Usage Examples
 
@@ -39,7 +39,7 @@ VITE_LOCAL_BACKEND_URL=http://localhost:5000/api
 ### For Production Deployment
 ```env
 VITE_ENVIRONMENT=production
-VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend.onrender.com/api
+VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api
 ```
 
 ### For Custom Backend URL

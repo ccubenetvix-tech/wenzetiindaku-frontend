@@ -24,7 +24,7 @@ export const getApiBaseUrl = () => {
     return import.meta.env.VITE_LOCAL_BACKEND_URL || 'http://localhost:5000/api';
   } else {
     // In production, use deployed backend
-    return import.meta.env.VITE_PRODUCTION_BACKEND_URL || 'https://wenzetiindaku-backend.onrender.com/api';
+    return import.meta.env.VITE_PRODUCTION_BACKEND_URL || 'https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api';
   }
 };
 

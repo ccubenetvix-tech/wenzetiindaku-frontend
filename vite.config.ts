@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
       // Proxy API requests to the backend server
       // This will only be used when VITE_ENVIRONMENT is not set to 'development'
       '/api': {
-        target: 'https://wenzetiindaku-backend.onrender.com',
+        target: 'https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
