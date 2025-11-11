@@ -167,6 +167,17 @@ export class ApiClient {
     return this.request(`/customer/orders?page=${page}&limit=${limit}`);
   }
 
+  async createCustomerOrders(payload: {
+    paymentMethod: string;
+    shippingAddress: Record<string, unknown>;
+    saveAddressToProfile?: boolean;
+  }) {
+    return this.request(`/customer/orders`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   async getCustomerOrder(orderId: string) {
     return this.request(`/customer/orders/${orderId}`);
   }

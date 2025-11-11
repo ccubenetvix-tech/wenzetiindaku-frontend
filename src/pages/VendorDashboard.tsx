@@ -82,9 +82,20 @@ interface Order {
   customer: string;
   date: string;
   status: string;
+  statusLabel: string;
   total: number;
   items: number;
   payment: string;
+  paymentStatus?: string | null;
+  shippingAddress?: Record<string, any> | null;
+  orderItems?: Array<{
+    id?: string;
+    product?: {
+      name?: string;
+    } | null;
+    quantity?: number | string | null;
+    price?: number | string | null;
+  }>;
 }
 
 interface Product {
@@ -140,6 +151,8 @@ export default function VendorDashboard() {
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  const [orderDetails, setOrderDetails] = useState<Order | null>(null);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
   
   // Product form
   const [showProductDialog, setShowProductDialog] = useState(false);
@@ -244,7 +257,32 @@ export default function VendorDashboard() {
       const data = await apiClient.getVendorOrders(page, 10, status) as any;
       
       if (data.success) {
-        setOrders(data.data.orders);
+        const apiOrders = data.data?.orders ?? [];
+        const mappedOrders: Order[] = apiOrders.map((order: any) => {
+          const customerName = order.customer
+            ? `${order.customer.first_name ?? ""} ${order.customer.last_name ?? ""}`.trim() ||
+              order.customer.email ||
+              "Customer"
+            : "Customer";
+          const totalAmount = Number.parseFloat(order.total_amount ?? 0);
+          const statusValue = (order.status ?? "pending").toString().toLowerCase();
+
+          return {
+            id: order.id,
+            customer: customerName,
+            date: order.created_at ?? new Date().toISOString(),
+            status: statusValue,
+            statusLabel: formatVendorStatusLabel(statusValue),
+            total: Number.isFinite(totalAmount) ? Number(totalAmount.toFixed(2)) : 0,
+            items: Array.isArray(order.order_items) ? order.order_items.length : 0,
+            payment: order.payment_method ?? "N/A",
+            paymentStatus: order.payment_status ?? null,
+            shippingAddress: order.shipping_address ?? null,
+            orderItems: order.order_items ?? [],
+          };
+        });
+
+        setOrders(mappedOrders);
         setOrdersTotal(data.data.pagination.total);
         setOrdersPage(page);
       } else {
@@ -264,6 +302,98 @@ export default function VendorDashboard() {
     } finally {
       setOrdersLoading(false);
     }
+  };
+
+  const formatVendorStatusLabel = (status: string) => {
+    const value = (status || "").toLowerCase();
+    switch (value) {
+      case "pending":
+        return "Pending";
+      case "confirmed":
+        return "Confirmed";
+      case "processing":
+        return "Processing";
+      case "shipped":
+        return "Shipped";
+      case "out_for_delivery":
+        return "Out for Delivery";
+      case "delivered":
+      case "completed":
+        return "Delivered";
+      case "cancelled":
+      case "canceled":
+        return "Cancelled";
+      default:
+        return status || "Unknown";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const value = (status || "").toLowerCase();
+    switch (value) {
+      case "completed":
+      case "delivered":
+        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+      case "processing":
+      case "confirmed":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400";
+      case "shipped":
+      case "out_for_delivery":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+      case "pending":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400";
+      case "cancelled":
+      case "canceled":
+        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+      case "low stock":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400";
+      case "out of stock":
+        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
+    }
+  };
+
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    }).format(Number.isFinite(value) ? value : 0);
+
+  const formatShippingAddress = (address?: Record<string, any> | null) => {
+    if (!address || typeof address !== "object") {
+      return null;
+    }
+
+    const lines = [
+      address.fullName ?? address.name ?? null,
+      address.street1 ?? address.street ?? address.address ?? null,
+      address.street2 ?? null,
+      [address.city, address.state, address.postalCode ?? address.zip]
+        .filter(Boolean)
+        .join(", ") || null,
+      address.country ?? null,
+      address.phone || address.phoneNumber || address.contactNumber
+        ? `Phone: ${address.phone || address.phoneNumber || address.contactNumber}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    return lines || null;
+  };
+
+  const handleOpenOrderDetails = (order: Order) => {
+    setOrderDetails(order);
+    setShowOrderDialog(true);
+  };
+
+  const handleCloseOrderDetails = () => {
+    setOrderDetails(null);
+    setShowOrderDialog(false);
   };
 
   // Load data when component mounts or tab changes
@@ -465,18 +595,6 @@ export default function VendorDashboard() {
         description: "Network error. Please try again.",
         variant: "destructive",
       });
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Completed": return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-      case "Processing": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400";
-      case "Shipped": return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-      case "Active": return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-      case "Low Stock": return "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400";
-      case "Out of Stock": return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
     }
   };
 
@@ -932,18 +1050,19 @@ export default function VendorDashboard() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Total</TableHead>
+                            <TableHead>{t("customerDashboard.orderId", "Order ID")}</TableHead>
+                            <TableHead>{t("customerDashboard.date", "Date")}</TableHead>
+                            <TableHead>{t("customerDashboard.status", "Status")}</TableHead>
+                            <TableHead>{t("customerDashboard.items", "Items")}</TableHead>
+                            <TableHead>{t("customerDashboard.total", "Total")}</TableHead>
+                            <TableHead>Payment Status</TableHead>
                             <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {!orders || orders.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                                 No orders found
                               </TableCell>
                             </TableRow>
@@ -955,26 +1074,40 @@ export default function VendorDashboard() {
                                 <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
                                 <TableCell>
                                   <Badge className={getStatusColor(order.status)}>
-                                    {order.status}
+                                    {formatVendorStatusLabel(order.status)}
                                   </Badge>
                                 </TableCell>
-                                <TableCell>${order.total}</TableCell>
+                                <TableCell>{order.items}</TableCell>
+                                <TableCell>{formatMoney(order.total)}</TableCell>
+                                <TableCell>{order.paymentStatus ?? "—"}</TableCell>
                                 <TableCell>
-                                  <Select 
-                                    value={order.status} 
-                                    onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
-                                  >
-                                    <SelectTrigger className="w-32">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="pending">Pending</SelectItem>
-                                      <SelectItem value="processing">Processing</SelectItem>
-                                      <SelectItem value="shipped">Shipped</SelectItem>
-                                      <SelectItem value="delivered">Delivered</SelectItem>
-                                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <div className="flex items-center gap-2">
+                                    <Select 
+                                      value={order.status} 
+                                      onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
+                                    >
+                                      <SelectTrigger className="w-32">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                                        <SelectItem value="processing">Processing</SelectItem>
+                                        <SelectItem value="shipped">Shipped</SelectItem>
+                                        <SelectItem value="out_for_delivery">Out for delivery</SelectItem>
+                                        <SelectItem value="delivered">Delivered</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleOpenOrderDetails(order)}
+                                    >
+                                      <Eye className="mr-1.5 h-4 w-4" />
+                                      View
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))
@@ -985,6 +1118,108 @@ export default function VendorDashboard() {
                   )}
                 </CardContent>
               </Card>
+
+              <Dialog
+                open={showOrderDialog}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    handleCloseOrderDetails();
+                  }
+                }}
+              >
+                <DialogContent className="max-w-3xl">
+                  {orderDetails ? (
+                    <div className="space-y-6">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Order {orderDetails.id}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {new Date(orderDetails.date).toLocaleString()}
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="grid gap-5 md:grid-cols-2">
+                        <div className="rounded-lg border p-4">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Customer
+                          </h4>
+                          <p className="mt-2 text-sm font-medium text-foreground">
+                            {orderDetails.customer}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {orderDetails.paymentStatus
+                              ? `Payment status: ${orderDetails.paymentStatus}`
+                              : "Awaiting payment confirmation"}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border p-4">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Payment
+                          </h4>
+                          <p className="mt-2 text-sm font-medium text-foreground">
+                            Method: {orderDetails.payment}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Total: {formatMoney(orderDetails.total)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border p-4">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Shipping address
+                        </h4>
+                        <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                          {formatShippingAddress(orderDetails.shippingAddress) ??
+                            "No shipping address provided yet."}
+                        </pre>
+                      </div>
+
+                      <div className="rounded-lg border p-4">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Items
+                        </h4>
+                        <div className="mt-3 space-y-3">
+                          {orderDetails.orderItems && orderDetails.orderItems.length > 0 ? (
+                            orderDetails.orderItems.map((item, index) => {
+                              const quantity = Number(item.quantity ?? 0);
+                              const unitPrice = Number(item.price ?? 0);
+                              const lineTotal = unitPrice * quantity;
+                              return (
+                                <div
+                                  key={item.id ?? `${orderDetails.id}-${index}`}
+                                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                                >
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {item.product?.name ?? "Product"}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Qty: {Number.isFinite(quantity) ? quantity : 0}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm font-semibold">
+                                    {formatMoney(Number.isFinite(lineTotal) ? lineTotal : 0)}
+                                  </p>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              No line items available for this order.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      Select an order to view the details.
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Customers Tab */}

@@ -20,12 +20,14 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import type { WishlistItem } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { items: cartItems, updateQuantity, removeFromCart, addToCart, isLoading } = useCart();
   const { items: wishlistItems, removeFromWishlist, isLoading: wishlistLoading, isProcessing: wishlistProcessing } = useWishlist();
+  const navigate = useNavigate();
 
   // Group items by vendor
   const itemsByVendor = cartItems.reduce((acc, item) => {
@@ -313,12 +315,21 @@ const Cart = () => {
                       </div>
                     </div>
 
-                    <Button size="lg" className="w-full mb-4" disabled={cartItems.length === 0}>
+                    <Button
+                      size="lg"
+                      className="w-full mb-4"
+                      disabled={cartItems.length === 0}
+                      onClick={() => navigate("/checkout")}
+                    >
                       Proceed to Checkout
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
 
-                    <Button variant="outline" className="w-full mb-6">
+                    <Button
+                      variant="outline"
+                      className="w-full mb-6"
+                      onClick={() => navigate("/")}
+                    >
                       Continue Shopping
                     </Button>
                   </>

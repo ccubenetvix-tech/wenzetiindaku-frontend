@@ -20,6 +20,9 @@ import {
   RefreshCw,
   Minus,
   ShoppingCart,
+  Eye,
+  CircleCheck,
+  Clock3,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -38,6 +41,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -382,6 +386,8 @@ export default function CustomerDashboard() {
     string | null
   >(null);
   const [cartActionItemId, setCartActionItemId] = useState<string | null>(null);
+  const [orderDetails, setOrderDetails] = useState<OrderSummary | null>(null);
+  const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
 
   const pageTitle = t("customerDashboard.title", "My Account");
   const pageSubtitle = t(
@@ -718,6 +724,138 @@ export default function CustomerDashboard() {
       );
     });
   }, [orders, orderSearchTerm]);
+
+  const buildOrderTimeline = useCallback(
+    (status: string) => {
+      const normalized = (status || "").toLowerCase();
+      const canonical = (() => {
+        if (normalized === "payment_pending") return "pending";
+        if (normalized === "completed") return "delivered";
+        if (normalized === "canceled") return "cancelled";
+        return normalized;
+      })();
+
+      const steps = [
+        {
+          value: "pending",
+          label: t("customerDashboard.timeline.pending", "Pending confirmation"),
+          description: t(
+            "customerDashboard.timeline.pendingDescription",
+            "We received your order and notified the vendor.",
+          ),
+        },
+        {
+          value: "confirmed",
+          label: t("customerDashboard.timeline.confirmed", "Confirmed by vendor"),
+          description: t(
+            "customerDashboard.timeline.confirmedDescription",
+            "The vendor accepted your order and is preparing it.",
+          ),
+        },
+        {
+          value: "processing",
+          label: t("customerDashboard.timeline.processing", "Processing"),
+          description: t(
+            "customerDashboard.timeline.processingDescription",
+            "Items are being packed and prepared for shipment.",
+          ),
+        },
+        {
+          value: "shipped",
+          label: t("customerDashboard.timeline.shipped", "Shipped"),
+          description: t(
+            "customerDashboard.timeline.shippedDescription",
+            "Your package is on the way to the courier.",
+          ),
+        },
+        {
+          value: "out_for_delivery",
+          label: t("customerDashboard.timeline.outForDelivery", "Out for delivery"),
+          description: t(
+            "customerDashboard.timeline.outForDeliveryDescription",
+            "A courier will contact you before arrival.",
+          ),
+        },
+        {
+          value: "delivered",
+          label: t("customerDashboard.timeline.delivered", "Delivered"),
+          description: t(
+            "customerDashboard.timeline.deliveredDescription",
+            "Order completed. We hope you enjoy your purchase!",
+          ),
+        },
+        {
+          value: "cancelled",
+          label: t("customerDashboard.timeline.cancelled", "Cancelled"),
+          description: t(
+            "customerDashboard.timeline.cancelledDescription",
+            "This order was cancelled and will not be delivered.",
+          ),
+        },
+      ];
+
+      const currentIndex = steps.findIndex((step) => step.value === canonical);
+      const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+
+      return steps.map((step, index) => ({
+        ...step,
+        completed:
+          canonical === "cancelled"
+            ? index < safeIndex
+            : index <= safeIndex,
+        isCurrent: index === safeIndex,
+      }));
+    },
+    [t],
+  );
+
+  const formatShippingAddressBlock = useCallback((address?: Record<string, any> | null) => {
+    if (!address || typeof address !== "object") {
+      return null;
+    }
+
+    const lines = [
+      address.fullName ?? address.name ?? null,
+      address.street1 ?? address.street ?? address.address ?? null,
+      address.street2 ?? null,
+      [address.city, address.state, address.postalCode ?? address.zip].filter(Boolean).join(", ") || null,
+      address.country ?? null,
+      address.phone || address.phoneNumber || address.contactNumber
+        ? `Phone: ${address.phone || address.phoneNumber || address.contactNumber}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    return lines || null;
+  }, []);
+
+  const formatPaymentMethodLabel = useCallback(
+    (method?: string | null) => {
+      if (!method) {
+        return t("customerDashboard.paymentMethodUnknown", "Not specified");
+      }
+      const normalized = method.toLowerCase();
+      if (normalized === "cod") {
+        return t("customerDashboard.paymentMethodCod", "Pay on Delivery");
+      }
+      if (normalized === "online") {
+        return t("customerDashboard.paymentMethodOnline", "Online (Stripe)");
+      }
+      return method;
+    },
+    [t],
+  );
+
+  const handleOpenOrderDetails = useCallback((order: OrderSummary) => {
+    setOrderDetails(order);
+    setOrderDetailsOpen(true);
+  }, []);
+
+  const handleCloseOrderDetails = useCallback(() => {
+    setOrderDetails(null);
+    setOrderDetailsOpen(false);
+  }, []);
 
   const savedAddresses = useMemo<AddressSummary[]>(() => {
     const addresses: AddressSummary[] = [];
@@ -1274,6 +1412,7 @@ export default function CustomerDashboard() {
                         <TableHead>
                           {t("customerDashboard.tracking", "Tracking")}
                         </TableHead>
+                        <TableHead>{t("customerDashboard.actions", "Actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1298,6 +1437,9 @@ export default function CustomerDashboard() {
                               <TableCell>
                                 <Skeleton className="h-4 w-24" />
                               </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-8 w-16" />
+                              </TableCell>
                             </TableRow>
                           ))
                         : filteredOrders.map((order) => (
@@ -1314,12 +1456,22 @@ export default function CustomerDashboard() {
                               <TableCell>{order.itemsCount}</TableCell>
                               <TableCell>{formatCurrency(order.total)}</TableCell>
                               <TableCell>{order.tracking ?? "—"}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenOrderDetails(order)}
+                                >
+                                  <Eye className="mr-2 h-3.5 w-3.5" />
+                                  {t("customerDashboard.viewDetails", "View")}
+                                </Button>
+                              </TableCell>
                             </TableRow>
                           ))}
                       {showOrdersEmptyState && (
                         <TableRow>
                           <TableCell
-                            colSpan={6}
+                            colSpan={7}
                             className="h-24 text-center text-sm text-muted-foreground"
                           >
                             {t(
@@ -1334,6 +1486,140 @@ export default function CustomerDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            <Dialog
+              open={orderDetailsOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  handleCloseOrderDetails();
+                }
+              }}
+            >
+              <DialogContent className="max-w-2xl">
+                {orderDetails ? (
+                  <div className="space-y-6">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {t("customerDashboard.orderDetailsTitle", "Order {{id}}", {
+                          id: orderDetails.id,
+                        })}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {t(
+                          "customerDashboard.orderPlacedOn",
+                          "Placed on {{date}}",
+                          {
+                            date: formatDate(orderDetails.date),
+                          },
+                        )}
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-5">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                          {t("customerDashboard.orderProgress", "Order progress")}
+                        </h3>
+                        <div className="mt-3 space-y-3">
+                          {buildOrderTimeline(orderDetails.status).map((step) => (
+                            <div key={step.value} className="flex items-start gap-3">
+                              <div
+                                className={`mt-1 ${
+                                  step.completed ? "text-primary" : "text-muted-foreground"
+                                } ${step.isCurrent ? "scale-110" : ""}`}
+                              >
+                                {step.completed ? (
+                                  <CircleCheck className="h-4 w-4" />
+                                ) : (
+                                  <Clock3 className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">{step.label}</p>
+                                <p className="text-xs text-muted-foreground">{step.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="rounded-lg border p-4">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("customerDashboard.paymentMethod", "Payment method")}
+                          </h4>
+                          <p className="mt-2 text-sm font-medium text-foreground">
+                            {formatPaymentMethodLabel(orderDetails.paymentMethod)}
+                          </p>
+                          {orderDetails.paymentStatus && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {t("customerDashboard.paymentStatus", "Payment status")}: {formatStatus(orderDetails.paymentStatus)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="rounded-lg border p-4">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("customerDashboard.shippingAddress", "Shipping address")}
+                          </h4>
+                          <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                            {formatShippingAddressBlock(orderDetails.shippingAddress) ??
+                              t(
+                                "customerDashboard.noShippingAddress",
+                                "Shipping details will appear once provided.",
+                              )}
+                          </pre>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border p-4">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {t("customerDashboard.items", "Items")}
+                        </h4>
+                        <div className="mt-3 space-y-3">
+                          {orderDetails.products.length > 0 ? (
+                            orderDetails.products.map((item) => {
+                              const quantity = toNumber(item.quantity ?? 0);
+                              const unitPrice = toNumber(item.price ?? 0);
+                              const lineTotal = unitPrice * quantity;
+                              return (
+                                <div
+                                  key={item.id ?? item.product?.id ?? `${orderDetails.id}-${item.product?.name}`}
+                                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                                >
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {item.product?.name ??
+                                        t("customerDashboard.unnamedProduct", "Product")}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {t("customerDashboard.quantityLabel", "Quantity")}: {quantity}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm font-semibold">
+                                    {formatCurrency(lineTotal)}
+                                  </p>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              {t(
+                                "customerDashboard.noOrderItems",
+                                "No line items were returned for this order.",
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    {t("customerDashboard.noOrderSelected", "Select an order to view details.")}
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="cart" className="space-y-6">

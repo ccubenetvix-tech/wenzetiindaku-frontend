@@ -28,6 +28,8 @@ import Stores from "./pages/Stores";                  // Stores listing page
 import ProductDetail from "./pages/ProductDetail";    // Product details and purchase page
 import Cart from "./pages/Cart";                      // Shopping cart page
 import Checkout from "./pages/Checkout";              // Checkout and payment page
+import OrderSuccess from "./pages/OrderSuccess";      // Order success confirmation page
+import OrderFailure from "./pages/OrderFailure";      // Order failure page
 import Profile from "./pages/Profile";                // User profile management
 import CustomerProfile from "./pages/CustomerProfile"; // Customer profile management
 import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
@@ -95,6 +97,8 @@ const App = () => (
                   <Route path="/product/:productId" element={<ProductDetail />} />         {/* Product details with dynamic parameter */}
                   <Route path="/cart" element={<Cart />} />                                {/* Shopping cart */}
                   <Route path="/checkout" element={<Checkout />} />                        {/* Checkout process */}
+                  <Route path="/checkout/success" element={<OrderSuccess />} />            {/* Order success */}
+                  <Route path="/checkout/failure" element={<OrderFailure />} />            {/* Order failure */}
                   <Route path="/profile" element={<Profile />} />                          {/* User profile */}
                   <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
                   <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
