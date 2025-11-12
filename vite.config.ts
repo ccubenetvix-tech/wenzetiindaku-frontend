@@ -56,6 +56,8 @@ export default defineConfig(({ mode }) => {
     build: {
       // Increase chunk size warning limit to 1000kb
       chunkSizeWarningLimit: 1000,
+      // Disable source maps in production to avoid 404 errors
+      sourcemap: false,
       // Optimize chunk splitting
       rollupOptions: {
         output: {
