@@ -11,20 +11,28 @@ export const setAuthState = (state: typeof authState) => {
 
 // Environment-based API URL configuration
 export const getApiBaseUrl = () => {
-  // If VITE_API_URL is explicitly set, use it
+  // Priority 1: VITE_API_URL (explicit override, highest priority)
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Check environment setting
+  // Priority 2: Check environment setting
   const environment = import.meta.env.VITE_ENVIRONMENT || 'production';
   
   if (environment === 'development') {
-    // In development, use local backend
-    return import.meta.env.VITE_LOCAL_BACKEND_URL || 'http://localhost:5000/api';
+    // In development, use local backend from env
+    const localUrl = import.meta.env.VITE_LOCAL_BACKEND_URL;
+    if (!localUrl) {
+      throw new Error('VITE_LOCAL_BACKEND_URL is not set in .env file. Please set it to your local backend URL (e.g., http://localhost:5000/api)');
+    }
+    return localUrl;
   } else {
-    // In production, use deployed backend
-    return import.meta.env.VITE_PRODUCTION_BACKEND_URL || 'https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api';
+    // In production, use deployed backend from env
+    const productionUrl = import.meta.env.VITE_PRODUCTION_BACKEND_URL;
+    if (!productionUrl) {
+      throw new Error('VITE_PRODUCTION_BACKEND_URL is not set in .env file. Please set it to your production backend URL');
+    }
+    return productionUrl;
   }
 };
 

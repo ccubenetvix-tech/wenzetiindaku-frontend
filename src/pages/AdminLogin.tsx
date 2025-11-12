@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getApiBaseUrl } from '@/utils/api';
 
 const AdminLogin = () => {
   const { t } = useTranslation();
@@ -37,7 +38,8 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const API_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'https://wenzetiindaku-backend-ccubenetvix-tech2481-dp5p5n4l.leapcell.dev/api');
+      // Use the same API base URL function as the rest of the app
+      const API_URL = import.meta.env.DEV ? '/api' : getApiBaseUrl();
       const response = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: {

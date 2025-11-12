@@ -24,9 +24,10 @@ export const APP_CONFIG = {
 /**
  * API Endpoints Configuration
  * Defines all API endpoints for backend communication
+ * Note: Base URL is now handled by getApiBaseUrl() in utils/api.ts
+ * This constant only contains endpoint paths (relative URLs)
  */
 export const API_ENDPOINTS = {
-  base: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',  // Base API URL
   products: '/products',      // Products endpoint
   categories: '/categories',  // Categories endpoint
   stores: '/stores',          // Stores endpoint
