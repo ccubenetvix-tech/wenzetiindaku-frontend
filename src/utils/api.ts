@@ -163,6 +163,55 @@ export class ApiClient {
     });
   }
 
+  // Address management methods
+  async getCustomerAddresses() {
+    return this.request(`/customer/addresses`);
+  }
+
+  async createCustomerAddress(addressData: {
+    label?: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    street1: string;
+    street2?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    isDefault?: boolean;
+  }) {
+    return this.request(`/customer/addresses`, {
+      method: 'POST',
+      body: JSON.stringify(addressData),
+    });
+  }
+
+  async updateCustomerAddress(addressId: string, addressData: {
+    label?: string;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    street1?: string;
+    street2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+    isDefault?: boolean;
+  }) {
+    return this.request(`/customer/addresses/${addressId}`, {
+      method: 'PUT',
+      body: JSON.stringify(addressData),
+    });
+  }
+
+  async deleteCustomerAddress(addressId: string) {
+    return this.request(`/customer/addresses/${addressId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getCustomerOrders(page = 1, limit = 10) {
     return this.request(`/customer/orders?page=${page}&limit=${limit}`);
   }
@@ -180,6 +229,13 @@ export class ApiClient {
 
   async getCustomerOrder(orderId: string) {
     return this.request(`/customer/orders/${orderId}`);
+  }
+
+  async cancelCustomerOrder(orderId: string, cancellationReason: string) {
+    return this.request(`/customer/orders/${orderId}/cancel`, {
+      method: 'PUT',
+      body: JSON.stringify({ cancellationReason }),
+    });
   }
 
   async getWishlist() {
@@ -502,6 +558,56 @@ export class ApiClient {
 
   async getVendorById(vendorId: string) {
     return this.request(`/products/vendors/${vendorId}`);
+  }
+
+  // Review Methods
+  async createReview(productId: string, rating: number, comment: string, orderId?: string) {
+    return this.request('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({ productId, rating, comment, orderId }),
+    });
+  }
+
+  async updateReview(reviewId: string, rating?: number, comment?: string) {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ rating, comment }),
+    });
+  }
+
+  async deleteReview(reviewId: string) {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getProductReviews(productId: string, page = 1, limit = 20, sort = 'newest') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      sort,
+    });
+    return this.request(`/reviews/product/${productId}?${params}`);
+  }
+
+  async getCustomerReviews(page = 1, limit = 20) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return this.request(`/reviews/customer?${params}`);
+  }
+
+  async getVendorReviews(page = 1, limit = 20) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return this.request(`/reviews/vendor?${params}`);
+  }
+
+  async canReviewProduct(productId: string) {
+    return this.request(`/reviews/can-review/${productId}`);
   }
 }
 

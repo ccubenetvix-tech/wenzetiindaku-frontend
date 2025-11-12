@@ -71,7 +71,18 @@ const ProductDetail = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
-  const [reviewImages, setReviewImages] = useState([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [canReview, setCanReview] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [reviewStats, setReviewStats] = useState({
+    averageRating: 0,
+    totalReviews: 0,
+    distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+  });
+  const [reviewSort, setReviewSort] = useState('newest');
+  const [reviewPage, setReviewPage] = useState(1);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   
   // Dynamic product data
   const [product, setProduct] = useState<any>(null);
@@ -352,12 +363,109 @@ const ProductDetail = () => {
     setEditMode("");
   };
 
+  // Load reviews for product
+  const loadReviews = useCallback(async () => {
+    if (!productId) return;
+
+    setReviewsLoading(true);
+    try {
+      const response = (await apiClient.getProductReviews(productId, reviewPage, 20, reviewSort)) as {
+        success?: boolean;
+        data?: {
+          reviews?: any[];
+          averageRating?: number;
+          totalReviews?: number;
+        };
+        error?: { message?: string };
+      };
+
+      if (response?.success && response.data) {
+        setReviews(response.data.reviews || []);
+        setReviewStats({
+          averageRating: response.data.averageRating || 0,
+          totalReviews: response.data.totalReviews || 0,
+          distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }, // Will calculate from reviews
+        });
+
+        // Calculate distribution
+        const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        (response.data.reviews || []).forEach((review) => {
+          const rating = review.rating || 0;
+          if (rating >= 1 && rating <= 5) {
+            distribution[rating as keyof typeof distribution]++;
+          }
+        });
+        setReviewStats((prev) => ({ ...prev, distribution }));
+      }
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [productId, reviewPage, reviewSort]);
+
+  // Check if customer can review
+  const checkCanReview = useCallback(async () => {
+    if (!productId || !isAuthenticated || user?.role !== 'customer') {
+      setCanReview(false);
+      return;
+    }
+
+    try {
+      const response = (await apiClient.canReviewProduct(productId)) as {
+        success?: boolean;
+        data?: {
+          canReview?: boolean;
+          hasOrdered?: boolean;
+          hasReviewed?: boolean;
+        };
+        error?: { message?: string };
+      };
+
+      if (response?.success && response.data) {
+        setCanReview(response.data.canReview || false);
+        setHasReviewed(response.data.hasReviewed || false);
+        
+        // Log for debugging
+        if (!response.data.canReview) {
+          console.log('Cannot review:', {
+            hasOrdered: response.data.hasOrdered,
+            hasReviewed: response.data.hasReviewed,
+          });
+        }
+      } else if (response?.error) {
+        console.error('Error checking can review:', response.error.message);
+      }
+    } catch (error: any) {
+      console.error('Error checking can review:', error);
+      // Don't show error toast here, just log it
+    }
+  }, [productId, isAuthenticated, user?.role]);
+
+  // Load reviews when product loads
+  useEffect(() => {
+    if (productId && !isLoading) {
+      loadReviews();
+      checkCanReview();
+    }
+  }, [productId, isLoading, loadReviews, checkCanReview]);
+
   // Handle review submission
-  const handleReviewSubmit = () => {
+  const handleReviewSubmit = async () => {
     if (!isAuthenticated) {
       toast({
         title: "Login required",
         description: "Please log in to submit a review.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Action not allowed",
+        description: "Only customers can submit reviews.",
         variant: "destructive"
       });
       return;
@@ -381,58 +489,71 @@ const ProductDetail = () => {
       return;
     }
 
-    // Here you would typically save the review to your backend
-    const newReview = {
-      id: reviews.length + 1,
-      author: user.firstName || user.email,
-      rating: reviewRating,
-      comment: reviewComment,
-      date: "Just now",
-      verified: true,
-      helpful: 0,
-      images: reviewImages
-    };
+    if (!productId) {
+      return;
+    }
 
-    reviews.unshift(newReview); // Add to beginning of reviews array
-    
-    toast({
-      title: "Review submitted",
-      description: "Thank you for your review!",
-    });
+    setIsSubmittingReview(true);
+    try {
+      const response = (await apiClient.createReview(productId, reviewRating, reviewComment.trim())) as {
+        success?: boolean;
+        message?: string;
+        error?: { message?: string };
+      };
 
-    // Reset form
-    setReviewRating(0);
-    setReviewComment("");
-    setReviewImages([]);
-    setShowReviewForm(false);
-  };
+      if (response?.success) {
+        toast({
+          title: "Review submitted",
+          description: "Thank you for your review!",
+        });
 
-  // Review stats for display
-  const reviewStats = {
-    average: product?.rating || 0,
-    total: product?.review_count || 0,
-    distribution: {
-      5: Math.floor((product?.review_count || 0) * 0.7),
-      4: Math.floor((product?.review_count || 0) * 0.2),
-      3: Math.floor((product?.review_count || 0) * 0.06),
-      2: Math.floor((product?.review_count || 0) * 0.02),
-      1: Math.floor((product?.review_count || 0) * 0.02)
+        // Reset form
+        setReviewRating(0);
+        setReviewComment("");
+        setShowReviewForm(false);
+        setHasReviewed(true);
+        setCanReview(false);
+
+        // Reload reviews
+        await loadReviews();
+      } else {
+        throw new Error(response?.error?.message || "Failed to submit review");
+      }
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      let errorMessage = "Failed to submit review. Please try again.";
+      
+      // Try to extract error message from response
+      if (error?.message) {
+        try {
+          const parsed = typeof error.message === 'string' ? JSON.parse(error.message) : error.message;
+          if (parsed.error?.message) {
+            errorMessage = parsed.error.message;
+          } else if (parsed.error?.details) {
+            errorMessage = `${parsed.error.message || 'Failed to submit review'}: ${parsed.error.details}`;
+          }
+        } catch {
+          // If not JSON, use the message directly
+          if (typeof error.message === 'string') {
+            errorMessage = error.message;
+          }
+        }
+      } else if (error?.error?.message) {
+        errorMessage = error.error.message;
+        if (error.error.details) {
+          errorMessage += `: ${error.error.details}`;
+        }
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
-
-  // Sample reviews (you can replace this with dynamic data later)
-  const reviews = [
-    {
-      id: 1,
-      author: "Sarah M.",
-      rating: 5,
-      comment: "Amazing product! My skin feels so smooth and hydrated.",
-      date: "2 days ago",
-      verified: true,
-      helpful: 12,
-      images: []
-    }
-  ];
 
   if (!isLoading && (loadError || !product)) {
     return (
@@ -614,7 +735,7 @@ const ProductDetail = () => {
                         <Star
                           key={i}
                           className={`h-4 w-4 ${
-                            i < Math.floor(productRating)
+                            i < Math.floor(reviewStats.averageRating || productRating)
                               ? 'fill-yellow-400 text-yellow-400'
                               : 'text-gray-300'
                           }`}
@@ -622,7 +743,7 @@ const ProductDetail = () => {
                       ))}
                     </div>
                     <span className="ml-2 text-sm text-muted-foreground">
-                      {productRating} ({productReviewCount} reviews)
+                      {reviewStats.averageRating > 0 ? reviewStats.averageRating.toFixed(1) : productRating} ({reviewStats.totalReviews > 0 ? reviewStats.totalReviews : productReviewCount} {reviewStats.totalReviews === 1 ? 'review' : 'reviews'})
                     </span>
                   </div>
                 </div>
@@ -990,7 +1111,7 @@ const ProductDetail = () => {
               <TabsContent value="reviews" className="mt-6">
                 <div className="space-y-6">
                   {/* Write a Review Section */}
-                  {isCustomer && (
+                  {isCustomer && canReview && !hasReviewed && (
                     <Card>
                       <CardHeader>
                         <div className="flex items-center justify-between">
@@ -1038,8 +1159,15 @@ const ProductDetail = () => {
                           </div>
                           
                           <div className="flex gap-2">
-                            <Button onClick={handleReviewSubmit}>
-                              Submit Review
+                            <Button onClick={handleReviewSubmit} disabled={isSubmittingReview}>
+                              {isSubmittingReview ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Submitting...
+                                </>
+                              ) : (
+                                'Submit Review'
+                              )}
                             </Button>
                             <Button 
                               variant="outline" 
@@ -1063,14 +1191,14 @@ const ProductDetail = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="text-center">
                           <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                            {reviewStats.average}
+                            {reviewStats.averageRating > 0 ? reviewStats.averageRating.toFixed(1) : '0.0'}
                           </div>
                           <div className="flex justify-center mb-2">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
                                 className={`h-5 w-5 ${
-                                  i < Math.floor(reviewStats.average)
+                                  i < Math.floor(reviewStats.averageRating)
                                     ? 'fill-yellow-400 text-yellow-400'
                                     : 'text-gray-300'
                                 }`}
@@ -1078,94 +1206,113 @@ const ProductDetail = () => {
                             ))}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            Based on {reviewStats.total} reviews
-            </div>
-          </div>
-
-                        <div className="space-y-2">
-                          {[5, 4, 3, 2, 1].map((rating) => (
-                            <div key={rating} className="flex items-center gap-2">
-                              <span className="text-sm w-8">{rating}★</span>
-                              <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div 
-                                  className="bg-yellow-400 h-2 rounded-full"
-                                  style={{ width: `${(reviewStats.distribution[rating] / reviewStats.total) * 100}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm text-muted-foreground w-8">
-                                {reviewStats.distribution[rating]}
-                              </span>
-                            </div>
-                          ))}
+                            Based on {reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? 'review' : 'reviews'}
+                          </div>
                         </div>
+
+                        {reviewStats.totalReviews > 0 && (
+                          <div className="space-y-2">
+                            {[5, 4, 3, 2, 1].map((rating) => {
+                              const count = reviewStats.distribution[rating as keyof typeof reviewStats.distribution] || 0;
+                              const percentage = reviewStats.totalReviews > 0 ? (count / reviewStats.totalReviews) * 100 : 0;
+                              return (
+                                <div key={rating} className="flex items-center gap-2">
+                                  <span className="text-sm w-8">{rating}★</span>
+                                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div 
+                                      className="bg-yellow-400 h-2 rounded-full"
+                                      style={{ width: `${percentage}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-sm text-muted-foreground w-8">
+                                    {count}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                   
                   {/* Individual Reviews */}
-                  <div className="space-y-4">
-              {reviews.map((review) => (
-                      <Card key={review.id}>
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary">
-                          {review.author.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">{review.author}</span>
-                                  {review.verified && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Verified Purchase
-                                    </Badge>
-                                  )}
-                                </div>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < review.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                  {reviewsLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
-                    <span className="text-sm text-muted-foreground">{review.date}</span>
-                  </div>
-                          <p className="text-muted-foreground mb-4">{review.comment}</p>
-                          {review.images && (
-                            <div className="flex gap-2 mb-4">
-                              {review.images.map((image, index) => (
-                                <img
-                                  key={index}
-                                  src={image}
-                                  alt="Review image"
-                                  className="w-16 h-16 object-cover rounded-lg"
-                                />
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <button className="flex items-center gap-1 hover:text-foreground">
-                              <ThumbsUp className="h-4 w-4" />
-                              Helpful ({review.helpful})
-                            </button>
-                            <button className="flex items-center gap-1 hover:text-foreground">
-                              <MessageCircle className="h-4 w-4" />
-                              Reply
-                            </button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  ) : reviews.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-6 text-center text-muted-foreground">
+                        No reviews yet. Buy the product and Be the first to review this product!
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {reviews.map((review) => {
+                        const customer = review.customer || {};
+                        const customerName = customer.first_name && customer.last_name
+                          ? `${customer.first_name} ${customer.last_name}`
+                          : customer.first_name || customer.email || 'Anonymous';
+                        const initials = customerName.charAt(0).toUpperCase();
+                        const reviewDate = review.created_at
+                          ? new Date(review.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : 'Recently';
+
+                        return (
+                          <Card key={review.id}>
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    {customer.profile_photo ? (
+                                      <img
+                                        src={customer.profile_photo}
+                                        alt={customerName}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                      />
+                                    ) : (
+                                      <span className="text-sm font-medium text-primary">
+                                        {initials}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">{customerName}</span>
+                                      <Badge variant="secondary" className="text-xs">
+                                        Verified Purchase
+                                      </Badge>
+                                    </div>
+                                    <div className="flex items-center">
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          className={`h-3 w-3 ${
+                                            i < (review.rating || 0)
+                                              ? 'fill-yellow-400 text-yellow-400'
+                                              : 'text-gray-300'
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                                <span className="text-sm text-muted-foreground">{reviewDate}</span>
+                              </div>
+                              {review.comment && (
+                                <p className="text-muted-foreground mb-4">{review.comment}</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
               

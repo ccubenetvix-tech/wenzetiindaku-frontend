@@ -41,6 +41,7 @@ interface CustomerProfileResponse {
       email?: string;
       phoneNumber?: string | null;
       address?: string | Record<string, unknown> | null;
+      phone_number?: string | null; // Fallback for database field name
     };
   };
 }
@@ -100,13 +101,14 @@ const Checkout = () => {
 
   const [step, setStep] = useState<CheckoutStep>("address");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
-  const [profileAddress, setProfileAddress] = useState<CheckoutAddress | null>(null);
-  const [selectedAddressOption, setSelectedAddressOption] = useState<"profile" | "new">("profile");
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | "new" | null>(null);
   const [addressForm, setAddressForm] = useState<CheckoutAddress>(INITIAL_ADDRESS);
   const [saveAddressToProfile, setSaveAddressToProfile] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
 
   const subtotal = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -217,52 +219,98 @@ const Checkout = () => {
     []
   );
 
-  const loadProfileAddress = useCallback(async () => {
+  const loadSavedAddresses = useCallback(async () => {
     if (!isAuthenticated) return;
 
-    setIsLoadingProfile(true);
+    setIsLoadingAddresses(true);
     try {
-      const response = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
-      const customer = response?.data?.customer;
+      const response = (await apiClient.getCustomerAddresses()) as {
+        success?: boolean;
+        data?: { addresses?: any[] };
+        error?: { message?: string };
+      };
 
-      if (!customer) return;
-
-      const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-      const fallbackName = nameParts || (user?.email ?? "Customer");
-
-      if (customer.address) {
-        const normalized = normalizeProfileAddress(
-          customer.address,
-          fallbackName,
-          customer.email,
-          customer.phoneNumber
-        );
-        if (normalized) {
-          setProfileAddress(normalized);
+      if (response?.success && response.data?.addresses) {
+        const addresses = response.data.addresses;
+        setSavedAddresses(addresses);
+        
+        // Select default address if available
+        const defaultAddress = addresses.find((addr) => addr.is_default);
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress.id);
+          // Populate form with default address
+          setAddressForm({
+            fullName: defaultAddress.full_name || "",
+            email: defaultAddress.email || "",
+            phone: defaultAddress.phone || "",
+            street1: defaultAddress.street1 || "",
+            street2: defaultAddress.street2 || "",
+            city: defaultAddress.city || "",
+            state: defaultAddress.state || "",
+            postalCode: defaultAddress.postal_code || "",
+            country: defaultAddress.country || "India",
+            label: defaultAddress.label || "Home",
+          });
+        } else if (addresses.length > 0) {
+          // Select first address if no default
+          setSelectedAddressId(addresses[0].id);
+          const firstAddr = addresses[0];
+          setAddressForm({
+            fullName: firstAddr.full_name || "",
+            email: firstAddr.email || "",
+            phone: firstAddr.phone || "",
+            street1: firstAddr.street1 || "",
+            street2: firstAddr.street2 || "",
+            city: firstAddr.city || "",
+            state: firstAddr.state || "",
+            postalCode: firstAddr.postal_code || "",
+            country: firstAddr.country || "India",
+            label: firstAddr.label || "Home",
+          });
+        } else {
+          // No saved addresses, load profile data for new address form
+          const profileResponse = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
+          const customer = profileResponse?.data?.customer;
+          if (customer) {
+            const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
+            const fallbackName = nameParts || (user?.email ?? "Customer");
+            const phone = customer.phoneNumber || customer.phone_number || null;
+            setAddressForm((prev) => ({
+              ...prev,
+              fullName: fallbackName,
+              email: customer.email ?? "",
+              phone: phone ?? "",
+            }));
+          }
+          setSelectedAddressId("new");
+          setShowNewAddressForm(true);
+        }
+      } else {
+        // No addresses, load profile data
+        const profileResponse = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
+        const customer = profileResponse?.data?.customer;
+        if (customer) {
+          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
+          const fallbackName = nameParts || (user?.email ?? "Customer");
+          const phone = customer.phoneNumber || customer.phone_number || null;
           setAddressForm((prev) => ({
             ...prev,
-            ...normalized,
+            fullName: fallbackName,
+            email: customer.email ?? "",
+            phone: phone ?? "",
           }));
-          setSelectedAddressOption("profile");
-          return;
         }
+        setSelectedAddressId("new");
+        setShowNewAddressForm(true);
       }
-
-      // If there is no saved address, seed the form with profile basics
-      setSelectedAddressOption("new");
-      setAddressForm((prev) => ({
-        ...prev,
-        fullName: fallbackName,
-        email: customer.email ?? "",
-        phone: customer.phoneNumber ?? "",
-      }));
     } catch (error) {
-      console.error("Failed to load customer profile:", error);
-      setSelectedAddressOption("new");
+      console.error("Failed to load addresses:", error);
+      setSelectedAddressId("new");
+      setShowNewAddressForm(true);
     } finally {
-      setIsLoadingProfile(false);
+      setIsLoadingAddresses(false);
     }
-  }, [isAuthenticated, normalizeProfileAddress, user?.email]);
+  }, [isAuthenticated, user?.email]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -283,8 +331,8 @@ const Checkout = () => {
       return;
     }
 
-    void loadProfileAddress();
-  }, [cartItems.length, isAuthenticated, isLoading, loadProfileAddress, navigate, toast]);
+    void loadSavedAddresses();
+  }, [cartItems.length, isAuthenticated, isLoading, loadSavedAddresses, navigate, toast]);
 
   const updateAddressField = (field: keyof CheckoutAddress, value: string) => {
     setAddressForm((prev) => ({
@@ -293,30 +341,57 @@ const Checkout = () => {
     }));
   };
 
-  const handleUseProfileAddress = () => {
-    if (!profileAddress) {
-      toast({
-        title: "No saved address",
-        description: "We couldn't find an address in your profile. Please add a new address.",
-        variant: "destructive",
+  const handleSelectAddress = (addressId: string) => {
+    const address = savedAddresses.find((addr) => addr.id === addressId);
+    if (address) {
+      setSelectedAddressId(addressId);
+      setAddressForm({
+        fullName: address.full_name || "",
+        email: address.email || "",
+        phone: address.phone || "",
+        street1: address.street1 || "",
+        street2: address.street2 || "",
+        city: address.city || "",
+        state: address.state || "",
+        postalCode: address.postal_code || "",
+        country: address.country || "India",
+        label: address.label || "Home",
       });
-      setSelectedAddressOption("new");
-      return;
+      setShowNewAddressForm(false);
     }
-
-    setAddressForm((prev) => ({
-      ...prev,
-      ...profileAddress,
-    }));
-    setSelectedAddressOption("profile");
   };
 
-  const handleAddressContinue = () => {
-    const addressToValidate =
-      selectedAddressOption === "profile" && profileAddress ? profileAddress : addressForm;
+  const handleAddNewAddress = () => {
+    setSelectedAddressId("new");
+    setShowNewAddressForm(true);
+    // Reset form to initial state or profile data
+    const profileResponse = (async () => {
+      try {
+        const response = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
+        const customer = response?.data?.customer;
+        if (customer) {
+          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
+          const fallbackName = nameParts || (user?.email ?? "Customer");
+          const phone = customer.phoneNumber || customer.phone_number || null;
+          setAddressForm({
+            ...INITIAL_ADDRESS,
+            fullName: fallbackName,
+            email: customer.email ?? "",
+            phone: phone ?? "",
+          });
+        } else {
+          setAddressForm(INITIAL_ADDRESS);
+        }
+      } catch (error) {
+        setAddressForm(INITIAL_ADDRESS);
+      }
+    })();
+  };
 
+  const handleAddressContinue = async () => {
+    // Validate address form
     const missingField = requiredAddressFields.find((field) => {
-      const value = addressToValidate[field];
+      const value = addressForm[field];
       return typeof value !== "string" || !value.trim();
     });
 
@@ -327,6 +402,43 @@ const Checkout = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // If it's a new address and user wants to save it, save it first
+    if (selectedAddressId === "new" && saveAddressToProfile) {
+      try {
+        const addressData = {
+          label: addressForm.label || "Home",
+          fullName: addressForm.fullName,
+          email: addressForm.email,
+          phone: addressForm.phone,
+          street1: addressForm.street1,
+          street2: addressForm.street2,
+          city: addressForm.city,
+          state: addressForm.state,
+          postalCode: addressForm.postalCode,
+          country: addressForm.country,
+          isDefault: savedAddresses.length === 0, // Set as default if it's the first address
+        };
+
+        const response = (await apiClient.createCustomerAddress(addressData)) as {
+          success?: boolean;
+          data?: { address?: any };
+          error?: { message?: string };
+        };
+
+        if (response?.success && response.data?.address) {
+          // Reload addresses to get the new one
+          await loadSavedAddresses();
+          toast({
+            title: "Address saved",
+            description: "Your address has been saved successfully.",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to save address:", error);
+        // Continue anyway, don't block checkout
+      }
     }
 
     setStep("payment");
@@ -340,8 +452,7 @@ const Checkout = () => {
     });
   };
 
-  const selectedShippingAddress =
-    selectedAddressOption === "profile" && profileAddress ? profileAddress : addressForm;
+  const selectedShippingAddress = addressForm;
 
   const formattedShippingAddress = [
     selectedShippingAddress.fullName,
@@ -502,68 +613,82 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <label
-                          className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                            selectedAddressOption === "profile"
+                    {isLoadingAddresses ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <span className="ml-2 text-sm text-muted-foreground">Loading addresses...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Display saved addresses */}
+                        {savedAddresses.length > 0 && (
+                          <div className="space-y-3">
+                            <p className="text-sm font-medium text-muted-foreground">Saved Addresses</p>
+                            {savedAddresses.map((address) => (
+                              <label
+                                key={address.id}
+                                className={`border rounded-lg p-4 cursor-pointer transition-all block ${
+                                  selectedAddressId === address.id
+                                    ? "border-primary shadow-sm bg-primary/5"
+                                    : "border-border/80 hover:border-primary/60"
+                                }`}
+                                onClick={() => handleSelectAddress(address.id)}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                      <Home className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <p className="font-medium">{address.label || "Home"}</p>
+                                        {address.is_default && (
+                                          <Badge variant="secondary" className="text-xs">Default</Badge>
+                                        )}
+                                      </div>
+                                      <p className="text-sm text-muted-foreground">
+                                        {address.full_name}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {address.street1}, {address.city}, {address.state} {address.postal_code}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Checkbox
+                                    checked={selectedAddressId === address.id}
+                                    onCheckedChange={() => handleSelectAddress(address.id)}
+                                  />
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Add new address button */}
+                        <button
+                          type="button"
+                          onClick={handleAddNewAddress}
+                          className={`w-full border rounded-lg p-4 cursor-pointer transition-all text-left ${
+                            selectedAddressId === "new"
                               ? "border-primary shadow-sm bg-primary/5"
                               : "border-border/80 hover:border-primary/60"
-                          } ${!profileAddress ? "opacity-50 cursor-not-allowed" : ""}`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Home className="h-5 w-5 text-primary" />
-                              </div>
-                              <div>
-                                <p className="font-medium">Use saved address</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {profileAddress
-                                    ? "Quickly use the address from your profile."
-                                    : "No saved address found in profile."}
-                                </p>
-                              </div>
-                            </div>
-                            <Checkbox
-                              disabled={!profileAddress}
-                              checked={selectedAddressOption === "profile"}
-                              onCheckedChange={() => handleUseProfileAddress()}
-                            />
-                          </div>
-                          {profileAddress && selectedAddressOption === "profile" && (
-                            <pre className="mt-3 rounded-md bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                              {formattedShippingAddress}
-                            </pre>
-                          )}
-                        </label>
-
-                        <label
-                          className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                            selectedAddressOption === "new"
-                          ? "border-primary shadow-sm bg-primary/5"
-                          : "border-border/80 hover:border-primary/60"
                           }`}
-                          onClick={() => setSelectedAddressOption("new")}
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                <MapPin className="h-5 w-5 text-primary" />
-                              </div>
-                              <div>
-                                <p className="font-medium">Add new address</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Enter a different delivery address for this order.
-                                </p>
-                              </div>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <MapPin className="h-5 w-5 text-primary" />
                             </div>
-                            <Checkbox checked={selectedAddressOption === "new"} />
+                            <div>
+                              <p className="font-medium">Add new address</p>
+                              <p className="text-xs text-muted-foreground">
+                                Enter a different delivery address for this order.
+                              </p>
+                            </div>
                           </div>
-                        </label>
-                      </div>
+                        </button>
 
-                      {selectedAddressOption === "new" && (
+                        {/* New address form */}
+                        {showNewAddressForm && (
                         <div className="border border-border/60 rounded-lg p-4 md:p-6 space-y-4">
                           <div className="grid gap-4 md:grid-cols-2">
                             <div>
@@ -678,13 +803,14 @@ const Checkout = () => {
                           </div>
                         </div>
                       )}
-                    </div>
+                      </div>
+                    )}
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
                       <Button variant="ghost" onClick={() => navigate("/cart")}>
                         Modify cart
                       </Button>
-                      <Button onClick={handleAddressContinue} disabled={isLoadingProfile}>
+                      <Button onClick={handleAddressContinue} disabled={isLoadingAddresses}>
                         Continue to payment
                       </Button>
                     </div>
@@ -743,7 +869,7 @@ const Checkout = () => {
                               <CreditCard className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-medium">Card / UPI (Stripe)</p>
+                              <p className="font-medium">Pay Now</p>
                               <p className="text-xs text-muted-foreground">
                                 Secure online payment with cards and UPI. We will redirect you to Stripe to complete the payment.
                               </p>

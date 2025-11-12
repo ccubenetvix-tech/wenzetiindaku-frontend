@@ -42,6 +42,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -143,6 +144,144 @@ interface NormalizedAddress {
   label?: string;
   phone?: string;
   name?: string;
+}
+
+// Customer Reviews Section Component
+function CustomerReviewsSection() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        setLoading(true);
+        const response = (await apiClient.getCustomerReviews(1, 100)) as {
+          success?: boolean;
+          data?: { reviews?: any[] };
+          error?: { message?: string };
+        };
+        if (response?.success && response.data) {
+          setReviews(response.data.reviews || []);
+        } else if (response?.error) {
+          throw new Error(response.error.message || "Failed to load reviews");
+        }
+      } catch (error: any) {
+        console.error('Error loading reviews:', error);
+        const errorMessage = error?.message || error?.error?.message || "Failed to load reviews";
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadReviews();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("customerDashboard.myReviews", "My Reviews")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="py-10 text-center">
+            <Star className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h3 className="mb-2 text-lg font-medium">
+              {t("customerDashboard.noReviewsTitle", "No reviews yet")}
+            </h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              {t(
+                "customerDashboard.noReviewsDescription",
+                "Once you complete purchases, you'll be able to review your products here.",
+              )}
+            </p>
+            <Button onClick={() => navigate("/")}>
+              {t("customerDashboard.startShopping", "Start Shopping")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("customerDashboard.myReviews", "My Reviews")}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {reviews.map((review) => {
+            const product = review.product || {};
+            const reviewDate = review.created_at
+              ? new Date(review.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : 'Recently';
+
+            return (
+              <Card key={review.id} className="border">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-medium">{product.name || 'Product'}</h4>
+                        {(product.id || review.product_id) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/products/${product.id || review.product_id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < (review.rating || 0)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm text-muted-foreground ml-2">{reviewDate}</span>
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-muted-foreground">{review.comment}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 const toNumber = (value: unknown): number => {
@@ -388,6 +527,9 @@ export default function CustomerDashboard() {
   const [cartActionItemId, setCartActionItemId] = useState<string | null>(null);
   const [orderDetails, setOrderDetails] = useState<OrderSummary | null>(null);
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelReasonDialogOpen, setCancelReasonDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   const pageTitle = t("customerDashboard.title", "My Account");
   const pageSubtitle = t(
@@ -704,6 +846,11 @@ export default function CustomerDashboard() {
     [orders],
   );
 
+  const cancellableStatuses = useMemo(
+    () => new Set(['pending', 'confirmed', 'processing', 'payment_pending']),
+    [],
+  );
+
   const filteredOrders = useMemo(() => {
     const search = orderSearchTerm.trim().toLowerCase();
     if (!search) {
@@ -848,6 +995,7 @@ export default function CustomerDashboard() {
   );
 
   const handleOpenOrderDetails = useCallback((order: OrderSummary) => {
+    setCancelLoading(false);
     setOrderDetails(order);
     setOrderDetailsOpen(true);
   }, []);
@@ -855,7 +1003,91 @@ export default function CustomerDashboard() {
   const handleCloseOrderDetails = useCallback(() => {
     setOrderDetails(null);
     setOrderDetailsOpen(false);
+    setCancelLoading(false);
   }, []);
+
+  const handleCancelOrder = useCallback(() => {
+    if (!orderDetails) {
+      return;
+    }
+
+    const status = (orderDetails.status || '').toLowerCase();
+    if (!cancellableStatuses.has(status)) {
+      toast({
+        title: t("customerDashboard.cannotCancelTitle", "Order cannot be cancelled"),
+        description: t(
+          "customerDashboard.cannotCancelDescription",
+          "Only pending, confirmed, or processing orders can be cancelled.",
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCancelReason("");
+    setCancelReasonDialogOpen(true);
+  }, [orderDetails, cancellableStatuses, t, toast]);
+
+  const handleConfirmCancel = useCallback(async () => {
+    if (!orderDetails || !cancelReason.trim()) {
+      toast({
+        title: t("customerDashboard.cancelReasonRequired", "Reason required"),
+        description: t(
+          "customerDashboard.cancelReasonRequiredDescription",
+          "Please provide a reason for cancelling this order.",
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setCancelLoading(true);
+      setCancelReasonDialogOpen(false);
+      const response = (await apiClient.cancelCustomerOrder(orderDetails.id, cancelReason.trim())) as {
+        success?: boolean;
+        message?: string;
+        error?: { message?: string } | null;
+        data?: { order?: ApiOrder } | null;
+      };
+
+      if (!response?.success) {
+        throw new Error(response?.error?.message || "Unable to cancel order.");
+      }
+
+      const updatedOrder = response.data?.order;
+      if (updatedOrder) {
+        setOrderDetails(transformOrder(updatedOrder));
+      }
+
+      await loadOrders(ordersPagination.page);
+
+      toast({
+        title: t("customerDashboard.orderCancelled", "Order cancelled"),
+        description: t(
+          "customerDashboard.orderCancelledDescription",
+          "We have cancelled the order and notified the vendor.",
+        ),
+      });
+      setCancelReason("");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("customerDashboard.cancelOrderError", "Unable to cancel order.");
+      toast({
+        title: t("customerDashboard.cancelOrderErrorTitle", "Cancellation failed"),
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setCancelLoading(false);
+    }
+  }, [orderDetails, cancelReason, loadOrders, ordersPagination.page, t, toast]);
+
+  const canCancelCurrentOrder = orderDetails
+    ? cancellableStatuses.has((orderDetails.status || '').toLowerCase())
+    : false;
 
   const savedAddresses = useMemo<AddressSummary[]>(() => {
     const addresses: AddressSummary[] = [];
@@ -1611,6 +1843,22 @@ export default function CustomerDashboard() {
                           )}
                         </div>
                       </div>
+
+                      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                        <Button variant="outline" onClick={handleCloseOrderDetails}>
+                          {t("customerDashboard.close", "Close")}
+                        </Button>
+                        {canCancelCurrentOrder && (
+                          <Button
+                            variant="destructive"
+                            onClick={handleCancelOrder}
+                            disabled={cancelLoading}
+                          >
+                            {cancelLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {t("customerDashboard.cancelOrder", "Cancel order")}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -1618,6 +1866,62 @@ export default function CustomerDashboard() {
                     {t("customerDashboard.noOrderSelected", "Select an order to view details.")}
                   </div>
                 )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Cancellation Reason Dialog */}
+            <Dialog open={cancelReasonDialogOpen} onOpenChange={setCancelReasonDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {t("customerDashboard.cancelOrderTitle", "Cancel Order")}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {t(
+                      "customerDashboard.cancelOrderDescription",
+                      "Please provide a reason for cancelling this order. This helps us improve our service.",
+                    )}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <label className="text-sm font-medium">
+                      {t("customerDashboard.cancellationReason", "Cancellation Reason")}
+                    </label>
+                    <Textarea
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder={t(
+                        "customerDashboard.cancellationReasonPlaceholder",
+                        "e.g., Changed my mind, Found a better price, No longer needed...",
+                      )}
+                      className="mt-2 min-h-[100px]"
+                      maxLength={500}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {cancelReason.length}/500
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setCancelReasonDialogOpen(false);
+                        setCancelReason("");
+                      }}
+                    >
+                      {t("customerDashboard.cancel", "Cancel")}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleConfirmCancel}
+                      disabled={!cancelReason.trim() || cancelLoading}
+                    >
+                      {cancelLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {t("customerDashboard.confirmCancellation", "Confirm Cancellation")}
+                    </Button>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </TabsContent>
@@ -2079,30 +2383,7 @@ export default function CustomerDashboard() {
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {t("customerDashboard.myReviews", "My Reviews")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="py-10 text-center">
-                  <Star className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                  <h3 className="mb-2 text-lg font-medium">
-                    {t("customerDashboard.noReviewsTitle", "No reviews yet")}
-                  </h3>
-                  <p className="mb-4 text-sm text-muted-foreground">
-                    {t(
-                      "customerDashboard.noReviewsDescription",
-                      "Once you complete purchases, you'll be able to review your products here.",
-                    )}
-                  </p>
-                  <Button onClick={() => navigate("/")}>
-                    {t("customerDashboard.startShopping", "Start Shopping")}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CustomerReviewsSection />
           </TabsContent>
         </Tabs>
       </div>

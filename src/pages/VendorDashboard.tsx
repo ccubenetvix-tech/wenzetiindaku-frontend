@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from '../utils/api';
@@ -88,6 +88,7 @@ interface Order {
   payment: string;
   paymentStatus?: string | null;
   shippingAddress?: Record<string, any> | null;
+  cancellationReason?: string | null;
   orderItems?: Array<{
     id?: string;
     product?: {
@@ -119,6 +120,167 @@ interface Vendor {
   approved: boolean;
   verified: boolean;
   profilePhoto?: string;
+}
+
+// Vendor Reviews Section Component
+function VendorReviewsSection() {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        setLoading(true);
+        const response = (await apiClient.getVendorReviews()) as {
+          success?: boolean;
+          data?: { reviews?: any[] };
+        };
+        if (response?.success && response.data) {
+          setReviews(response.data.reviews || []);
+        }
+      } catch (error) {
+        console.error('Error loading reviews:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load reviews",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadReviews();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Reviews</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="py-10 text-center">
+            <Star className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h3 className="mb-2 text-lg font-medium">No reviews yet</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Reviews from customers will appear here once they review your products.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Product Reviews</CardTitle>
+        <CardDescription>Customer reviews for your products</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {reviews.map((review) => {
+            const customer = review.customer || {};
+            const product = review.product || {};
+            // Use product_id from review if product.id is not available
+            const productId = product?.id || review.product_id || null;
+            
+            // Debug logging
+            if (!productId) {
+              console.warn('Review missing product ID:', {
+                reviewId: review.id,
+                productFromJoin: product,
+                productIdFromReview: review.product_id,
+                fullReview: review,
+              });
+            }
+            const customerName = customer.first_name && customer.last_name
+              ? `${customer.first_name} ${customer.last_name}`
+              : customer.first_name || customer.email || 'Anonymous';
+            const initials = customerName.charAt(0).toUpperCase();
+            const reviewDate = review.created_at
+              ? new Date(review.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : 'Recently';
+
+            return (
+              <Card key={review.id} className="border">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-medium">{product.name || 'Product'}</h4>
+                        {productId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/products/${productId}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            {customer.profile_photo ? (
+                              <img
+                                src={customer.profile_photo}
+                                alt={customerName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-xs font-medium text-primary">
+                                {initials}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm font-medium">{customerName}</span>
+                        </div>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-3 w-3 ${
+                                i < (review.rating || 0)
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{reviewDate}</span>
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-muted-foreground">{review.comment}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function VendorDashboard() {
@@ -153,6 +315,7 @@ export default function VendorDashboard() {
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   
   // Product form
   const [showProductDialog, setShowProductDialog] = useState(false);
@@ -250,7 +413,7 @@ export default function VendorDashboard() {
   };
 
   // Fetch orders
-  const fetchOrders = async (page = 1, status = '') => {
+  const fetchOrders = useCallback(async (page = 1, status = '') => {
     setOrdersLoading(true);
     
     try {
@@ -278,6 +441,7 @@ export default function VendorDashboard() {
             payment: order.payment_method ?? "N/A",
             paymentStatus: order.payment_status ?? null,
             shippingAddress: order.shipping_address ?? null,
+            cancellationReason: order.cancellation_reason ?? null,
             orderItems: order.order_items ?? [],
           };
         });
@@ -302,7 +466,7 @@ export default function VendorDashboard() {
     } finally {
       setOrdersLoading(false);
     }
-  };
+  }, [toast]);
 
   const formatVendorStatusLabel = (status: string) => {
     const value = (status || "").toLowerCase();
@@ -415,7 +579,35 @@ export default function VendorDashboard() {
       const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
       fetchOrders(1, statusFilter);
     }
-  }, [activeTab, orderStatusFilter, isAuthenticated, user]);
+  }, [activeTab, orderStatusFilter, isAuthenticated, user, fetchOrders]);
+
+  // Auto-refresh orders when orders tab is active
+  useEffect(() => {
+    if (activeTab !== 'orders' || !isAuthenticated || user?.role !== 'vendor') {
+      return;
+    }
+
+    // Refresh orders every 30 seconds when orders tab is active
+    const interval = setInterval(() => {
+      const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
+      fetchOrders(ordersPage, statusFilter);
+    }, 30000); // 30 seconds
+
+    // Also refresh when window becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
+        fetchOrders(ordersPage, statusFilter);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [activeTab, orderStatusFilter, ordersPage, isAuthenticated, user, fetchOrders]);
 
   // Handle product image upload
   const handleProductImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -569,6 +761,7 @@ export default function VendorDashboard() {
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      setUpdatingOrderId(orderId);
       const data = await apiClient.updateVendorOrderStatus(orderId, newStatus) as any;
       
       if (data.success) {
@@ -595,6 +788,9 @@ export default function VendorDashboard() {
         description: "Network error. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setUpdatingOrderId(null);
+      setIsLoading(false);
     }
   };
 
@@ -760,10 +956,11 @@ export default function VendorDashboard() {
 
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-5">
+            <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-6">
               <TabsTrigger value="overview" className="min-w-[140px] sm:min-w-0">Overview</TabsTrigger>
               <TabsTrigger value="products" className="min-w-[140px] sm:min-w-0">Products</TabsTrigger>
               <TabsTrigger value="orders" className="min-w-[140px] sm:min-w-0">Orders</TabsTrigger>
+              <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">Reviews</TabsTrigger>
               <TabsTrigger value="customers" className="min-w-[140px] sm:min-w-0">Customers</TabsTrigger>
               <TabsTrigger value="settings" className="min-w-[140px] sm:min-w-0">Settings</TabsTrigger>
             </TabsList>
@@ -1023,21 +1220,40 @@ export default function VendorDashboard() {
             <TabsContent value="orders" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Order Management</CardTitle>
-                  <div className="flex items-center space-x-4">
-                    <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Filter by status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Order Management</CardTitle>
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
+                          fetchOrders(ordersPage, statusFilter);
+                        }}
+                        disabled={ordersLoading}
+                      >
+                        {ordersLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                        <span className="ml-2">Refresh</span>
+                      </Button>
+                      <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="out_for_delivery">Out for delivery</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -1084,9 +1300,13 @@ export default function VendorDashboard() {
                                   <div className="flex items-center gap-2">
                                     <Select 
                                       value={order.status} 
-                                      onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
+                                      onValueChange={(value) => {
+                                        if (updatingOrderId === order.id) return;
+                                        handleUpdateOrderStatus(order.id, value);
+                                      }}
+                                      disabled={order.status.toLowerCase() === 'cancelled' || updatingOrderId === order.id}
                                     >
-                                      <SelectTrigger className="w-32">
+                                      <SelectTrigger className="w-32" disabled={order.status.toLowerCase() === 'cancelled' || updatingOrderId === order.id}>
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -1096,13 +1316,16 @@ export default function VendorDashboard() {
                                         <SelectItem value="shipped">Shipped</SelectItem>
                                         <SelectItem value="out_for_delivery">Out for delivery</SelectItem>
                                         <SelectItem value="delivered">Delivered</SelectItem>
-                                        <SelectItem value="cancelled">Cancelled</SelectItem>
                                       </SelectContent>
                                     </Select>
+                                    {updatingOrderId === order.id && (
+                                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                    )}
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleOpenOrderDetails(order)}
+                                      disabled={updatingOrderId === order.id}
                                     >
                                       <Eye className="mr-1.5 h-4 w-4" />
                                       View
@@ -1176,6 +1399,17 @@ export default function VendorDashboard() {
                         </pre>
                       </div>
 
+                      {orderDetails.status.toLowerCase() === 'cancelled' && orderDetails.cancellationReason && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/10">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-red-800 dark:text-red-400">
+                            Cancellation Reason
+                          </h4>
+                          <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+                            {orderDetails.cancellationReason}
+                          </p>
+                        </div>
+                      )}
+
                       <div className="rounded-lg border p-4">
                         <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           Items
@@ -1223,6 +1457,10 @@ export default function VendorDashboard() {
             </TabsContent>
 
             {/* Customers Tab */}
+            <TabsContent value="reviews" className="space-y-6">
+              <VendorReviewsSection />
+            </TabsContent>
+
             <TabsContent value="customers" className="space-y-6">
               <Card>
                 <CardHeader>
