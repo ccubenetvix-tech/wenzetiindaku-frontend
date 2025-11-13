@@ -982,11 +982,11 @@ export default function Chat() {
                     placeholder="Type a message..."
                     className="flex-1 min-h-[60px] max-h-[120px] resize-none border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-navy-500"
                     rows={2}
-                    disabled={!isConnected}
+                    disabled={!isConnected && socketRef.current !== null}
                   />
                   <Button
                     onClick={sendMessage}
-                    disabled={!messageInput.trim() || isSendingMessage || !isConnected}
+                    disabled={!messageInput.trim() || isSendingMessage || (!isConnected && socketRef.current !== null)}
                     className="bg-navy-600 hover:bg-navy-700 text-white px-6"
                     size="lg"
                   >
