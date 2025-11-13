@@ -19,7 +19,7 @@
 
 // Import React hooks and utilities
 import { useState, useMemo, useEffect } from "react";
-import { useParams } from "react-router-dom"; // For accessing URL parameters
+import { useParams, useNavigate } from "react-router-dom"; // For accessing URL parameters and navigation
 import { useTranslation } from "react-i18next"; // For internationalization support
 
 // Import Lucide React icons for UI elements
@@ -30,6 +30,9 @@ import {
   MessageCircle, // Message icon for messaging functionality
   Store as StoreIcon // Store icon (renamed to avoid conflict)
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from "@/utils/api";
+import { useToast } from "@/hooks/use-toast";
 
 // Import UI components
 import { Header } from "@/components/Header";    // Site header with navigation
@@ -38,7 +41,6 @@ import { Button } from "@/components/ui/button"; // Reusable button component
 import { Input } from "@/components/ui/input";   // Input field component
 import { Badge } from "@/components/ui/badge";   // Badge component
 import { ProductCard } from "@/components/ProductCard"; // Product card component
-import { apiClient } from "@/utils/api"; // API client for dynamic data
 import { PageLoader } from "@/components/PageLoader";
 import { useLoaderTransition } from "@/hooks/useLoaderTransition";
 import { cn } from "@/lib/utils";
@@ -67,9 +69,12 @@ import {
 const Store = () => {
   // Extract storeId from URL parameters
   const { storeId } = useParams();
+  const navigate = useNavigate();
   
   // Initialize translation hook for internationalization
   const { t } = useTranslation();
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
   
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -232,9 +237,47 @@ const Store = () => {
                   {/* Message store button */}
                   <Button 
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
-                    onClick={() => {
-                      // TODO: Implement message store functionality
-                      console.log(`Message store: ${store?.name ?? "Store"}`);
+                    onClick={async () => {
+                      if (!isAuthenticated || user?.role !== 'customer') {
+                        toast({
+                          title: "Login Required",
+                          description: "Please log in as a customer to message stores",
+                          variant: "destructive",
+                        });
+                        navigate('/customer/login');
+                        return;
+                      }
+
+                      if (!storeId) {
+                        toast({
+                          title: "Error",
+                          description: "Store ID not found",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+
+                      try {
+                        // Create or get conversation
+                        const response = await apiClient.createChatConversation(storeId) as {
+                          success?: boolean;
+                          data?: { conversationId?: string };
+                          error?: { message?: string };
+                        };
+
+                        if (response?.success && response.data?.conversationId) {
+                          navigate(`/chat?conversation=${response.data.conversationId}`);
+                        } else {
+                          throw new Error(response?.error?.message || "Failed to create conversation");
+                        }
+                      } catch (error: any) {
+                        console.error("Failed to create conversation:", error);
+                        toast({
+                          title: "Error",
+                          description: error?.message || "Failed to start conversation",
+                          variant: "destructive",
+                        });
+                      }
                     }}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />

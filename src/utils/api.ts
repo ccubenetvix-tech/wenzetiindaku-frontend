@@ -617,6 +617,45 @@ export class ApiClient {
   async canReviewProduct(productId: string) {
     return this.request(`/reviews/can-review/${productId}`);
   }
+
+  // Chat Methods
+  async getChatConversations() {
+    return this.request('/chat/conversations');
+  }
+
+  async getChatMessages(conversationId: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages`);
+  }
+
+  async createChatConversation(vendorId: string) {
+    return this.request('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ vendorId }),
+    });
+  }
+
+  async sendChatMessage(conversationId: string, content: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async markChatMessageAsRead(conversationId: string, messageId: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages/${messageId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async markChatConversationAsRead(conversationId: string) {
+    return this.request(`/chat/conversations/${conversationId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async getChatUnreadCount() {
+    return this.request('/chat/unread-count');
+  }
 }
 
 // Create a singleton instance

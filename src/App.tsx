@@ -14,6 +14,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 // Import cart and wishlist providers for shopping experience state
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { ChatProvider } from "@/contexts/ChatContext";
 // Import cookie consent component for GDPR compliance
 import { CookieConsent } from "@/components/CookieConsent";
 // Import i18n configuration for multi-language support
@@ -35,6 +36,7 @@ import CustomerProfile from "./pages/CustomerProfile"; // Customer profile manag
 import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
 import VendorProfile from "./pages/VendorProfile";     // Vendor profile management
 import SearchResults from "./pages/SearchResults";    // Search results page
+import Chat from "./pages/Chat";                        // Chat page
 
 // Information and legal pages
 import About from "./pages/About";                    // About the marketplace
@@ -79,6 +81,7 @@ const App = () => (
         {/* Cart and wishlist providers for shopping experience state */}
         <CartProvider>
           <WishlistProvider>
+            <ChatProvider>
             {/* Tooltip provider for enhanced UI interactions */}
             <TooltipProvider>
               {/* Toast notification components for user feedback */}
@@ -128,6 +131,7 @@ const App = () => (
                   {/* Dashboard routes */}
                   <Route path="/customer/dashboard" element={<CustomerDashboard />} />     {/* Customer dashboard */}
                   <Route path="/vendor/dashboard" element={<VendorDashboard />} />         {/* Vendor dashboard */}
+                  <Route path="/chat" element={<Chat />} />                                {/* Chat page */}
                   {/* Admin dashboard with route protection */}
                   <Route path="/admin/dashboard" element={
                     <ProtectedAdminRoute>
@@ -142,6 +146,7 @@ const App = () => (
                 <CookieConsent />
               </BrowserRouter>
             </TooltipProvider>
+            </ChatProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

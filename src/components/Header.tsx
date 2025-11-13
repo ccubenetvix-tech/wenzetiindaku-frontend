@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 // Import i18next for internationalization support
 import { useTranslation } from "react-i18next";
 // Import Lucide React icons for UI elements
-import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, LifeBuoy } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, LifeBuoy, MessageSquare } from "lucide-react";
 // Import UI components from the design system
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,8 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 // Import auth context for authentication
 import { useAuth } from "@/contexts/AuthContext";
+// Import chat context for unread count
+import { useChat } from "@/contexts/ChatContext";
 
 // Supported languages for internationalization
 // Includes major African languages and international languages
@@ -56,6 +58,8 @@ export function Header() {
   const { getTotalItems } = useCart();
   // Auth context for authentication
   const { user, logout, isAuthenticated } = useAuth();
+  // Chat context for unread count
+  const { unreadCount } = useChat();
   // Location context for location management
   
   // Local state management
@@ -265,6 +269,12 @@ export function Header() {
                     <User className="mr-2 h-4 w-4" />
                     {t('myProfile')}
                   </DropdownMenuItem>
+                  {(user.role === 'customer' || user.role === 'vendor') && (
+                    <DropdownMenuItem onClick={() => navigate('/chat')}>
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Chat {unreadCount > 0 && `(${unreadCount})`}
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
