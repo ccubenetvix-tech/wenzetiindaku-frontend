@@ -100,11 +100,26 @@ export default function Chat() {
     // Handle socket errors
     socket.on('error', (errorData: { message?: string }) => {
       console.error('WebSocket error:', errorData);
-      toast({
-        title: "Chat Error",
-        description: errorData?.message || "An error occurred. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Check if it's a polling POST error (400 Bad Request) - indicates serverless platform issue
+      if (errorData?.message && (
+        errorData.message.includes('xhr post error') || 
+        errorData.message.includes('400') ||
+        errorData.message.includes('Bad Request')
+      )) {
+        console.warn('Socket.io polling not supported on this platform, will use REST API fallback');
+        // Don't show error toast for this - it's expected on serverless platforms
+        return;
+      }
+      
+      // Only show toast for non-connection errors (connection errors are handled separately)
+      if (errorData?.message && !errorData.message.includes('timeout') && !errorData.message.includes('connection')) {
+        toast({
+          title: "Chat Error",
+          description: errorData.message,
+          variant: "destructive",
+        });
+      }
     });
 
     // Chat events
@@ -383,9 +398,35 @@ export default function Chat() {
       setIsSendingMessage(true);
       const socket = socketRef.current;
 
-      // Validate socket is still connected
-      if (!socket.connected) {
-        throw new Error("Socket disconnected. Please wait for reconnection.");
+      // Check if WebSocket is available and connected
+      // If not, use REST API fallback immediately
+      if (!socket || !socket.connected) {
+        console.log('WebSocket not available, using REST API fallback');
+        const response = await apiClient.sendChatMessage(selectedConversationId, content);
+        
+        if (response.success && response.data?.message) {
+          const newMessage: ChatMessage = {
+            id: response.data.message.id,
+            content: response.data.message.content,
+            senderId: response.data.message.senderId,
+            senderRole: response.data.message.senderRole,
+            isRead: response.data.message.isRead || false,
+            readAt: response.data.message.readAt || null,
+            createdAt: response.data.message.createdAt
+          };
+          
+          setMessages((prev) => {
+            const exists = prev.some(msg => msg.id === newMessage.id);
+            if (exists) return prev;
+            return [...prev, newMessage];
+          });
+          
+          refreshConversations();
+        } else {
+          throw new Error(response.error?.message || 'Failed to send message');
+        }
+        setIsSendingMessage(false);
+        return;
       }
 
       // Optimistically add message to UI (will be replaced by server response)
@@ -411,19 +452,54 @@ export default function Chat() {
       });
       
       // Set up error handler for this specific message send
-      const errorHandler = (errorData: { message?: string }) => {
+      const errorHandler = async (errorData: { message?: string }) => {
         // Remove optimistic message on error
         setMessages((prev) => prev.filter(msg => msg.id !== tempId));
         pendingTempMessagesRef.current.delete(content);
         
-        toast({
-          title: "Failed to Send",
-          description: errorData?.message || "Failed to send message. Please try again.",
-          variant: "destructive",
-        });
+        // Try REST API fallback on WebSocket error
+        console.log('WebSocket error, trying REST API fallback:', errorData?.message);
+        try {
+          const response = await apiClient.sendChatMessage(selectedConversationId, content);
+          
+          if (response.success && response.data?.message) {
+            const newMessage: ChatMessage = {
+              id: response.data.message.id,
+              content: response.data.message.content,
+              senderId: response.data.message.senderId,
+              senderRole: response.data.message.senderRole,
+              isRead: response.data.message.isRead || false,
+              readAt: response.data.message.readAt || null,
+              createdAt: response.data.message.createdAt
+            };
+            
+            setMessages((prev) => {
+              const exists = prev.some(msg => msg.id === newMessage.id);
+              if (exists) return prev;
+              return [...prev, newMessage];
+            });
+            
+            refreshConversations();
+            
+            toast({
+              title: "Message sent",
+              description: "Message sent via REST API (WebSocket unavailable).",
+            });
+          } else {
+            throw new Error(response.error?.message || 'Failed to send message');
+          }
+        } catch (fallbackError) {
+          // Both WebSocket and REST API failed
+          toast({
+            title: "Failed to Send",
+            description: errorData?.message || "Failed to send message. Please try again.",
+            variant: "destructive",
+          });
+          
+          // Restore message input
+          setMessageInput(content);
+        }
         
-        // Restore message input
-        setMessageInput(content);
         setIsSendingMessage(false);
       };
 
