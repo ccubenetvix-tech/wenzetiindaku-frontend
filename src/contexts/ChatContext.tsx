@@ -215,16 +215,23 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [isAuthenticated, user, refreshConversations, refreshUnreadCount]);
 
-  // Poll for updates every 30 seconds
+  // Poll for updates every 30 seconds (only if authenticated)
   useEffect(() => {
     if (!isAuthenticated || !user) return;
 
+    let isMounted = true;
+
     const interval = setInterval(() => {
-      refreshConversations();
-      refreshUnreadCount();
+      if (isMounted && isAuthenticated && user) {
+        refreshConversations();
+        refreshUnreadCount();
+      }
     }, 30000); // 30 seconds
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [isAuthenticated, user, refreshConversations, refreshUnreadCount]);
 
   const value: ChatContextType = {

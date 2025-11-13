@@ -46,6 +46,7 @@ export default function Chat() {
   const socketRef = useRef<Socket | null>(null);
   const previousConversationIdRef = useRef<string | null>(null);
   const pendingTempMessagesRef = useRef<Map<string, string>>(new Map()); // content -> tempId
+  const isLoadingMessagesRef = useRef<boolean>(false); // Prevent duplicate message loads
 
   const selectedConversation = conversations.find(
     (conv) => conv.id === selectedConversationId
@@ -68,6 +69,7 @@ export default function Chat() {
       // WebSocket not available (serverless platform) - use REST API only
       setIsConnected(false); // Mark as not connected so we use REST API
       setIsInitialConnection(false); // Don't show loading screen
+      socketRef.current = null; // Ensure socket ref is null
       return;
     }
 
@@ -225,19 +227,8 @@ export default function Chat() {
     }
   }, [isAuthenticated, user, refreshConversations, searchParams, selectedConversationId]);
 
-  // Poll for conversation updates when using REST API (no WebSocket)
-  useEffect(() => {
-    if (isConnected || socketRef.current || !isAuthenticated) {
-      return; // Don't poll if WebSocket is connected or available
-    }
-
-    // Poll for conversation updates every 5 seconds when using REST API
-    const pollInterval = setInterval(() => {
-      refreshConversations();
-    }, 5000);
-
-    return () => clearInterval(pollInterval);
-  }, [isConnected, isAuthenticated, refreshConversations]);
+  // Note: Conversation updates are already handled by ChatContext (30s polling)
+  // No need for additional polling here to avoid duplicate API calls
 
   // Load messages immediately when conversation is selected (don't wait for WebSocket)
   useEffect(() => {
@@ -286,14 +277,22 @@ export default function Chat() {
 
   // Poll for new messages when using REST API (no WebSocket)
   useEffect(() => {
-    if (isConnected || !selectedConversationId || socketRef.current) {
+    // Only poll if:
+    // 1. WebSocket is NOT connected
+    // 2. WebSocket is NOT available (socketRef.current is null)
+    // 3. A conversation is selected
+    if (isConnected || socketRef.current || !selectedConversationId) {
       return; // Don't poll if WebSocket is connected or available
     }
 
-    // Poll for new messages every 3 seconds when using REST API
+    // Poll for new messages every 5 seconds when using REST API
     const pollInterval = setInterval(() => {
-      loadMessages(selectedConversationId, false);
-    }, 3000);
+      // Double-check conditions before polling
+      // Also check if we're not already loading to prevent duplicate calls
+      if (!isConnected && !socketRef.current && selectedConversationId && !isLoadingMessagesRef.current) {
+        loadMessages(selectedConversationId, false);
+      }
+    }, 5000); // 5 seconds to reduce API calls
 
     return () => clearInterval(pollInterval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -302,8 +301,14 @@ export default function Chat() {
   const loadMessages = async (conversationId: string, initialLoad = false, retryCount = 0) => {
     const MAX_RETRIES = 3;
     
+    // Prevent multiple simultaneous calls for the same conversation
+    if (isLoadingMessagesRef.current && initialLoad) {
+      return; // Already loading, skip
+    }
+    
     try {
       if (initialLoad) {
+        isLoadingMessagesRef.current = true;
         setIsLoadingMessages(true);
       }
       
@@ -379,6 +384,7 @@ export default function Chat() {
       }
     } finally {
       if (initialLoad) {
+        isLoadingMessagesRef.current = false;
         setIsLoadingMessages(false);
       }
     }
@@ -408,13 +414,10 @@ export default function Chat() {
       return; // Prevent duplicate sends
     }
 
+    // If WebSocket is not available, use REST API (serverless platforms)
     if (!socketRef.current || !socketRef.current.connected) {
-      toast({
-        title: "Connection Error",
-        description: "Not connected to chat server. Please wait for connection...",
-        variant: "destructive",
-      });
-      return;
+      // Use REST API fallback - don't block sending
+      console.log('WebSocket not available, using REST API to send message');
     }
 
     // Validate message length
@@ -994,7 +997,7 @@ export default function Chat() {
                     )}
                   </Button>
                 </div>
-                {!isConnected && (
+                {!isConnected && socketRef.current && (
                   <p className="text-xs text-gray-500 mt-2">Reconnecting to chat server...</p>
                 )}
               </div>
