@@ -56,15 +56,18 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Initialize WebSocket connection
+  // Initialize WebSocket connection (skip on serverless platforms)
   useEffect(() => {
     if (!isAuthenticated || !token) {
       return;
     }
 
-    // Connect to WebSocket
+    // Connect to WebSocket (will return null on serverless platforms)
     const socket = getSocket(token);
     if (!socket) {
+      // WebSocket not available (serverless platform) - use REST API only
+      setIsConnected(false); // Mark as not connected so we use REST API
+      setIsInitialConnection(false); // Don't show loading screen
       return;
     }
 
@@ -220,7 +223,21 @@ export default function Chat() {
     if (conversationIdFromUrl && conversationIdFromUrl !== selectedConversationId) {
       setSelectedConversationId(conversationIdFromUrl);
     }
-  }, [isAuthenticated, user, refreshConversations]);
+  }, [isAuthenticated, user, refreshConversations, searchParams, selectedConversationId]);
+
+  // Poll for conversation updates when using REST API (no WebSocket)
+  useEffect(() => {
+    if (isConnected || socketRef.current || !isAuthenticated) {
+      return; // Don't poll if WebSocket is connected or available
+    }
+
+    // Poll for conversation updates every 5 seconds when using REST API
+    const pollInterval = setInterval(() => {
+      refreshConversations();
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [isConnected, isAuthenticated, refreshConversations]);
 
   // Load messages immediately when conversation is selected (don't wait for WebSocket)
   useEffect(() => {
@@ -235,10 +252,14 @@ export default function Chat() {
     }
   }, [selectedConversationId, markConversationAsRead]);
 
-  // Join/leave conversation when WebSocket is connected
+  // Join/leave conversation when WebSocket is connected (skip if using REST API)
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket || !socket.connected || !selectedConversationId) {
+      // If no WebSocket, mark as read via REST API
+      if (!socket && selectedConversationId) {
+        markConversationAsRead(selectedConversationId);
+      }
       return;
     }
 
@@ -261,6 +282,21 @@ export default function Chat() {
         socket.emit('leave_conversation', { conversationId: selectedConversationId });
       }
     };
+  }, [selectedConversationId, isConnected, markConversationAsRead]);
+
+  // Poll for new messages when using REST API (no WebSocket)
+  useEffect(() => {
+    if (isConnected || !selectedConversationId || socketRef.current) {
+      return; // Don't poll if WebSocket is connected or available
+    }
+
+    // Poll for new messages every 3 seconds when using REST API
+    const pollInterval = setInterval(() => {
+      loadMessages(selectedConversationId, false);
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversationId, isConnected]);
 
   const loadMessages = async (conversationId: string, initialLoad = false, retryCount = 0) => {
@@ -628,7 +664,10 @@ export default function Chat() {
     }
   }, [isInitialConnection, isConnected]);
 
-  if (!isConnected && token && (isInitialConnection || connectionTimeout)) {
+  // Don't show loading screen if WebSocket is disabled (serverless platform)
+  const shouldShowLoading = isInitialConnection && isConnected === undefined && token;
+  
+  if (shouldShowLoading || (connectionTimeout && !isConnected && token)) {
     return (
       <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950 overflow-hidden">
         {/* Minimal Professional Header */}
@@ -725,10 +764,15 @@ export default function Chat() {
               <Wifi className="h-4 w-4" />
               <span className="text-xs">Connected</span>
             </div>
-          ) : (
+          ) : socketRef.current ? (
             <div className="flex items-center gap-2 text-gray-500">
               <WifiOff className="h-4 w-4" />
               <span className="text-xs">Connecting...</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <Wifi className="h-4 w-4" />
+              <span className="text-xs">REST API</span>
             </div>
           )}
         </div>

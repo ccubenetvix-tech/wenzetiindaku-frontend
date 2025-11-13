@@ -3,10 +3,29 @@ import { getApiBaseUrl } from './api';
 
 let socket: Socket | null = null;
 
+// Detect if we're on a serverless platform that doesn't support WebSocket
+const isServerlessPlatform = (): boolean => {
+  const baseURL = getApiBaseUrl().replace(/\/api$/, '').replace(/\/$/, '');
+  // Check for known serverless platforms
+  return (
+    baseURL.includes('leapcell.dev') ||
+    baseURL.includes('vercel.app') ||
+    baseURL.includes('netlify.app') ||
+    baseURL.includes('lambda') ||
+    baseURL.includes('serverless')
+  );
+};
+
 export const getSocket = (token: string | null): Socket | null => {
   // Validate token
   if (!token || typeof token !== 'string' || token.trim().length === 0) {
     console.warn('Invalid token provided to getSocket');
+    return null;
+  }
+
+  // Skip WebSocket on serverless platforms - use REST API only
+  if (isServerlessPlatform()) {
+    console.log('Serverless platform detected - WebSocket disabled, using REST API only');
     return null;
   }
 
