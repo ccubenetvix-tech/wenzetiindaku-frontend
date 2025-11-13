@@ -538,7 +538,21 @@ export default function Chat() {
     );
   }
 
-  if (!isConnected && token && isInitialConnection) {
+  // Show connection timeout after 15 seconds
+  const [connectionTimeout, setConnectionTimeout] = useState(false);
+  
+  useEffect(() => {
+    if (isInitialConnection && !isConnected) {
+      const timeout = setTimeout(() => {
+        setConnectionTimeout(true);
+      }, 15000); // 15 seconds
+      return () => clearTimeout(timeout);
+    } else {
+      setConnectionTimeout(false);
+    }
+  }, [isInitialConnection, isConnected]);
+
+  if (!isConnected && token && (isInitialConnection || connectionTimeout)) {
     return (
       <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950 overflow-hidden">
         {/* Minimal Professional Header */}
@@ -561,18 +575,46 @@ export default function Chat() {
 
         {/* Loading State */}
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 max-w-md px-4">
             <div className="relative">
               <Loader2 className="h-12 w-12 animate-spin text-navy-600 dark:text-navy-400 mx-auto" />
               <WifiOff className="h-6 w-6 text-gray-400 absolute top-3 left-1/2 transform -translate-x-1/2" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Connecting to chat...
+                {connectionTimeout ? 'Connection Timeout' : 'Connecting to chat...'}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                Please wait while we establish a secure connection
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {connectionTimeout 
+                  ? 'Unable to connect to chat server. Please check your connection and try again.'
+                  : 'Please wait while we establish a secure connection'
+                }
               </p>
+              {connectionTimeout && (
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => {
+                      setConnectionTimeout(false);
+                      setIsInitialConnection(true);
+                      if (socketRef.current) {
+                        socketRef.current.disconnect();
+                        socketRef.current = null;
+                      }
+                      // Force reconnection
+                      const newSocket = getSocket(token);
+                      if (newSocket) {
+                        socketRef.current = newSocket;
+                      }
+                    }}
+                    variant="default"
+                  >
+                    Retry Connection
+                  </Button>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    If this persists, the backend server may be down or WebSocket is not supported on your hosting platform.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

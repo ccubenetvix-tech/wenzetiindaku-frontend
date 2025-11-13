@@ -36,18 +36,25 @@ export const getSocket = (token: string | null): Socket | null => {
       return null;
     }
     
+    // Log the connection attempt for debugging
+    console.log('Attempting WebSocket connection to:', baseURL);
+    
     // Create new socket connection with improved error handling
+    // Use path: '/socket.io/' explicitly for Socket.io
     socket = io(baseURL, {
+      path: '/socket.io/',
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Try polling first (better for serverless)
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionDelayMax: 10000, // Increased max delay
-      reconnectionAttempts: 10, // More attempts
-      timeout: 20000, // 20 second connection timeout
-      forceNew: false // Reuse connection if possible
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5, // Reduced attempts to fail faster
+      timeout: 10000, // 10 second connection timeout (reduced)
+      forceNew: false, // Reuse connection if possible
+      upgrade: true, // Allow upgrade from polling to websocket
+      rememberUpgrade: true // Remember upgrade preference
     });
 
     socket.on('connect', () => {
