@@ -28,7 +28,8 @@ import {
   Star,          // Star icon for ratings and featured products
   MapPin,        // Map pin icon for location
   MessageCircle, // Message icon for messaging functionality
-  Store as StoreIcon // Store icon (renamed to avoid conflict)
+  Store as StoreIcon, // Store icon (renamed to avoid conflict)
+  Loader2        // Loading spinner icon
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/utils/api";
@@ -84,6 +85,7 @@ const Store = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMessagingLoading, setIsMessagingLoading] = useState(false);
   const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
     minimumVisibleMs: 1600,
     fadeDurationMs: 400,
@@ -237,6 +239,7 @@ const Store = () => {
                   {/* Message store button */}
                   <Button 
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
+                    disabled={isMessagingLoading}
                     onClick={async () => {
                       if (!isAuthenticated || user?.role !== 'customer') {
                         toast({
@@ -258,6 +261,7 @@ const Store = () => {
                       }
 
                       try {
+                        setIsMessagingLoading(true);
                         // Create or get conversation
                         const response = await apiClient.createChatConversation(storeId) as {
                           success?: boolean;
@@ -277,11 +281,22 @@ const Store = () => {
                           description: error?.message || "Failed to start conversation",
                           variant: "destructive",
                         });
+                      } finally {
+                        setIsMessagingLoading(false);
                       }
                     }}
                   >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Message Store
+                    {isMessagingLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Opening...
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Message Store
+                      </>
+                    )}
                   </Button>
                 </div>
 

@@ -252,8 +252,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
+    // Get user role before clearing session
+    const storedUser = localStorage.getItem('auth_user');
+    let userRole = 'customer'; // default
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        userRole = parsedUser.role || 'customer';
+      } catch (e) {
+        // If parsing fails, use default
+      }
+    }
+    
     clearSession();
-    window.location.href = '/';
+    // Navigate to logout confirmation page with role info
+    window.location.href = `/logout?role=${userRole}`;
   }, [clearSession]);
 
   const redirectToLogin = useCallback(() => {

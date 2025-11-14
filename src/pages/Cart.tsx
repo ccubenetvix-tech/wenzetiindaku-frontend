@@ -8,7 +8,6 @@ import {
   Shield,
   CreditCard,
   Truck,
-  Heart,
   Loader2
 } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -17,16 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
-import { useWishlist } from "@/contexts/WishlistContext";
-import type { WishlistItem } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { items: cartItems, updateQuantity, removeFromCart, addToCart, isLoading } = useCart();
-  const { items: wishlistItems, removeFromWishlist, isLoading: wishlistLoading, isProcessing: wishlistProcessing } = useWishlist();
+  const { items: cartItems, updateQuantity, removeFromCart, isLoading } = useCart();
   const navigate = useNavigate();
 
   // Group items by vendor
@@ -59,49 +55,6 @@ const Cart = () => {
       await removeFromCart(cartItemId);
     } catch (error) {
       console.error('Failed to remove item:', error);
-    }
-  };
-
-  const handleMoveToCart = async (wishlistItem: WishlistItem) => {
-    try {
-      await addToCart({
-        productId: wishlistItem.productId,
-        name: wishlistItem.name,
-        price: wishlistItem.price,
-        image: wishlistItem.image,
-        vendor: wishlistItem.vendor,
-      });
-
-      await removeFromWishlist(wishlistItem.productId);
-
-      toast({
-        title: "Added to cart",
-        description: `${wishlistItem.name} has been moved from your wishlist to the cart.`,
-      });
-    } catch (error) {
-      console.error('Failed to move item to cart:', error);
-      toast({
-        title: "Error",
-        description: "Could not move the item to your cart. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleRemoveFromWishlist = async (productId: string, productName: string) => {
-    try {
-      await removeFromWishlist(productId);
-      toast({
-        title: "Removed",
-        description: `${productName} has been removed from your wishlist.`,
-      });
-    } catch (error) {
-      console.error('Failed to remove from wishlist:', error);
-      toast({
-        title: "Error",
-        description: "Could not remove the item from your wishlist. Please try again.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -220,65 +173,6 @@ const Cart = () => {
                       </div>
                     </div>
                   ))
-                )}
-              </div>
-
-              {/* Wishlisted Section */}
-              <div className="bg-card rounded-lg shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <Heart className="h-6 w-6 text-red-500" />
-                  <h3 className="text-xl font-semibold">Wishlisted</h3>
-                  <Badge variant="outline" className="ml-auto">
-                    {wishlistItems.length}
-                  </Badge>
-                </div>
-
-                {wishlistLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                    <p className="text-muted-foreground">Loading wishlist...</p>
-                  </div>
-                ) : wishlistItems.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-6">
-                    <p>You haven't wishlisted any products yet.</p>
-                    <p className="text-sm mt-1">Tap the heart icon on a product to save it for later.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {wishlistItems.map((item) => (
-                      <div key={item.productId} className="flex flex-col sm:flex-row sm:items-center gap-4">
-                        <img
-                          src={item.image || "/marketplace.jpeg"}
-                          alt={item.name}
-                          className="h-28 w-full rounded-md object-cover sm:h-16 sm:w-16"
-                        />
-                        <div className="flex-1 w-full">
-                          <h4 className="text-sm font-medium">{item.name}</h4>
-                          <p className="text-xs text-muted-foreground">{item.vendor}</p>
-                          <p className="mt-1 text-sm font-semibold text-primary">${item.price.toFixed(2)}</p>
-                        </div>
-                        <div className="flex w-full flex-col gap-2 sm:w-auto">
-                          <Button
-                            size="sm"
-                            className="w-full sm:w-auto"
-                            onClick={() => handleMoveToCart(item)}
-                            disabled={wishlistProcessing}
-                          >
-                            Add to Cart
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted-foreground hover:text-destructive"
-                            onClick={() => handleRemoveFromWishlist(item.productId, item.name)}
-                            disabled={wishlistProcessing}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </div>
             </div>

@@ -37,6 +37,7 @@ import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
 import VendorProfile from "./pages/VendorProfile";     // Vendor profile management
 import SearchResults from "./pages/SearchResults";    // Search results page
 import Chat from "./pages/Chat";                        // Chat page
+import LogoutConfirmation from "./pages/LogoutConfirmation"; // Logout confirmation page
 
 // Information and legal pages
 import About from "./pages/About";                    // About the marketplace
@@ -127,6 +128,7 @@ const App = () => (
                   <Route path="/admin/login" element={<AdminLogin />} />                   {/* Admin login */}
                   <Route path="/auth/callback" element={<AuthCallback />} />               {/* OAuth callback */}
                   <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
+                  <Route path="/logout" element={<LogoutConfirmation />} />                 {/* Logout confirmation */}
                   
                   {/* Dashboard routes */}
                   <Route path="/customer/dashboard" element={<CustomerDashboard />} />     {/* Customer dashboard */}

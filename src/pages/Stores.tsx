@@ -25,7 +25,6 @@ import {
   Store,           // Store icon for store avatars
   Star,            // Star icon for ratings
   MapPin,          // Map pin icon for location
-  MessageCircle,   // Message icon for messaging functionality
   Search,          // Search icon for search input
   Filter           // Filter icon for filter button
 } from "lucide-react";
@@ -264,18 +263,6 @@ export default function Stores() {
                         className="flex-1 bg-gradient-to-r from-navy-600 to-navy-700 hover:from-navy-700 hover:to-navy-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
                       >
                         Visit Store
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-all duration-200 hover:shadow-sm"
-                        onClick={() => {
-                          console.log(`Message store: ${store.name}`);
-                        }}
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Message Store
                       </Button>
                     </div>
                   </div>
