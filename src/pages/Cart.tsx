@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   ShoppingCart, 
@@ -24,6 +25,7 @@ const Cart = () => {
   const { toast } = useToast();
   const { items: cartItems, updateQuantity, removeFromCart, isLoading } = useCart();
   const navigate = useNavigate();
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   // Group items by vendor
   const itemsByVendor = cartItems.reduce((acc, item) => {
@@ -52,9 +54,17 @@ const Cart = () => {
   // Handle remove from cart
   const handleRemoveFromCart = async (cartItemId: string) => {
     try {
+      setDeletingItemId(cartItemId);
       await removeFromCart(cartItemId);
     } catch (error) {
       console.error('Failed to remove item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from cart. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingItemId(null);
     }
   };
 
@@ -154,8 +164,13 @@ const Cart = () => {
                                   size="icon"
                                   className="text-destructive hover:text-destructive"
                                   onClick={() => handleRemoveFromCart(item.id)}
+                                  disabled={deletingItemId === item.id}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  {deletingItemId === item.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                  )}
                                 </Button>
                               </div>
                             </div>
@@ -190,6 +205,10 @@ const Cart = () => {
                 ) : (
                   <>
                     <div className="space-y-4 mb-6">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Items</span>
+                        <span className="font-semibold">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                      </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>${subtotal.toFixed(2)}</span>

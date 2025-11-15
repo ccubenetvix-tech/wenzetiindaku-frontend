@@ -907,32 +907,6 @@ const ProductDetail = () => {
                     )}
                   </Button>
                 </div>
-                
-                {/* Buy Now Button */}
-                <Button 
-                  className={`w-full ${
-                    !isAuthenticated 
-                      ? 'bg-gray-400 hover:bg-gray-500 text-white' 
-                      : user?.role === 'vendor'
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                      : 'bg-primary hover:bg-primary/90 text-white'
-                  }`}
-                  size="lg"
-                  disabled={productStock === 0 || (!selectedSize && showSizeSelector) || user?.role === 'vendor' || isAddToCartLoading}
-                  onClick={async () => {
-                    const added = await handleAddToCart();
-                    if (added && isAuthenticated && user?.role === 'customer') {
-                      navigate('/checkout');
-                    }
-                  }}
-                >
-                  {!isAuthenticated 
-                    ? 'Login to Buy' 
-                    : user?.role === 'vendor'
-                    ? 'Not Available for Vendors'
-                    : 'Buy Now'
-                  }
-                </Button>
               </div>
 
               {/* Shipping Information */}

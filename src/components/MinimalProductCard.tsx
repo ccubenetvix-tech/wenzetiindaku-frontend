@@ -266,10 +266,10 @@ export const MinimalProductCard = memo(function MinimalProductCard({
             )}
           </div>
           
-          {/* Minimal Add to Cart - Only on hover */}
+          {/* Minimal Add to Cart / View Product - Only on hover */}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
-              onClick={handleAddToCart}
+              onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
               size="sm"
               className={`w-full h-7 text-xs ${
                 !isAuthenticated 
@@ -278,7 +278,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
                   ? 'bg-orange-500 hover:bg-orange-600 text-white'
                   : 'bg-navy-600 hover:bg-navy-700 text-white'
               }`}
-              disabled={user?.role === 'vendor' || isCartLoading}
+              disabled={isCartLoading}
             >
               {isCartLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -289,7 +289,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
                 (!isAuthenticated 
                   ? 'Login to Add' 
                   : user?.role === 'vendor'
-                  ? '.'
+                  ? 'View Product'
                   : t('addToCart'))
               )}
             </Button>

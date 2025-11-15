@@ -198,16 +198,6 @@ const SearchResults = () => {
             {/* Filters Sidebar */}
             <aside className="lg:w-1/4">
               <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-lg">Filters</h3>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Clear All
-                  </Button>
-                </div>
-                
                 {/* Search within results */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-2">
@@ -304,6 +294,13 @@ const SearchResults = () => {
                       <span className="text-sm">Any rating</span>
                     </label>
                   </div>
+                </div>
+
+                {/* Clear All Button */}
+                <div className="mt-6 pt-4 border-t">
+                  <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
+                    Clear All
+                  </Button>
                 </div>
               </div>
             </aside>

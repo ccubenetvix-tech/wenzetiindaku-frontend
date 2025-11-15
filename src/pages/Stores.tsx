@@ -25,8 +25,7 @@ import {
   Store,           // Store icon for store avatars
   Star,            // Star icon for ratings
   MapPin,          // Map pin icon for location
-  Search,          // Search icon for search input
-  Filter           // Filter icon for filter button
+  Search           // Search icon for search input
 } from "lucide-react";
 
 // Import UI components
@@ -162,12 +161,7 @@ export default function Stores() {
           {/* Search Section */}
           <section className="py-6 border-b border-muted">
             <div className="container mx-auto px-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-end">
                 <div className="relative w-full sm:w-80">
                   <Input
                     type="text"

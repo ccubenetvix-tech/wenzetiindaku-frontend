@@ -251,7 +251,7 @@ export const ProductCard = memo(function ProductCard({
             )}
           </Button>
 
-          {/* Add to Cart Button - Professional overlay */}
+          {/* Add to Cart / View Product Button - Professional overlay */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className={`${compact ? 'p-2' : 'p-3'}`}> 
             <Button
@@ -263,8 +263,8 @@ export const ProductCard = memo(function ProductCard({
                   ? 'bg-orange-500 hover:bg-orange-600 text-white'
                   : 'bg-navy-600 hover:bg-navy-700 text-white'
               }`}
-              onClick={handleAddToCart}
-              disabled={user?.role === 'vendor' || isCartLoading}
+              onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
+              disabled={isCartLoading}
             >
               {isCartLoading ? (
                 <>
@@ -273,13 +273,19 @@ export const ProductCard = memo(function ProductCard({
                 </>
               ) : (
                 <>
-                  <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
-                  {!isAuthenticated 
-                    ? 'Login to Add' 
-                    : user?.role === 'vendor'
-                    ? '.'
-                    : t('addToCart')
-                  }
+                  {user?.role === 'vendor' ? (
+                    <>
+                      <span className="text-xs">View Product</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
+                      {!isAuthenticated 
+                        ? 'Login to Add' 
+                        : t('addToCart')
+                      }
+                    </>
+                  )}
                 </>
               )}
             </Button>

@@ -420,12 +420,6 @@ const Store = () => {
                         </div>
                       )}
 
-                      {/* Load More Button */}
-                      <div className="text-center mt-6">
-                        <Button variant="outline" size="lg">
-                          Load More Products
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 </div>
