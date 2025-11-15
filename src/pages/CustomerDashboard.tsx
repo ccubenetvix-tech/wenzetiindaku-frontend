@@ -1724,10 +1724,10 @@ export default function CustomerDashboard() {
                 }
               }}
             >
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 {orderDetails ? (
-                  <div className="space-y-6">
-                    <DialogHeader>
+                  <>
+                    <DialogHeader className="flex-shrink-0">
                       <DialogTitle>
                         {t("customerDashboard.orderDetailsTitle", "Order {{id}}", {
                           id: orderDetails.id,
@@ -1744,120 +1744,121 @@ export default function CustomerDashboard() {
                       </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-5">
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                          {t("customerDashboard.orderProgress", "Order progress")}
-                        </h3>
-                        <div className="mt-3 space-y-3">
-                          {buildOrderTimeline(orderDetails.status).map((step) => (
-                            <div key={step.value} className="flex items-start gap-3">
-                              <div
-                                className={`mt-1 ${
-                                  step.completed ? "text-primary" : "text-muted-foreground"
-                                } ${step.isCurrent ? "scale-110" : ""}`}
-                              >
-                                {step.completed ? (
-                                  <CircleCheck className="h-4 w-4" />
-                                ) : (
-                                  <Clock3 className="h-4 w-4" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium">{step.label}</p>
-                                <p className="text-xs text-muted-foreground">{step.description}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="rounded-lg border p-4">
-                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            {t("customerDashboard.paymentMethod", "Payment method")}
-                          </h4>
-                          <p className="mt-2 text-sm font-medium text-foreground">
-                            {formatPaymentMethodLabel(orderDetails.paymentMethod)}
-                          </p>
-                          {orderDetails.paymentStatus && (
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {t("customerDashboard.paymentStatus", "Payment status")}: {formatStatus(orderDetails.paymentStatus)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="rounded-lg border p-4">
-                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            {t("customerDashboard.shippingAddress", "Shipping address")}
-                          </h4>
-                          <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                            {formatShippingAddressBlock(orderDetails.shippingAddress) ??
-                              t(
-                                "customerDashboard.noShippingAddress",
-                                "Shipping details will appear once provided.",
-                              )}
-                          </pre>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-4">
-                        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          {t("customerDashboard.items", "Items")}
-                        </h4>
-                        <div className="mt-3 space-y-3">
-                          {orderDetails.products.length > 0 ? (
-                            orderDetails.products.map((item) => {
-                              const quantity = toNumber(item.quantity ?? 0);
-                              const unitPrice = toNumber(item.price ?? 0);
-                              const lineTotal = unitPrice * quantity;
-                              return (
+                    <div className="space-y-6 overflow-y-auto flex-1 min-h-0 pr-2">
+                      <div className="space-y-5">
+                        <div>
+                          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("customerDashboard.orderProgress", "Order progress")}
+                          </h3>
+                          <div className="mt-3 space-y-3">
+                            {buildOrderTimeline(orderDetails.status).map((step) => (
+                              <div key={step.value} className="flex items-start gap-3">
                                 <div
-                                  key={item.id ?? item.product?.id ?? `${orderDetails.id}-${item.product?.name}`}
-                                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                                  className={`mt-1 ${
+                                    step.completed ? "text-primary" : "text-muted-foreground"
+                                  } ${step.isCurrent ? "scale-110" : ""}`}
                                 >
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      {item.product?.name ??
-                                        t("customerDashboard.unnamedProduct", "Product")}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {t("customerDashboard.quantityLabel", "Quantity")}: {quantity}
+                                  {step.completed ? (
+                                    <CircleCheck className="h-4 w-4" />
+                                  ) : (
+                                    <Clock3 className="h-4 w-4" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">{step.label}</p>
+                                  <p className="text-xs text-muted-foreground">{step.description}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="rounded-lg border p-4">
+                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              {t("customerDashboard.paymentMethod", "Payment method")}
+                            </h4>
+                            <p className="mt-2 text-sm font-medium text-foreground">
+                              {formatPaymentMethodLabel(orderDetails.paymentMethod)}
+                            </p>
+                            {orderDetails.paymentStatus && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {t("customerDashboard.paymentStatus", "Payment status")}: {formatStatus(orderDetails.paymentStatus)}
+                              </p>
+                            )}
+                          </div>
+                          <div className="rounded-lg border p-4">
+                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              {t("customerDashboard.shippingAddress", "Shipping address")}
+                            </h4>
+                            <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                              {formatShippingAddressBlock(orderDetails.shippingAddress) ??
+                                t(
+                                  "customerDashboard.noShippingAddress",
+                                  "Shipping details will appear once provided.",
+                                )}
+                            </pre>
+                          </div>
+                        </div>
+
+                        <div className="rounded-lg border p-4">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("customerDashboard.items", "Items")}
+                          </h4>
+                          <div className="mt-3 space-y-3">
+                            {orderDetails.products.length > 0 ? (
+                              orderDetails.products.map((item) => {
+                                const quantity = toNumber(item.quantity ?? 0);
+                                const unitPrice = toNumber(item.price ?? 0);
+                                const lineTotal = unitPrice * quantity;
+                                return (
+                                  <div
+                                    key={item.id ?? item.product?.id ?? `${orderDetails.id}-${item.product?.name}`}
+                                    className="flex items-center justify-between rounded-md border px-3 py-2"
+                                  >
+                                    <div>
+                                      <p className="text-sm font-medium">
+                                        {item.product?.name ??
+                                          t("customerDashboard.unnamedProduct", "Product")}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {t("customerDashboard.quantityLabel", "Quantity")}: {quantity}
+                                      </p>
+                                    </div>
+                                    <p className="text-sm font-semibold">
+                                      {formatCurrency(lineTotal)}
                                     </p>
                                   </div>
-                                  <p className="text-sm font-semibold">
-                                    {formatCurrency(lineTotal)}
-                                  </p>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              {t(
-                                "customerDashboard.noOrderItems",
-                                "No line items were returned for this order.",
-                              )}
-                            </p>
-                          )}
+                                );
+                              })
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                {t(
+                                  "customerDashboard.noOrderItems",
+                                  "No line items were returned for this order.",
+                                )}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
-
-                      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
-                        <Button variant="outline" onClick={handleCloseOrderDetails}>
-                          {t("customerDashboard.close", "Close")}
-                        </Button>
-                        {canCancelCurrentOrder && (
-                          <Button
-                            variant="destructive"
-                            onClick={handleCancelOrder}
-                            disabled={cancelLoading}
-                          >
-                            {cancelLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {t("customerDashboard.cancelOrder", "Cancel order")}
-                          </Button>
-                        )}
-                      </div>
                     </div>
-                  </div>
+                    <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end flex-shrink-0 border-t pt-4 mt-4">
+                      <Button variant="outline" onClick={handleCloseOrderDetails}>
+                        {t("customerDashboard.close", "Close")}
+                      </Button>
+                      {canCancelCurrentOrder && (
+                        <Button
+                          variant="destructive"
+                          onClick={handleCancelOrder}
+                          disabled={cancelLoading}
+                        >
+                          {cancelLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          {t("customerDashboard.cancelOrder", "Cancel order")}
+                        </Button>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <div className="py-6 text-center text-sm text-muted-foreground">
                     {t("customerDashboard.noOrderSelected", "Select an order to view details.")}
@@ -1868,7 +1869,7 @@ export default function CustomerDashboard() {
 
             {/* Cancellation Reason Dialog */}
             <Dialog open={cancelReasonDialogOpen} onOpenChange={setCancelReasonDialogOpen}>
-              <DialogContent>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
                     {t("customerDashboard.cancelOrderTitle", "Cancel Order")}
