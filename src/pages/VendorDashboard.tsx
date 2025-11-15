@@ -105,9 +105,9 @@ interface Product {
   image?: string;
   images?: string[];
   price: number;
-  sales: number;
-  revenue: number;
-  rating: number;
+  sales?: number;
+  revenue?: number;
+  rating?: number;
   stock: number;
   category?: string;
   status?: string;
@@ -956,12 +956,11 @@ export default function VendorDashboard() {
 
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-6">
+            <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-5">
               <TabsTrigger value="overview" className="min-w-[140px] sm:min-w-0">Overview</TabsTrigger>
               <TabsTrigger value="products" className="min-w-[140px] sm:min-w-0">Products</TabsTrigger>
               <TabsTrigger value="orders" className="min-w-[140px] sm:min-w-0">Orders</TabsTrigger>
               <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">Reviews</TabsTrigger>
-              <TabsTrigger value="customers" className="min-w-[140px] sm:min-w-0">Customers</TabsTrigger>
               <TabsTrigger value="settings" className="min-w-[140px] sm:min-w-0">Settings</TabsTrigger>
             </TabsList>
 
@@ -1018,24 +1017,50 @@ export default function VendorDashboard() {
                       {!topProducts || topProducts.length === 0 ? (
                         <p className="text-center text-muted-foreground py-4">No products yet</p>
                       ) : (
-                        topProducts.map((product) => (
-                          <div key={product.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                            <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                              <Package className="h-6 w-6 text-gray-400" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium">{product.name}</p>
-                              <p className="text-sm text-gray-500">{product.sales} sales</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold">${product.revenue.toFixed(2)}</p>
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                <span className="text-sm ml-1">{product.rating}</span>
+                        topProducts.map((product) => {
+                          // Get product image - support both images array and image single value
+                          const productImage = (product.images && product.images.length > 0) 
+                            ? product.images[0] 
+                            : product.image || null;
+                          
+                          return (
+                            <div key={product.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {productImage ? (
+                                  <img 
+                                    src={productImage} 
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      const fallback = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;
+                                      if (fallback) fallback.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                {!productImage && (
+                                  <Package className="h-6 w-6 text-gray-400" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{product.name || 'Unnamed Product'}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
+                                </p>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <div className="flex items-center justify-end">
+                                  <Star className={`h-4 w-4 ${product.rating > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                                  <span className="text-sm ml-1">
+                                    {typeof product.rating === 'number' && product.rating > 0 
+                                      ? product.rating.toFixed(1) 
+                                      : '0.0'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </CardContent>
@@ -1149,6 +1174,7 @@ export default function VendorDashboard() {
                             <TableHead>Category</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead>Stock</TableHead>
+                            <TableHead>Rating</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Actions</TableHead>
                           </TableRow>
@@ -1156,7 +1182,7 @@ export default function VendorDashboard() {
                         <TableBody>
                           {!products || products.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                                 No products found
                               </TableCell>
                             </TableRow>
@@ -1185,6 +1211,16 @@ export default function VendorDashboard() {
                                 <TableCell>{product.category}</TableCell>
                                 <TableCell>${product.price}</TableCell>
                                 <TableCell>{product.stock}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center">
+                                    <Star className={`h-4 w-4 mr-1 ${product.rating > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                                    <span className="text-sm">
+                                      {typeof product.rating === 'number' && product.rating > 0 
+                                        ? product.rating.toFixed(1) 
+                                        : '0.0'}
+                                    </span>
+                                  </div>
+                                </TableCell>
                                 <TableCell>
                                   <Badge className={getStatusColor(product.status || 'Active')}>
                                     {product.status || 'Active'}
@@ -1266,11 +1302,12 @@ export default function VendorDashboard() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>{t("customerDashboard.orderId", "Order ID")}</TableHead>
-                            <TableHead>{t("customerDashboard.date", "Date")}</TableHead>
-                            <TableHead>{t("customerDashboard.status", "Status")}</TableHead>
-                            <TableHead>{t("customerDashboard.items", "Items")}</TableHead>
-                            <TableHead>{t("customerDashboard.total", "Total")}</TableHead>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Items</TableHead>
+                            <TableHead>Total</TableHead>
                             <TableHead>Payment Status</TableHead>
                             <TableHead>Actions</TableHead>
                           </TableRow>
@@ -1278,7 +1315,7 @@ export default function VendorDashboard() {
                         <TableBody>
                           {!orders || orders.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                              <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                                 No orders found
                               </TableCell>
                             </TableRow>
@@ -1456,24 +1493,11 @@ export default function VendorDashboard() {
               </Dialog>
             </TabsContent>
 
-            {/* Customers Tab */}
+            {/* Reviews Tab */}
             <TabsContent value="reviews" className="space-y-6">
               <VendorReviewsSection />
             </TabsContent>
 
-            <TabsContent value="customers" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customer Overview</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Customer management features coming soon</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">

@@ -29,7 +29,7 @@ import { apiClient } from "@/utils/api";
 const VendorRegister = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signup, verifyOTP, resendOTP, isLoading } = useAuth();
+  const { signup, verifyOTP, resendOTP, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     businessName: "",
@@ -57,6 +57,19 @@ const VendorRegister = () => {
     state: "idle" | "checking" | "available" | "blocked";
     message: string;
   }>({ state: "idle", message: "" });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'vendor') {
+        navigate('/vendor/dashboard', { replace: true });
+      } else if (user.role === 'customer') {
+        navigate('/customer/profile', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const businessTypes = [
     "Individual/Sole Proprietor",

@@ -36,7 +36,7 @@ import { Footer } from '@/components/Footer';
 const VendorProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
@@ -91,6 +91,12 @@ const VendorProfile = () => {
   ];
 
   useEffect(() => {
+    // Wait for auth to load before checking
+    if (authLoading) {
+      return;
+    }
+    
+    // Only redirect if user is definitely not authenticated
     if (!user || user.role !== 'vendor') {
       navigate('/vendor/login');
       return;
@@ -115,57 +121,39 @@ const VendorProfile = () => {
       newPassword: '',
       confirmPassword: ''
     });
-  }, [user, navigate]);
+    setProfileImagePreview(user.profilePhoto || '');
+  }, [user, navigate, authLoading]);
 
-  // Handle profile image upload
+  // Handle profile image upload - only shows preview, uploads when Save is clicked
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please select an image file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setProfileImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  // Upload profile photo to Supabase
-  const handleProfilePhotoUpload = async () => {
-    if (!profileImage) return;
-
-    setIsLoading(true);
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
-        const response = await apiClient.uploadVendorProfilePhoto(base64, profileImage.name);
-        
-        if (response.success && response.data) {
-          setFormData(prev => ({ ...prev, profilePhoto: response.data!.url }));
-          updateUser({ ...user, profilePhoto: response.data!.url });
-          toast({
-            title: "Success",
-            description: "Profile photo updated successfully!",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to upload profile photo",
-            variant: "destructive",
-          });
-        }
-      };
-      reader.readAsDataURL(profileImage);
-    } catch (error) {
-      console.error('Profile photo upload error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload profile photo",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -205,14 +193,17 @@ const VendorProfile = () => {
       if (formData.newPassword || formData.confirmPassword) {
         if (!formData.currentPassword) {
           setError('Current password is required to change password.');
+          setIsLoading(false);
           return;
         }
         if (formData.newPassword !== formData.confirmPassword) {
           setError('New passwords do not match.');
+          setIsLoading(false);
           return;
         }
         if (formData.newPassword.length < 8) {
           setError('New password must be at least 8 characters long.');
+          setIsLoading(false);
           return;
         }
       }
@@ -223,7 +214,59 @@ const VendorProfile = () => {
           !formData.country || !formData.postalCode || !formData.businessType || 
           !formData.description || formData.categories.length === 0) {
         setError('All fields are required.');
+        setIsLoading(false);
         return;
+      }
+
+      // Upload profile photo first if a new image was selected
+      let profilePhotoUrl = formData.profilePhoto;
+      if (profileImage) {
+        try {
+          const reader = new FileReader();
+          const base64 = await new Promise<string>((resolve, reject) => {
+            reader.onload = (e) => {
+              const result = e.target?.result;
+              if (typeof result === 'string') {
+                resolve(result);
+              } else {
+                reject(new Error('Failed to read file'));
+              }
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(profileImage);
+          });
+
+          const uploadResponse = await apiClient.uploadVendorProfilePhoto(base64, profileImage.name) as {
+            success?: boolean;
+            data?: { url?: string };
+            error?: { message?: string };
+          };
+          
+          if (uploadResponse.success && uploadResponse.data?.url) {
+            profilePhotoUrl = uploadResponse.data.url;
+          } else {
+            const errorMsg = uploadResponse.error?.message || 'Failed to upload profile photo. Please try again.';
+            setError(errorMsg);
+            toast({
+              title: "Upload Failed",
+              description: errorMsg,
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+        } catch (uploadError: any) {
+          console.error('Profile photo upload error:', uploadError);
+          const errorMsg = uploadError?.message || 'Failed to upload profile photo. Please try again.';
+          setError(errorMsg);
+          toast({
+            title: "Upload Failed",
+            description: errorMsg,
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
       }
 
       const updateData: any = {
@@ -237,7 +280,8 @@ const VendorProfile = () => {
         postalCode: formData.postalCode,
         businessType: formData.businessType,
         description: formData.description,
-        categories: formData.categories
+        categories: formData.categories,
+        profilePhoto: profilePhotoUrl
       };
 
       // Add password change if provided
@@ -246,22 +290,21 @@ const VendorProfile = () => {
         updateData.newPassword = formData.newPassword;
       }
 
-      const response = await fetch('/api/vendor/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await apiClient.updateVendorProfile(updateData) as {
+        success?: boolean;
+        message?: string;
+        data?: { vendor?: any };
+        error?: { message?: string };
+      };
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         toast({
           title: "Profile Updated",
-          description: data.message,
+          description: response.message || "Your profile has been updated successfully.",
         });
+
+        // Use profile photo from response or the uploaded URL
+        const updatedProfilePhoto = response.data?.vendor?.profilePhoto || profilePhotoUrl || formData.profilePhoto;
 
         // Update user context
         updateUser({
@@ -276,21 +319,29 @@ const VendorProfile = () => {
           postalCode: formData.postalCode,
           businessType: formData.businessType,
           description: formData.description,
-          categories: formData.categories
+          categories: formData.categories,
+          profilePhoto: updatedProfilePhoto
         });
 
-        setIsEditing(false);
+        // Clear image preview and file since it's now saved
+        setProfileImage(null);
+        setProfileImagePreview(updatedProfilePhoto);
+        
+        // Update formData with new profile photo
         setFormData(prev => ({
           ...prev,
+          profilePhoto: updatedProfilePhoto,
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
         }));
+
+        setIsEditing(false);
       } else {
-        setError(data.error?.message || 'Failed to update profile');
+        setError(response.error?.message || 'Failed to update profile');
         toast({
           title: "Update Failed",
-          description: data.error?.message || "Failed to update profile",
+          description: response.error?.message || "Failed to update profile",
           variant: "destructive",
         });
       }
@@ -401,30 +452,24 @@ const VendorProfile = () => {
                       <Store className="h-10 w-10 text-orange-600 dark:text-orange-400" />
                     </div>
                   )}
-                  <div 
-                    className="absolute bottom-0 right-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 transition-colors"
-                    onClick={() => document.getElementById('profile-photo-upload')?.click()}
-                  >
-                    <Camera className="h-3 w-3 text-white" />
-                  </div>
-                  <input
-                    id="profile-photo-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+                  {isEditing && (
+                    <>
+                      <div 
+                        className="absolute bottom-0 right-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 transition-colors"
+                        onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                      >
+                        <Camera className="h-3 w-3 text-white" />
+                      </div>
+                      <input
+                        id="profile-photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </>
+                  )}
                 </div>
-                {profileImage && (
-                  <Button
-                    onClick={handleProfilePhotoUpload}
-                    disabled={isLoading}
-                    size="sm"
-                    className="mb-2"
-                  >
-                    {isLoading ? "Uploading..." : "Upload Photo"}
-                  </Button>
-                )}
                 <CardTitle className="text-lg">{formData.businessName}</CardTitle>
                 <CardDescription>{formData.businessEmail}</CardDescription>
               </CardHeader>

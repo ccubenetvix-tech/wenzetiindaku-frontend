@@ -35,7 +35,7 @@ import { apiClient } from '@/utils/api';
 const CustomerProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, isLoading: authLoading } = useAuth();
   
   // Debug logging
   console.log('User data in CustomerProfile:', {
@@ -88,7 +88,13 @@ const CustomerProfile = () => {
   });
 
   useEffect(() => {
-    if (!user) {
+    // Wait for auth to load before checking
+    if (authLoading) {
+      return;
+    }
+    
+    // Only redirect if user is definitely not authenticated
+    if (!user || user.role !== 'customer') {
       navigate('/customer/login');
       return;
     }

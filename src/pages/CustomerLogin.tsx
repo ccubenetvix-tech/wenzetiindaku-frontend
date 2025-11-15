@@ -14,7 +14,7 @@ const CustomerLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { login, googleLogin, isLoading } = useAuth();
+  const { login, googleLogin, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
@@ -22,6 +22,19 @@ const CustomerLogin = () => {
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'customer') {
+        navigate('/customer/profile', { replace: true });
+      } else if (user.role === 'vendor') {
+        navigate('/vendor/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     const error = searchParams.get("error");

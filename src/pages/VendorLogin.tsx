@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 const VendorLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
@@ -21,6 +21,19 @@ const VendorLogin = () => {
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'vendor') {
+        navigate('/vendor/dashboard', { replace: true });
+      } else if (user.role === 'customer') {
+        navigate('/customer/profile', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

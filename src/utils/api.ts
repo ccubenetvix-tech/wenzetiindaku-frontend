@@ -559,6 +559,48 @@ export class ApiClient {
     });
   }
 
+  // Admin Order Management Methods
+  async getAdminOrders(page = 1, limit = 20, status = '', search = '', dateFrom = '', dateTo = '') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (status) params.append('status', status);
+    if (search) params.append('search', search);
+    if (dateFrom) params.append('dateFrom', dateFrom);
+    if (dateTo) params.append('dateTo', dateTo);
+    
+    return this.request(`/admin/orders?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  async getAdminOrderDetails(orderId: string) {
+    return this.request(`/admin/orders/${orderId}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateAdminOrderStatus(orderId: string, status: string, notes?: string) {
+    return this.request(`/admin/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    });
+  }
+
+  async updateAdminOrderPaymentStatus(orderId: string, paymentStatus: string) {
+    return this.request(`/admin/orders/${orderId}/payment-status`, {
+      method: 'PUT',
+      body: JSON.stringify({ paymentStatus }),
+    });
+  }
+
+  async getAdminOrderStats() {
+    return this.request(`/admin/orders/stats`, {
+      method: 'GET',
+    });
+  }
+
   // Public vendor methods
   async getAllVendors() {
     return this.request('/products/vendors');

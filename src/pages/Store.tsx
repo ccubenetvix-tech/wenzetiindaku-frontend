@@ -121,7 +121,8 @@ const Store = () => {
             totalProducts: 0, // Will be updated when products are loaded
             joinedDate: new Date(vendor.createdAt).getFullYear().toString(),
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            banner: "/marketplace.jpeg"
+            banner: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
+            profilePhoto: vendor.profile_photo || vendor.profilePhoto || null
           };
           
           setStore(storeData);
@@ -215,6 +216,35 @@ const Store = () => {
             contentVisibilityClass
           )}
         >
+          {/* Store Hero Section with Banner */}
+          {store && (
+            <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 overflow-hidden">
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: store.banner ? `url(${store.banner})` : 'url(/marketplace.jpeg)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+              </div>
+              <div className="relative h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
+                <div className="text-white">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-2 drop-shadow-lg">
+                    {store.name}
+                  </h1>
+                  {store.location && (
+                    <div className="flex items-center gap-2 text-white/90">
+                      <MapPin className="h-5 w-5" />
+                      <span className="text-lg">{store.location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="max-w-7xl mx-auto px-4 py-2 flex-1">
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Store Info Sidebar - Left column */}

@@ -41,6 +41,8 @@ export default function Chat() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isInitialConnection, setIsInitialConnection] = useState(true);
+  const [connectionTimeout, setConnectionTimeout] = useState(false);
+  const [isWebSocketAvailable, setIsWebSocketAvailable] = useState(true); // Assume available until proven otherwise
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -51,6 +53,9 @@ export default function Chat() {
   const selectedConversation = conversations.find(
     (conv) => conv.id === selectedConversationId
   );
+
+  // Get auth loading state - must be before any early returns
+  const { isLoading: authLoading } = useAuth();
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -69,11 +74,13 @@ export default function Chat() {
       // WebSocket not available (serverless platform) - use REST API only
       setIsConnected(false); // Mark as not connected so we use REST API
       setIsInitialConnection(false); // Don't show loading screen
+      setIsWebSocketAvailable(false); // Mark WebSocket as unavailable
       socketRef.current = null; // Ensure socket ref is null
       return;
     }
 
     socketRef.current = socket;
+    setIsWebSocketAvailable(true); // Mark WebSocket as available
 
     // Connection events
     socket.on('connect', () => {
@@ -625,7 +632,41 @@ export default function Chat() {
         socketRef.current.emit('leave_conversation', { conversationId: selectedConversationId });
       }
     };
-  }, []);
+  }, [selectedConversationId]);
+
+  // Show connection timeout after 15 seconds - MUST BE BEFORE EARLY RETURNS
+  // Only track timeout when WebSocket is available (not in REST-only mode)
+  useEffect(() => {
+    // If WebSocket is not available (REST API only), don't track timeout
+    if (!isWebSocketAvailable) {
+      setConnectionTimeout(false);
+      return;
+    }
+    
+    if (isInitialConnection && !isConnected && isWebSocketAvailable) {
+      // Only track timeout if WebSocket is available
+      const timeout = setTimeout(() => {
+        setConnectionTimeout(true);
+      }, 15000); // 15 seconds
+      return () => clearTimeout(timeout);
+    } else {
+      setConnectionTimeout(false);
+    }
+  }, [isInitialConnection, isConnected, isWebSocketAvailable]);
+
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) {
     return (
@@ -653,24 +694,12 @@ export default function Chat() {
     );
   }
 
-  // Show connection timeout after 15 seconds
-  const [connectionTimeout, setConnectionTimeout] = useState(false);
-  
-  useEffect(() => {
-    if (isInitialConnection && !isConnected) {
-      const timeout = setTimeout(() => {
-        setConnectionTimeout(true);
-      }, 15000); // 15 seconds
-      return () => clearTimeout(timeout);
-    } else {
-      setConnectionTimeout(false);
-    }
-  }, [isInitialConnection, isConnected]);
-
   // Don't show loading screen if WebSocket is disabled (serverless platform)
-  const shouldShowLoading = isInitialConnection && isConnected === undefined && token;
+  // Only show loading if WebSocket is available and we're in initial connection state
+  const shouldShowLoading = isInitialConnection && !isConnected && isWebSocketAvailable && token;
   
-  if (shouldShowLoading || (connectionTimeout && !isConnected && token)) {
+  // Only show timeout if WebSocket is available and we're actually trying to connect
+  if (shouldShowLoading || (connectionTimeout && !isConnected && isWebSocketAvailable && token)) {
     return (
       <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-950 overflow-hidden">
         {/* Minimal Professional Header */}

@@ -43,6 +43,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -530,6 +531,7 @@ export default function CustomerDashboard() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelReasonDialogOpen, setCancelReasonDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [cancelReasonOther, setCancelReasonOther] = useState("");
 
   const pageTitle = t("customerDashboard.title", "My Account");
   const pageSubtitle = t(
@@ -1041,10 +1043,27 @@ export default function CustomerDashboard() {
       return;
     }
 
+    // If other reason selected, require additional details
+    if (cancelReason === 'other' && !cancelReasonOther.trim()) {
+      toast({
+        title: t("customerDashboard.detailsRequired", "Details required"),
+        description: t(
+          "customerDashboard.detailsRequiredDescription",
+          "Please provide additional details for your cancellation reason.",
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setCancelLoading(true);
       setCancelReasonDialogOpen(false);
-      const response = (await apiClient.cancelCustomerOrder(orderDetails.id, cancelReason.trim())) as {
+      
+      // Use other reason if selected, otherwise use predefined reason
+      const finalReason = cancelReason === 'other' ? cancelReasonOther.trim() : cancelReason.trim();
+      
+      const response = (await apiClient.cancelCustomerOrder(orderDetails.id, finalReason)) as {
         success?: boolean;
         message?: string;
         error?: { message?: string } | null;
@@ -1070,6 +1089,7 @@ export default function CustomerDashboard() {
         ),
       });
       setCancelReason("");
+      setCancelReasonOther("");
     } catch (error) {
       const message =
         error instanceof Error
@@ -1883,29 +1903,55 @@ export default function CustomerDashboard() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div>
-                    <label className="text-sm font-medium">
-                      {t("customerDashboard.cancellationReason", "Cancellation Reason")}
+                    <label className="text-sm font-medium mb-2 block">
+                      {t("customerDashboard.selectReason", "Select a reason")}
                     </label>
-                    <Textarea
+                    <Select
                       value={cancelReason}
-                      onChange={(e) => setCancelReason(e.target.value)}
-                      placeholder={t(
-                        "customerDashboard.cancellationReasonPlaceholder",
-                        "e.g., Changed my mind, Found a better price, No longer needed...",
-                      )}
-                      className="mt-2 min-h-[100px]"
-                      maxLength={500}
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {cancelReason.length}/500
-                    </p>
+                      onValueChange={setCancelReason}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t("customerDashboard.selectReasonPlaceholder", "Choose a cancellation reason")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="changed_mind">{t("customerDashboard.reason.changedMind", "Changed my mind")}</SelectItem>
+                        <SelectItem value="found_better_price">{t("customerDashboard.reason.betterPrice", "Found a better price elsewhere")}</SelectItem>
+                        <SelectItem value="no_longer_needed">{t("customerDashboard.reason.notNeeded", "No longer needed")}</SelectItem>
+                        <SelectItem value="wrong_item">{t("customerDashboard.reason.wrongItem", "Ordered wrong item")}</SelectItem>
+                        <SelectItem value="shipping_delay">{t("customerDashboard.reason.shippingDelay", "Shipping takes too long")}</SelectItem>
+                        <SelectItem value="duplicate_order">{t("customerDashboard.reason.duplicate", "Duplicate order")}</SelectItem>
+                        <SelectItem value="payment_issue">{t("customerDashboard.reason.payment", "Payment issue")}</SelectItem>
+                        <SelectItem value="other">{t("customerDashboard.reason.other", "Other reason")}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                  {cancelReason === 'other' && (
+                    <div>
+                      <label className="text-sm font-medium">
+                        {t("customerDashboard.additionalDetails", "Additional Details")}
+                      </label>
+                      <Textarea
+                        value={cancelReasonOther}
+                        onChange={(e) => setCancelReasonOther(e.target.value)}
+                        placeholder={t(
+                          "customerDashboard.cancellationReasonPlaceholder",
+                          "Please provide more details...",
+                        )}
+                        className="mt-2 min-h-[100px]"
+                        maxLength={500}
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {cancelReasonOther.length}/500
+                      </p>
+                    </div>
+                  )}
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
                       onClick={() => {
                         setCancelReasonDialogOpen(false);
                         setCancelReason("");
+                        setCancelReasonOther("");
                       }}
                     >
                       {t("customerDashboard.cancel", "Cancel")}
@@ -1913,7 +1959,7 @@ export default function CustomerDashboard() {
                     <Button
                       variant="destructive"
                       onClick={handleConfirmCancel}
-                      disabled={!cancelReason.trim() || cancelLoading}
+                      disabled={!cancelReason.trim() || (cancelReason === 'other' && !cancelReasonOther.trim()) || cancelLoading}
                     >
                       {cancelLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {t("customerDashboard.confirmCancellation", "Confirm Cancellation")}

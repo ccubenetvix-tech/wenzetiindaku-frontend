@@ -14,7 +14,7 @@ import { apiClient } from "@/utils/api";
 const CustomerSignup = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signup, verifyOTP, resendOTP, googleLogin, isLoading } = useAuth();
+  const { signup, verifyOTP, resendOTP, googleLogin, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -33,6 +33,19 @@ const CustomerSignup = () => {
     state: "idle" | "checking" | "available" | "blocked";
     message: string;
   }>({ state: "idle", message: "" });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'customer') {
+        navigate('/customer/profile', { replace: true });
+      } else if (user.role === 'vendor') {
+        navigate('/vendor/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     const email = formData.email.trim();
