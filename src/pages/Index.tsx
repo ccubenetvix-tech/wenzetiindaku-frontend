@@ -46,7 +46,7 @@ const Index = () => {
   // Load featured stores
   useEffect(() => {
     const loadStores = async () => {
-      try {
+          try {
         const response = await apiClient.getAllVendors() as any;
         if (response.success) {
           // Transform vendor data to store format and take first 3 as featured
@@ -58,7 +58,8 @@ const Index = () => {
             reviewCount: 0, // Default review count
             productCount: 0, // Will be updated when products are loaded
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            image: "/marketplace.jpeg", // Default image
+            // Use vendor profile photo where available so the same image appears across the site
+            image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
             categories: vendor.categories || [],
             featured: vendor.featured || false,
             verified: vendor.verified || false,
@@ -402,19 +403,28 @@ const Index = () => {
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="relative bg-white dark:bg-navy-900 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50 transform hover:-translate-y-1.5">
-                      {/* Gradient Header */}
-                      <div className="relative h-32 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
-                        {/* Animated Background Pattern */}
-                        <div className="absolute inset-0 opacity-10">
-                          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_white_2px,_transparent_0)] bg-[size:40px_40px]"></div>
-                        </div>
+                      {/* Header with store banner image - fixed height, clean fill */}
+                      <div className="relative h-32 overflow-visible bg-navy-800">
+                        {/* Store banner image (fills header, may crop slightly for perfect edge-to-edge look) */}
+                        {store.image && (
+                          <img
+                            src={store.image}
+                            alt={store.name}
+                            className="absolute inset-0 w-full h-full object-contain object-center"
+                            loading="lazy"
+                          />
+                        )}
+                        {/* Subtle dark overlay for text contrast */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
                         
-                        {/* Store Avatar with Badge */}
+                        {/* Store Avatar with Badge - keep initial letter in circle */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                           <div className="relative">
                             <div className="w-16 h-16 bg-white dark:bg-navy-900 rounded-full p-1.5 shadow-xl ring-2 ring-white/30">
                               <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
-                                <span className="text-xl font-bold text-white">{store.name[0]}</span>
+                                <span className="text-xl font-bold text-white">
+                                  {store.name[0]}
+                                </span>
                               </div>
                             </div>
                             
@@ -515,14 +525,25 @@ const Index = () => {
                     onClick={() => navigate(`/store/${store.id}`)}
                   >
                     <div className="relative bg-white dark:bg-navy-900 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50">
-                      {/* Compact Gradient Header */}
-                      <div className="relative h-20 bg-gradient-to-r from-navy-600 via-navy-500 to-orange-500 overflow-visible">
+                      {/* Compact header with store banner image - fixed height, edge-to-edge */}
+                      <div className="relative h-20 overflow-visible bg-navy-800">
+                        {store.image && (
+                          <img
+                            src={store.image}
+                            alt={store.name}
+                            className="absolute inset-0 w-full h-full object-contain object-center"
+                            loading="lazy"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
                         {/* Store Avatar */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                           <div className="relative">
                             <div className="w-12 h-12 bg-white dark:bg-navy-900 rounded-full p-1 shadow-lg ring-2 ring-white/30">
                               <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-bold text-white">{store.name[0]}</span>
+                                <span className="text-sm font-bold text-white">
+                                  {store.name[0]}
+                                </span>
                               </div>
                             </div>
                             {store.verified && (

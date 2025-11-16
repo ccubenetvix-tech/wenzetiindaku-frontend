@@ -218,17 +218,16 @@ const Store = () => {
         >
           {/* Store Hero Section with Banner */}
           {store && (
-            <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 overflow-hidden">
-              <div 
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage: store.banner ? `url(${store.banner})` : 'url(/marketplace.jpeg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
-              </div>
+            <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 overflow-hidden bg-black/5">
+              {/* Store banner image - use object-contain so full photo is visible */}
+              <img
+                src={store.banner || "/marketplace.jpeg"}
+                alt={store.name}
+                className="absolute inset-0 w-full h-full object-contain object-center"
+                loading="lazy"
+              />
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
               <div className="relative h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
                 <div className="text-white">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-2 drop-shadow-lg">

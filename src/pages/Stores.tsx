@@ -89,7 +89,8 @@ export default function Stores() {
             reviewCount: 0, // Default review count
             productCount: 0, // Will be updated when products are loaded
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            image: "/marketplace.jpeg", // Default image
+            // Use vendor profile photo where available, fall back to default
+            image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
             categories: vendor.categories || [],
             featured: vendor.featured || false,
             verified: vendor.verified || false,
@@ -183,8 +184,18 @@ export default function Stores() {
                 {filteredStores.map((store) => (
                   <div key={store.id} className="card card-hover p-6">
                     <div className="flex items-start gap-4 mb-6">
-                      <div className="w-20 h-20 bg-gradient-to-br from-navy-100 to-orange-100 dark:from-navy-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Store className="h-10 w-10 text-navy-600 dark:text-navy-400" />
+                      {/* Store avatar with uploaded image */}
+                      <div className="w-20 h-20 rounded-full flex-shrink-0 overflow-hidden border-2 border-navy-100 dark:border-navy-800 bg-gradient-to-br from-navy-100 to-orange-100 dark:from-navy-900/20 dark:to-orange-900/20 flex items-center justify-center">
+                        {store.image ? (
+                          <img
+                            src={store.image}
+                            alt={store.name}
+                            className="w-full h-full object-cover object-center"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Store className="h-10 w-10 text-navy-600 dark:text-navy-400" />
+                        )}
                       </div>
 
                       <div className="flex-1 min-w-0">
