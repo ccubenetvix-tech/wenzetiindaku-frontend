@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from '../utils/api';
@@ -128,6 +128,8 @@ function VendorReviewsSection() {
   const navigate = useNavigate();
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewSearch, setReviewSearch] = useState('');
+  const [reviewRatingFilter, setReviewRatingFilter] = useState<'all' | '5' | '4' | '3' | '2' | '1'>('all');
 
   useEffect(() => {
     const loadReviews = async () => {
@@ -153,6 +155,35 @@ function VendorReviewsSection() {
     };
     loadReviews();
   }, [toast]);
+
+  const filteredReviews = useMemo(() => {
+    const query = reviewSearch.toLowerCase();
+
+    return reviews.filter((review) => {
+      const customer = review.customer || {};
+      const product = review.product || {};
+      const customerName = customer.first_name && customer.last_name
+        ? `${customer.first_name} ${customer.last_name}`
+        : customer.first_name || customer.email || '';
+      const productName = product.name || '';
+      const comment = review.review || review.comment || '';
+
+      const matchesSearch =
+        !query ||
+        customerName.toLowerCase().includes(query) ||
+        productName.toLowerCase().includes(query) ||
+        comment.toLowerCase().includes(query);
+
+      if (!matchesSearch) return false;
+
+      if (reviewRatingFilter === 'all') return true;
+
+      const rating = Number(review.rating ?? 0);
+      const minRating = Number(reviewRatingFilter);
+
+      return Number.isFinite(rating) && rating >= minRating;
+    });
+  }, [reviews, reviewSearch, reviewRatingFilter]);
 
   if (loading) {
     return (
@@ -188,12 +219,49 @@ function VendorReviewsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Product Reviews</CardTitle>
-        <CardDescription>Customer reviews for your products</CardDescription>
+        <div className="space-y-3">
+          <div>
+            <CardTitle>Product Reviews</CardTitle>
+            <CardDescription>Customer reviews for your products</CardDescription>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search reviews by product, customer, or text..."
+                value={reviewSearch}
+                onChange={(e) => setReviewSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select
+              value={reviewRatingFilter}
+              onValueChange={(value) =>
+                setReviewRatingFilter(value as 'all' | '5' | '4' | '3' | '2' | '1')
+              }
+            >
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="Filter by rating" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ratings</SelectItem>
+                <SelectItem value="5">5★ and above</SelectItem>
+                <SelectItem value="4">4★ and above</SelectItem>
+                <SelectItem value="3">3★ and above</SelectItem>
+                <SelectItem value="2">2★ and above</SelectItem>
+                <SelectItem value="1">1★ and above</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {reviews.map((review) => {
+          {filteredReviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No reviews match your search.
+            </p>
+          ) : filteredReviews.map((review) => {
             const customer = review.customer || {};
             const product = review.product || {};
             // Use product_id from review if product.id is not available
@@ -313,6 +381,7 @@ export default function VendorDashboard() {
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  const [ordersSearch, setOrdersSearch] = useState('');
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -447,7 +516,7 @@ export default function VendorDashboard() {
         });
 
         setOrders(mappedOrders);
-        setOrdersTotal(data.data.pagination.total);
+        setOrdersTotal(data.data?.pagination?.total ?? mappedOrders.length);
         setOrdersPage(page);
       } else {
         toast({
@@ -467,6 +536,18 @@ export default function VendorDashboard() {
       setOrdersLoading(false);
     }
   }, [toast]);
+
+  const filteredOrders = useMemo(() => {
+    if (!ordersSearch) return orders;
+    const query = ordersSearch.toLowerCase();
+    return orders.filter((order) => {
+      return (
+        order.id.toLowerCase().includes(query) ||
+        order.customer.toLowerCase().includes(query) ||
+        order.statusLabel.toLowerCase().includes(query)
+      );
+    });
+  }, [orders, ordersSearch]);
 
   const formatVendorStatusLabel = (status: string) => {
     const value = (status || "").toLowerCase();
@@ -1256,27 +1337,40 @@ export default function VendorDashboard() {
             <TabsContent value="orders" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Order Management</CardTitle>
-                    <div className="flex items-center space-x-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
-                          fetchOrders(ordersPage, statusFilter);
-                        }}
-                        disabled={ordersLoading}
-                      >
-                        {ordersLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-4 w-4" />
-                        )}
-                        <span className="ml-2">Refresh</span>
-                      </Button>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Order Management</CardTitle>
+                      <div className="flex items-center space-x-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
+                            fetchOrders(ordersPage, statusFilter);
+                          }}
+                          disabled={ordersLoading}
+                        >
+                          {ordersLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                          <span className="ml-2">Refresh</span>
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search orders by ID, customer or status..."
+                          value={ordersSearch}
+                          onChange={(e) => setOrdersSearch(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
                       <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
-                        <SelectTrigger className="w-40">
+                        <SelectTrigger className="w-full sm:w-40">
                           <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1313,14 +1407,14 @@ export default function VendorDashboard() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {!orders || orders.length === 0 ? (
+                          {!filteredOrders || filteredOrders.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                                 No orders found
                               </TableCell>
                             </TableRow>
                           ) : (
-                            orders.map((order) => (
+                            filteredOrders.map((order) => (
                               <TableRow key={order.id}>
                                 <TableCell className="font-medium">{order.id}</TableCell>
                                 <TableCell>{order.customer}</TableCell>

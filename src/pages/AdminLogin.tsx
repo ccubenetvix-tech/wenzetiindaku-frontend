@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getApiBaseUrl } from '@/utils/api';
+import { apiClient } from '@/utils/api';
 
 const AdminLogin = () => {
   const { t } = useTranslation();
@@ -38,17 +38,7 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      // Use the same API base URL function as the rest of the app
-      const API_URL = import.meta.env.DEV ? '/api' : getApiBaseUrl();
-      const response = await fetch(`${API_URL}/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
+      const data: any = await apiClient.adminLogin(formData.email, formData.password);
 
       if (data.success) {
         // Store admin token

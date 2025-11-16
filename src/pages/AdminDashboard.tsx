@@ -1465,19 +1465,36 @@ const AdminDashboard = () => {
           {/* Products Tab */}
           <TabsContent value="products" className="space-y-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="bg-gradient-to-r from-orange-50 to-navy-50 dark:from-orange-900/20 dark:to-navy-900/20 border-b border-orange-200 dark:border-navy-800">
                 <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Product Management</CardTitle>
-                    <CardDescription>Manage all products across vendors</CardDescription>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center">
+                      <Package className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">Product Management</CardTitle>
+                      <CardDescription className="text-orange-600 dark:text-orange-400">
+                        Manage all products across vendors
+                      </CardDescription>
+                    </div>
                   </div>
-                  <Button onClick={fetchProducts} variant="outline" size="sm">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary" className="bg-navy-100 text-navy-800">
+                      {products.length} products
+                    </Badge>
+                    <Button
+                      onClick={fetchProducts}
+                      variant="outline"
+                      size="sm"
+                      className="border-orange-300 hover:bg-orange-50"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="flex space-x-4 mb-6">
                   <div className="flex-1">
                     <Input
@@ -1629,19 +1646,36 @@ const AdminDashboard = () => {
           {/* Customers Tab */}
           <TabsContent value="customers" className="space-y-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-900/20 dark:to-orange-900/20 border-b border-navy-200 dark:border-orange-800">
                 <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Customer Management</CardTitle>
-                    <CardDescription>View and manage customer accounts</CardDescription>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">Customer Management</CardTitle>
+                      <CardDescription className="text-navy-600 dark:text-orange-400">
+                        View and manage customer accounts
+                      </CardDescription>
+                    </div>
                   </div>
-                  <Button onClick={fetchCustomers} variant="outline" size="sm">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary" className="bg-navy-100 text-navy-800">
+                      {customers.length} customers
+                    </Badge>
+                    <Button
+                      onClick={fetchCustomers}
+                      variant="outline"
+                      size="sm"
+                      className="border-orange-300 hover:bg-orange-50"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="flex space-x-4 mb-6">
                   <div className="flex-1">
                     <Input

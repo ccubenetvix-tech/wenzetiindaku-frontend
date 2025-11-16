@@ -265,68 +265,70 @@ const Store = () => {
                     </div>
                   </div>
 
-                  {/* Message store button */}
-                  <Button 
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
-                    disabled={isMessagingLoading}
-                    onClick={async () => {
-                      if (!isAuthenticated || user?.role !== 'customer') {
-                        toast({
-                          title: "Login Required",
-                          description: "Please log in as a customer to message stores",
-                          variant: "destructive",
-                        });
-                        navigate('/customer/login');
-                        return;
-                      }
-
-                      if (!storeId) {
-                        toast({
-                          title: "Error",
-                          description: "Store ID not found",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      try {
-                        setIsMessagingLoading(true);
-                        // Create or get conversation
-                        const response = await apiClient.createChatConversation(storeId) as {
-                          success?: boolean;
-                          data?: { conversationId?: string };
-                          error?: { message?: string };
-                        };
-
-                        if (response?.success && response.data?.conversationId) {
-                          navigate(`/chat?conversation=${response.data.conversationId}`);
-                        } else {
-                          throw new Error(response?.error?.message || "Failed to create conversation");
+                  {/* Message store button - only for customers */}
+                  {user?.role === 'customer' && (
+                    <Button 
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
+                      disabled={isMessagingLoading}
+                      onClick={async () => {
+                        if (!isAuthenticated || user?.role !== 'customer') {
+                          toast({
+                            title: "Login Required",
+                            description: "Please log in as a customer to message stores",
+                            variant: "destructive",
+                          });
+                          navigate('/customer/login');
+                          return;
                         }
-                      } catch (error: any) {
-                        console.error("Failed to create conversation:", error);
-                        toast({
-                          title: "Error",
-                          description: error?.message || "Failed to start conversation",
-                          variant: "destructive",
-                        });
-                      } finally {
-                        setIsMessagingLoading(false);
-                      }
-                    }}
-                  >
-                    {isMessagingLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Opening...
-                      </>
-                    ) : (
-                      <>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Message Store
-                      </>
-                    )}
-                  </Button>
+
+                        if (!storeId) {
+                          toast({
+                            title: "Error",
+                            description: "Store ID not found",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        try {
+                          setIsMessagingLoading(true);
+                          // Create or get conversation
+                          const response = await apiClient.createChatConversation(storeId) as {
+                            success?: boolean;
+                            data?: { conversationId?: string };
+                            error?: { message?: string };
+                          };
+
+                          if (response?.success && response.data?.conversationId) {
+                            navigate(`/chat?conversation=${response.data.conversationId}`);
+                          } else {
+                            throw new Error(response?.error?.message || "Failed to create conversation");
+                          }
+                        } catch (error: any) {
+                          console.error("Failed to create conversation:", error);
+                          toast({
+                            title: "Error",
+                            description: error?.message || "Failed to start conversation",
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setIsMessagingLoading(false);
+                        }
+                      }}
+                    >
+                      {isMessagingLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Opening...
+                        </>
+                      ) : (
+                        <>
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Message Store
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Store Stats Card */}
