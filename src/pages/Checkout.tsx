@@ -14,8 +14,11 @@ import {
   Loader2,
   Shield,
   Truck,
+  Edit,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -95,6 +98,7 @@ const requiredAddressFields: Array<keyof CheckoutAddress> = [
 const Checkout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
   const { items: cartItems, isLoading, refreshCart } = useCart();
@@ -109,6 +113,7 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [expandedAddressId, setExpandedAddressId] = useState<string | null>(null);
 
   const subtotal = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -219,42 +224,212 @@ const Checkout = () => {
     []
   );
 
-  const loadSavedAddresses = useCallback(async () => {
+  // Helper function to normalize address input (similar to CustomerDashboard)
+  const normalizeAddressInput = useCallback((input: unknown): {
+    street?: string;
+    street2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  } | null => {
+    if (!input) return null;
+
+    if (typeof input === "string") {
+      const trimmed = input.trim();
+      if (!trimmed) return null;
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object") {
+          return normalizeAddressInput(parsed);
+        }
+      } catch {
+        return { street: trimmed };
+      }
+    }
+
+    if (typeof input !== "object") {
+      return null;
+    }
+
+    const address = input as Record<string, unknown>;
+
+    const streetParts = [
+      address.addressLine1,
+      address.line1,
+      address.street1,
+      address.street,
+      address.address,
+      address.streetAddress,
+    ]
+      .map((part) => (typeof part === "string" ? part.trim() : ""))
+      .filter(Boolean);
+
+    const additionalStreet = [
+      address.addressLine2,
+      address.line2,
+      address.street2,
+      address.unit,
+    ]
+      .map((part) => (typeof part === "string" ? part.trim() : ""))
+      .filter(Boolean);
+
+    const street = streetParts.length
+      ? streetParts.join(", ")
+      : typeof address.fullAddress === "string"
+        ? address.fullAddress
+        : undefined;
+
+    if (!street && !additionalStreet.length) {
+      return null;
+    }
+
+    const city = typeof address.city === "string" ? address.city.trim() : undefined;
+    const state =
+      typeof address.state === "string" ? address.state.trim() : undefined;
+    const postalCode =
+      typeof address.postalCode === "string"
+        ? address.postalCode.trim()
+        : typeof address.zip === "string"
+          ? address.zip.trim()
+          : typeof address.pincode === "string"
+            ? address.pincode.trim()
+            : undefined;
+    const country =
+      typeof address.country === "string" ? address.country.trim() : undefined;
+
+    return {
+      street: street ?? additionalStreet.join(", "),
+      street2: additionalStreet.join(", ") || undefined,
+      city,
+      state,
+      postalCode,
+      country,
+    };
+  }, []);
+
+  const loadSavedAddresses = useCallback(async (selectNewest = false) => {
     if (!isAuthenticated) return;
 
     setIsLoadingAddresses(true);
     try {
-      const response = (await apiClient.getCustomerAddresses()) as {
-        success?: boolean;
-        data?: { addresses?: any[] };
-        error?: { message?: string };
-      };
+      // Get both profile and saved addresses
+      const [profileResponse, addressesResponse] = await Promise.all([
+        apiClient.getCustomerProfile() as Promise<CustomerProfileResponse>,
+        apiClient.getCustomerAddresses() as Promise<{
+          success?: boolean;
+          data?: { addresses?: any[] };
+          error?: { message?: string };
+        }>,
+      ]);
 
-      if (response?.success && response.data?.addresses) {
-        const addresses = response.data.addresses;
-        setSavedAddresses(addresses);
-        
-        // Select default address if available
-        const defaultAddress = addresses.find((addr) => addr.is_default);
-        if (defaultAddress) {
-          setSelectedAddressId(defaultAddress.id);
-          // Populate form with default address
-          setAddressForm({
-            fullName: defaultAddress.full_name || "",
-            email: defaultAddress.email || "",
-            phone: defaultAddress.phone || "",
-            street1: defaultAddress.street1 || "",
-            street2: defaultAddress.street2 || "",
-            city: defaultAddress.city || "",
-            state: defaultAddress.state || "",
-            postalCode: defaultAddress.postal_code || "",
-            country: defaultAddress.country || "India",
-            label: defaultAddress.label || "Home",
+      const customer = profileResponse?.data?.customer;
+      const allAddresses: any[] = [];
+
+      // Add profile/signup address as default if it exists
+      if (customer?.address) {
+        const profileAddressData = normalizeAddressInput(customer.address);
+        if (profileAddressData?.street) {
+          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
+          const fullName = nameParts || customer.email || "Customer";
+          
+          allAddresses.push({
+            id: "profile-address",
+            label: "Home",
+            full_name: fullName,
+            email: customer.email || "",
+            phone: customer.phoneNumber || "",
+            street1: profileAddressData.street,
+            street2: profileAddressData.street2 || null,
+            city: profileAddressData.city || "",
+            state: profileAddressData.state || "",
+            postal_code: profileAddressData.postalCode || "",
+            country: profileAddressData.country || "India",
+            is_default: true,
+            is_profile_address: true,
+            created_at: customer.createdAt || new Date().toISOString(),
           });
-        } else if (addresses.length > 0) {
-          // Select first address if no default
-          setSelectedAddressId(addresses[0].id);
-          const firstAddr = addresses[0];
+        }
+      }
+
+      // Add other saved addresses
+      if (addressesResponse?.success && addressesResponse.data?.addresses) {
+        const savedAddresses = addressesResponse.data.addresses.map(addr => ({
+          ...addr,
+          is_default: false, // Profile address is always default
+        }));
+        allAddresses.push(...savedAddresses);
+      }
+
+      setSavedAddresses(allAddresses);
+      
+      // If selectNewest is true (returning from Add Address page), select the most recently added address
+      if (selectNewest && allAddresses.length > 0) {
+        // Sort by created_at descending and select the first one (excluding profile address)
+        const nonProfileAddresses = allAddresses.filter(addr => addr.id !== "profile-address");
+        if (nonProfileAddresses.length > 0) {
+          const sortedAddresses = [...nonProfileAddresses].sort((a, b) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+            return dateB - dateA;
+          });
+          const newestAddress = sortedAddresses[0];
+          setSelectedAddressId(newestAddress.id);
+          setAddressForm({
+            fullName: newestAddress.full_name || "",
+            email: newestAddress.email || "",
+            phone: newestAddress.phone || "",
+            street1: newestAddress.street1 || "",
+            street2: newestAddress.street2 || "",
+            city: newestAddress.city || "",
+            state: newestAddress.state || "",
+            postalCode: newestAddress.postal_code || "",
+            country: newestAddress.country || "India",
+            label: newestAddress.label || "Home",
+          });
+          setShowNewAddressForm(false);
+        } else {
+          // If no saved addresses, select profile address
+          const profileAddr = allAddresses.find(addr => addr.id === "profile-address");
+          if (profileAddr) {
+            setSelectedAddressId(profileAddr.id);
+            setAddressForm({
+              fullName: profileAddr.full_name || "",
+              email: profileAddr.email || "",
+              phone: profileAddr.phone || "",
+              street1: profileAddr.street1 || "",
+              street2: profileAddr.street2 || "",
+              city: profileAddr.city || "",
+              state: profileAddr.state || "",
+              postalCode: profileAddr.postal_code || "",
+              country: profileAddr.country || "India",
+              label: profileAddr.label || "Home",
+            });
+            setShowNewAddressForm(false);
+          }
+        }
+      } else {
+        // Select profile address as default (it's always first and marked as default)
+        const profileAddress = allAddresses.find((addr) => addr.id === "profile-address");
+        if (profileAddress) {
+          setSelectedAddressId(profileAddress.id);
+          setAddressForm({
+            fullName: profileAddress.full_name || "",
+            email: profileAddress.email || "",
+            phone: profileAddress.phone || "",
+            street1: profileAddress.street1 || "",
+            street2: profileAddress.street2 || "",
+            city: profileAddress.city || "",
+            state: profileAddress.state || "",
+            postalCode: profileAddress.postal_code || "",
+            country: profileAddress.country || "India",
+            label: profileAddress.label || "Home",
+          });
+          setShowNewAddressForm(false);
+        } else if (allAddresses.length > 0) {
+          // If no profile address, select first available address
+          const firstAddr = allAddresses[0];
+          setSelectedAddressId(firstAddr.id);
           setAddressForm({
             fullName: firstAddr.full_name || "",
             email: firstAddr.email || "",
@@ -267,10 +442,9 @@ const Checkout = () => {
             country: firstAddr.country || "India",
             label: firstAddr.label || "Home",
           });
+          setShowNewAddressForm(false);
         } else {
-          // No saved addresses, load profile data for new address form
-          const profileResponse = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
-          const customer = profileResponse?.data?.customer;
+          // No addresses at all, load profile data for new address form
           if (customer) {
             const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
             const fallbackName = nameParts || (user?.email ?? "Customer");
@@ -285,23 +459,6 @@ const Checkout = () => {
           setSelectedAddressId("new");
           setShowNewAddressForm(true);
         }
-      } else {
-        // No addresses, load profile data
-        const profileResponse = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
-        const customer = profileResponse?.data?.customer;
-        if (customer) {
-          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-          const fallbackName = nameParts || (user?.email ?? "Customer");
-          const phone = customer.phoneNumber || customer.phone_number || null;
-          setAddressForm((prev) => ({
-            ...prev,
-            fullName: fallbackName,
-            email: customer.email ?? "",
-            phone: phone ?? "",
-          }));
-        }
-        setSelectedAddressId("new");
-        setShowNewAddressForm(true);
       }
     } catch (error) {
       console.error("Failed to load addresses:", error);
@@ -310,7 +467,7 @@ const Checkout = () => {
     } finally {
       setIsLoadingAddresses(false);
     }
-  }, [isAuthenticated, user?.email]);
+  }, [isAuthenticated, user?.email, normalizeAddressInput]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -331,7 +488,10 @@ const Checkout = () => {
       return;
     }
 
-    void loadSavedAddresses();
+    // Check if we're returning from Add Address page
+    const isReturningFromAddAddress = (location.state as any)?.from === "/customer/address/add";
+    
+    void loadSavedAddresses(isReturningFromAddAddress);
   }, [cartItems.length, isAuthenticated, isLoading, loadSavedAddresses, navigate, toast]);
 
   const updateAddressField = (field: keyof CheckoutAddress, value: string) => {
@@ -362,30 +522,10 @@ const Checkout = () => {
   };
 
   const handleAddNewAddress = () => {
-    setSelectedAddressId("new");
-    setShowNewAddressForm(true);
-    // Reset form to initial state or profile data
-    const profileResponse = (async () => {
-      try {
-        const response = (await apiClient.getCustomerProfile()) as CustomerProfileResponse;
-        const customer = response?.data?.customer;
-        if (customer) {
-          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-          const fallbackName = nameParts || (user?.email ?? "Customer");
-          const phone = customer.phoneNumber || customer.phone_number || null;
-          setAddressForm({
-            ...INITIAL_ADDRESS,
-            fullName: fallbackName,
-            email: customer.email ?? "",
-            phone: phone ?? "",
-          });
-        } else {
-          setAddressForm(INITIAL_ADDRESS);
-        }
-      } catch (error) {
-        setAddressForm(INITIAL_ADDRESS);
-      }
-    })();
+    // Redirect to Add Address page
+    navigate("/customer/address/add", { 
+      state: { from: "/checkout" } 
+    });
   };
 
   const handleAddressContinue = async () => {
@@ -624,43 +764,153 @@ const Checkout = () => {
                         {savedAddresses.length > 0 && (
                           <div className="space-y-3">
                             <p className="text-sm font-medium text-muted-foreground">Saved Addresses</p>
-                            {savedAddresses.map((address) => (
-                              <label
-                                key={address.id}
-                                className={`border rounded-lg p-4 cursor-pointer transition-all block ${
-                                  selectedAddressId === address.id
-                                    ? "border-primary shadow-sm bg-primary/5"
-                                    : "border-border/80 hover:border-primary/60"
-                                }`}
-                                onClick={() => handleSelectAddress(address.id)}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex items-start gap-3 flex-1">
-                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                      <Home className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <p className="font-medium">{address.label || "Home"}</p>
-                                        {address.is_default && (
-                                          <Badge variant="secondary" className="text-xs">Default</Badge>
-                                        )}
+                            {savedAddresses.map((address) => {
+                              const isExpanded = expandedAddressId === address.id;
+                              const isSelected = selectedAddressId === address.id;
+                              
+                              return (
+                                <div
+                                  key={address.id}
+                                  className={`border rounded-lg transition-all ${
+                                    isSelected
+                                      ? "border-primary shadow-sm bg-primary/5"
+                                      : "border-border/80 hover:border-primary/60"
+                                  }`}
+                                >
+                                  <label
+                                    className="cursor-pointer block"
+                                    onClick={() => handleSelectAddress(address.id)}
+                                  >
+                                    <div className="p-4">
+                                      <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 flex-1">
+                                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <Home className="h-5 w-5 text-primary" />
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              <p className="font-medium">{address.label || "Home"}</p>
+                                              {address.is_default && (
+                                                <Badge variant="secondary" className="text-xs">Default</Badge>
+                                              )}
+                                            </div>
+                                            
+                                            {/* Always show basic info */}
+                                            <div className="space-y-1">
+                                              <p className="text-sm font-medium text-foreground">
+                                                {address.full_name}
+                                              </p>
+                                              <p className="text-sm text-muted-foreground">
+                                                {address.street1}
+                                                {address.street2 && `, ${address.street2}`}
+                                              </p>
+                                              <p className="text-sm text-muted-foreground">
+                                                {[address.city, address.state, address.postal_code]
+                                                  .filter(Boolean)
+                                                  .join(", ")}
+                                                {address.country && `, ${address.country}`}
+                                              </p>
+                                              {address.phone && (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                  Phone: {address.phone}
+                                                </p>
+                                              )}
+                                            </div>
+                                            
+                                            {/* Expanded details */}
+                                            {isExpanded && (
+                                              <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
+                                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                                  <div>
+                                                    <span className="text-muted-foreground">Email:</span>
+                                                    <span className="ml-1 text-foreground">{address.email || "N/A"}</span>
+                                                  </div>
+                                                  {address.alt_phone && (
+                                                    <div>
+                                                      <span className="text-muted-foreground">Alt. Phone:</span>
+                                                      <span className="ml-1 text-foreground">{address.alt_phone}</span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                          <Checkbox
+                                            checked={isSelected}
+                                            onCheckedChange={() => handleSelectAddress(address.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        </div>
                                       </div>
-                                      <p className="text-sm text-muted-foreground">
-                                        {address.full_name}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {address.street1}, {address.city}, {address.state} {address.postal_code}
-                                      </p>
                                     </div>
+                                  </label>
+                                  
+                                  {/* Action buttons */}
+                                  <div className="px-4 pb-4 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setExpandedAddressId(isExpanded ? null : address.id);
+                                      }}
+                                      className="text-xs"
+                                    >
+                                      {isExpanded ? (
+                                        <>
+                                          <ChevronUp className="h-3 w-3 mr-1" />
+                                          Show Less
+                                        </>
+                                      ) : (
+                                        <>
+                                          <ChevronDown className="h-3 w-3 mr-1" />
+                                          Show Details
+                                        </>
+                                      )}
+                                    </Button>
+                                    {!address.is_profile_address && (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigate("/customer/address/add", {
+                                            state: {
+                                              from: "/checkout",
+                                              editAddressId: address.id,
+                                              addressData: address,
+                                            },
+                                          });
+                                        }}
+                                        className="text-xs"
+                                      >
+                                        <Edit className="h-3 w-3 mr-1" />
+                                        Edit
+                                      </Button>
+                                    )}
+                                    {address.is_profile_address && (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigate("/customer/profile");
+                                        }}
+                                        className="text-xs"
+                                      >
+                                        <Edit className="h-3 w-3 mr-1" />
+                                        Edit in Profile
+                                      </Button>
+                                    )}
                                   </div>
-                                  <Checkbox
-                                    checked={selectedAddressId === address.id}
-                                    onCheckedChange={() => handleSelectAddress(address.id)}
-                                  />
                                 </div>
-                              </label>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
 
@@ -999,6 +1249,12 @@ const Checkout = () => {
                 </div>
 
                 <div className="space-y-4">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Total Items</span>
+                    <span className="font-semibold text-foreground">
+                      {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Subtotal</span>
                     <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>

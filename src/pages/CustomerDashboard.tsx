@@ -23,6 +23,7 @@ import {
   Eye,
   CircleCheck,
   Clock3,
+  Edit,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -532,6 +533,9 @@ export default function CustomerDashboard() {
   const [cancelReasonDialogOpen, setCancelReasonDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelReasonOther, setCancelReasonOther] = useState("");
+  const [dbAddresses, setDbAddresses] = useState<any[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [addressActionId, setAddressActionId] = useState<string | null>(null);
 
   const pageTitle = t("customerDashboard.title", "My Account");
   const pageSubtitle = t(
@@ -1109,112 +1113,75 @@ export default function CustomerDashboard() {
     ? cancellableStatuses.has((orderDetails.status || '').toLowerCase())
     : false;
 
-  const savedAddresses = useMemo<AddressSummary[]>(() => {
-    const addresses: AddressSummary[] = [];
-    const seen = new Set<string>();
-
-    const profileAddressData =
-      normalizeAddressInput(profile?.address) ??
-      normalizeAddressInput(user?.address);
-
-    if (profileAddressData?.street) {
-      const profileCityParts = [
-        profileAddressData.city,
-        profileAddressData.state,
-        profileAddressData.postalCode,
-        profileAddressData.country,
-      ].filter(Boolean);
-
-      const key = `${profileAddressData.street}|${profileCityParts.join(",")}|${
-        profileAddressData.phone ?? profile?.phoneNumber ?? user?.phoneNumber ?? ""
-      }`.toLowerCase();
-      seen.add(key);
-
-      addresses.push({
-        id: "profile-address",
-        label:
-          profileAddressData.label ??
-          t("customerDashboard.address.primary", "Primary"),
-        name:
-          profileAddressData.name ||
-          `${profile?.firstName ?? user?.firstName ?? ""} ${
-            profile?.lastName ?? user?.lastName ?? ""
-          }`.trim() ||
-          profile?.email ||
-          user?.email ||
-          t("customerDashboard.address.recipient", "Recipient"),
-        street: profileAddressData.street,
-        cityLine: profileCityParts.length ? profileCityParts.join(", ") : undefined,
-        phone:
-          profileAddressData.phone ??
-          profile?.phoneNumber ??
-          user?.phoneNumber ??
-          undefined,
-        isDefault: true,
-      });
+  // Load addresses from database and profile
+  const loadAddresses = useCallback(async () => {
+    if (!isAuthenticated || user?.role !== "customer") {
+      return;
     }
 
-    orders.forEach((order) => {
-      const shipping = order.shippingAddress;
-      if (!shipping || typeof shipping !== "object") {
-        return;
+    setAddressesLoading(true);
+    try {
+      // Get profile to extract signup address
+      const profileResponse = (await apiClient.getCustomerProfile()) as CustomerProfileApiResponse;
+      const customer = profileResponse?.data?.customer;
+      
+      const addresses: any[] = [];
+      
+      // Add profile/signup address as default if it exists
+      if (customer?.address) {
+        const profileAddressData = normalizeAddressInput(customer.address);
+        if (profileAddressData?.street) {
+          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
+          const fullName = nameParts || customer.email || "Customer";
+          
+          addresses.push({
+            id: "profile-address",
+            label: "Home",
+            full_name: fullName,
+            email: customer.email || "",
+            phone: customer.phoneNumber || "",
+            street1: profileAddressData.street,
+            street2: profileAddressData.street2 || null,
+            city: profileAddressData.city || "",
+            state: profileAddressData.state || "",
+            postal_code: profileAddressData.postalCode || "",
+            country: profileAddressData.country || "India",
+            is_default: true,
+            is_profile_address: true,
+            created_at: customer.createdAt || new Date().toISOString(),
+          });
+        }
+      }
+      
+      // Optionally add other saved addresses (but profile address is always first/default)
+      const savedAddressesResponse = (await apiClient.getCustomerAddresses()) as {
+        success?: boolean;
+        data?: { addresses?: any[] };
+        error?: { message?: string };
+      };
+
+      if (savedAddressesResponse?.success && savedAddressesResponse.data?.addresses) {
+        // Add other addresses but ensure none are marked as default
+        const otherAddresses = savedAddressesResponse.data.addresses.map(addr => ({
+          ...addr,
+          is_default: false, // Profile address is always default
+        }));
+        addresses.push(...otherAddresses);
       }
 
-      const street =
-        shipping.address ??
-        shipping.addressLine1 ??
-        shipping.line1 ??
-        shipping.street ??
-        shipping.street1 ??
-        shipping.streetAddress ??
-        "";
+      setDbAddresses(addresses);
+    } catch (error) {
+      console.error("Error loading addresses:", error);
+    } finally {
+      setAddressesLoading(false);
+    }
+  }, [isAuthenticated, user?.role]);
 
-      const cityParts = [
-        shipping.city,
-        shipping.state,
-        shipping.postalCode ?? shipping.zip,
-        shipping.country,
-      ].filter(Boolean);
-
-      const cityLine = cityParts.length ? cityParts.join(", ") : undefined;
-
-      if (!street && !cityLine) {
-        return;
-      }
-
-      const key = `${street}|${cityLine ?? ""}`.toLowerCase();
-      if (seen.has(key)) {
-        return;
-      }
-      seen.add(key);
-
-      addresses.push({
-        id: `${order.id}-shipping`,
-        label: shipping.label
-          ? String(shipping.label)
-          : t("customerDashboard.address.saved", "Saved"),
-        name:
-          shipping.fullName ||
-          shipping.name ||
-          `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim() ||
-          profile?.email ||
-          t("customerDashboard.address.recipient", "Recipient"),
-        street: street || cityLine || "",
-        cityLine,
-        phone:
-          shipping.phone ||
-          shipping.phoneNumber ||
-          shipping.contactNumber ||
-          undefined,
-        isDefault: false,
-      });
-    });
-
-    return addresses.map((address, index) => ({
-      ...address,
-      isDefault: index === 0,
-    }));
-  }, [orders, profile, t, user]);
+  useEffect(() => {
+    if (activeTab === "addresses") {
+      void loadAddresses();
+    }
+  }, [activeTab, loadAddresses]);
 
   const isWishlistEmpty = !wishlistLoading && wishlistItems.length === 0;
   const showOrdersEmptyState = !ordersLoading && filteredOrders.length === 0;
@@ -1304,6 +1271,118 @@ export default function CustomerDashboard() {
       }
     },
     [removeFromCart, t, toast],
+  );
+
+  const handleSetDefaultAddress = useCallback(
+    async (addressId: string) => {
+      // Don't allow changing default for profile address
+      if (addressId === "profile-address") {
+        toast({
+          title: t("customerDashboard.cannotChangeDefault", "Cannot change default"),
+          description: t(
+            "customerDashboard.profileAddressAlwaysDefault",
+            "Your signup address is always the default address.",
+          ),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        setAddressActionId(addressId);
+        const response = (await apiClient.setDefaultCustomerAddress(addressId)) as {
+          success?: boolean;
+          message?: string;
+          error?: { message?: string };
+        };
+
+        if (!response?.success) {
+          throw new Error(response?.error?.message || "Failed to set default address");
+        }
+
+        toast({
+          title: t("customerDashboard.defaultAddressSet", "Default address updated"),
+          description: t(
+            "customerDashboard.defaultAddressSetDescription",
+            "This address is now your default shipping address.",
+          ),
+        });
+
+        // Reload addresses
+        await loadAddresses();
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("customerDashboard.setDefaultError", "Failed to set default address");
+        toast({
+          title: t("customerDashboard.setDefaultErrorTitle", "Error"),
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        setAddressActionId(null);
+      }
+    },
+    [loadAddresses, t, toast],
+  );
+
+  const handleDeleteAddress = useCallback(
+    async (addressId: string) => {
+      // Don't allow deleting profile address
+      if (addressId === "profile-address") {
+        toast({
+          title: t("customerDashboard.cannotDeleteAddress", "Cannot delete address"),
+          description: t(
+            "customerDashboard.cannotDeleteProfileAddress",
+            "Your signup address cannot be deleted. You can update it in your profile settings.",
+          ),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!confirm(t("customerDashboard.confirmDeleteAddress", "Are you sure you want to delete this address?"))) {
+        return;
+      }
+
+      try {
+        setAddressActionId(addressId);
+        const response = (await apiClient.deleteCustomerAddress(addressId)) as {
+          success?: boolean;
+          message?: string;
+          error?: { message?: string };
+        };
+
+        if (!response?.success) {
+          throw new Error(response?.error?.message || "Failed to delete address");
+        }
+
+        toast({
+          title: t("customerDashboard.addressDeleted", "Address deleted"),
+          description: t(
+            "customerDashboard.addressDeletedDescription",
+            "The address has been removed successfully.",
+          ),
+        });
+
+        // Reload addresses
+        await loadAddresses();
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("customerDashboard.deleteAddressError", "Failed to delete address");
+        toast({
+          title: t("customerDashboard.deleteAddressErrorTitle", "Error"),
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        setAddressActionId(null);
+      }
+    },
+    [loadAddresses, t, toast],
   );
 
   return (
@@ -2213,14 +2292,21 @@ export default function CustomerDashboard() {
                 </CardTitle>
                 <Button
                   size="sm"
-                  onClick={() => navigate("/customer/profile")}
+                  onClick={() => navigate("/customer/address/add", { state: { from: "/customer/dashboard" } })}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   {t("customerDashboard.addAddress", "Add Address")}
                 </Button>
               </CardHeader>
               <CardContent>
-                {savedAddresses.length === 0 ? (
+                {addressesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Loading addresses...
+                    </span>
+                  </div>
+                ) : dbAddresses.length === 0 ? (
                   <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                     {t(
                       "customerDashboard.noAddresses",
@@ -2229,33 +2315,47 @@ export default function CustomerDashboard() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {savedAddresses.map((address) => (
-                      <div key={address.id} className="rounded-lg border p-6 flex flex-col justify-between gap-4">
+                    {dbAddresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className={`rounded-lg border p-6 flex flex-col justify-between gap-4 transition-all ${
+                          address.is_default
+                            ? "border-primary shadow-sm bg-primary/5"
+                            : "border-border/80"
+                        }`}
+                      >
                         <div className="mb-4 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
                             <Badge
-                              variant={address.isDefault ? "default" : "outline"}
+                              variant={address.is_default ? "default" : "outline"}
                             >
-                              {address.label}
+                              {address.label || "Home"}
                             </Badge>
-                            {address.isDefault && (
+                            {address.is_default && (
                               <Badge variant="secondary">
                                 {t("customerDashboard.default", "Default")}
+                              </Badge>
+                            )}
+                            {address.is_profile_address && (
+                              <Badge variant="outline" className="text-xs">
+                                Signup Address
                               </Badge>
                             )}
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <p className="font-medium">{address.name}</p>
+                          <p className="font-medium">{address.full_name}</p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {address.street}
+                            {address.street1}
+                            {address.street2 && `, ${address.street2}`}
                           </p>
-                          {address.cityLine && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {address.cityLine}
-                            </p>
-                          )}
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {[address.city, address.state, address.postal_code]
+                              .filter(Boolean)
+                              .join(", ")}
+                            {address.country && `, ${address.country}`}
+                          </p>
                           {address.phone && (
                             <p className="text-xs text-muted-foreground">
                               {t(
@@ -2268,13 +2368,50 @@ export default function CustomerDashboard() {
                         </div>
 
                         <div className="flex flex-wrap gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate("/customer/profile")}
-                          >
-                            {t("customerDashboard.editAddress", "Edit")}
-                          </Button>
+                          {!address.is_profile_address && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  navigate("/customer/address/add", {
+                                    state: {
+                                      from: "/customer/dashboard",
+                                      editAddressId: address.id,
+                                      addressData: address,
+                                    },
+                                  });
+                                }}
+                                disabled={addressActionId === address.id}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t("customerDashboard.editAddress", "Edit")}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteAddress(address.id)}
+                                disabled={addressActionId === address.id}
+                              >
+                                {addressActionId === address.id ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                )}
+                                {t("customerDashboard.deleteAddress", "Delete")}
+                              </Button>
+                            </>
+                          )}
+                          {address.is_profile_address && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate("/customer/profile")}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              {t("customerDashboard.editProfile", "Edit in Profile")}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}

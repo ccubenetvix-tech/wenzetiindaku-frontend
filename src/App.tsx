@@ -34,6 +34,7 @@ import OrderFailure from "./pages/OrderFailure";      // Order failure page
 import Profile from "./pages/Profile";                // User profile management
 import CustomerProfile from "./pages/CustomerProfile"; // Customer profile management
 import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
+import AddAddress from "./pages/AddAddress"; // Add Address page
 import VendorProfile from "./pages/VendorProfile";     // Vendor profile management
 import SearchResults from "./pages/SearchResults";    // Search results page
 import Chat from "./pages/Chat";                        // Chat page
@@ -105,6 +106,7 @@ const App = () => (
                   <Route path="/checkout/failure" element={<OrderFailure />} />            {/* Order failure */}
                   <Route path="/profile" element={<Profile />} />                          {/* User profile */}
                   <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
+                  <Route path="/customer/address/add" element={<AddAddress />} />          {/* Add Address */}
                   <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
                   <Route path="/search" element={<SearchResults />} />                     {/* Search results */}
                   

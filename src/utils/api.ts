@@ -220,6 +220,12 @@ export class ApiClient {
     });
   }
 
+  async setDefaultCustomerAddress(addressId: string) {
+    return this.request(`/customer/addresses/${addressId}/set-default`, {
+      method: 'PUT',
+    });
+  }
+
   async getCustomerOrders(page = 1, limit = 10) {
     return this.request(`/customer/orders?page=${page}&limit=${limit}`);
   }
