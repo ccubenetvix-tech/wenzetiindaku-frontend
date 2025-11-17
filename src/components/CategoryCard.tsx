@@ -3,6 +3,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { memo } from "react";
 
+// Import category images from assets folder - CORRECTED based on actual image content
+// Note: Variable names now match what the images actually contain
+import clothingImg from "../assets/WhatsApp Image 2025-11-17 at 22.23.37_65d9fcba.jpg"; // Fashion & Clothing ✓
+import homeImg from "../assets/WhatsApp Image 2025-11-17 at 22.24.42_fa9058dd.jpg"; // Home & Garden (was incorrectly labeled as booksImg)
+import beautyImg from "../assets/WhatsApp Image 2025-11-17 at 22.26.33_54c39fad.jpg"; // Beauty & Health ✓
+import sportsImg from "../assets/WhatsApp Image 2025-11-17 at 22.28.12_79a263bb.jpg"; // Sports & Outdoors (was incorrectly labeled as gardenImg)
+import booksImg from "../assets/WhatsApp Image 2025-11-17 at 22.29.32_8f36c12e.jpg"; // Books & Media (was incorrectly labeled as sportsImg)
+import toysImg from "../assets/WhatsApp Image 2025-11-17 at 22.31.05_806aa9c5.jpg"; // Toys & Games ✓
+import automotiveImg from "../assets/WhatsApp Image 2025-11-17 at 22.32.44_9c0d721c.jpg"; // Automotive (was incorrectly labeled as craftsImg)
+import artsImg from "../assets/WhatsApp Image 2025-11-17 at 22.33.57_e22827aa.jpg"; // Art & Crafts (was incorrectly labeled as electronicsImg)
+import jewelryImg from "../assets/WhatsApp Image 2025-11-17 at 22.35.57_c735d354.jpg"; // Jewelry & Accessories ✓
+import electronicsImg from "../assets/WhatsApp Image 2025-11-17 at 22.43.50_57c28f13.jpg"; // Electronics (was incorrectly labeled as automotiveImg)
+
 interface CategoryCardProps {
   category: {
     name: string;
@@ -15,27 +28,54 @@ interface CategoryCardProps {
 }
 
 // Function to get the appropriate image for each category
+// Maps all 12 category names from categories.ts to their image files from assets
 const getCategoryImage = (categoryName: string): string => {
   const imageMap: Record<string, string> = {
-    'Beverages & Drinks': '/bev.png',
-    'Beverages': '/bev.png',
-    'Fashion & Clothing': '/clothing.png',
-    'Clothes': '/clothing.png',
-    'Beauty & Cosmetics': '/cos.jpg',
-    'Cosmetics': '/cos.jpg',
-    'Electronics & Tech': '/elec.jpg',
-    'Tech Products': '/elec.jpg',
+    // All 12 main categories from categories.ts - CORRECTED MAPPINGS
+    'Electronics': electronicsImg,                                    // 1. Electronics ✓
+    'Fashion & Clothing': clothingImg,                                // 2. Fashion & Clothing ✓
+    'Home & Garden': homeImg,                                         // 3. Home & Garden ✓ (was showing Sports pic)
+    'Beauty & Health': beautyImg,                                     // 4. Beauty & Health ✓
+    'Health & Wellness': beautyImg,                                   // 5. Health & Wellness (reusing beauty)
+    'Sports & Outdoors': sportsImg,                                   // 6. Sports & Outdoors ✓ (was showing Books pic)
+    'Books & Media': booksImg,                                        // 7. Books & Media ✓ (was showing Home pic)
+    'Toys & Games': toysImg,                                          // 8. Toys & Games ✓
+    'Automotive': automotiveImg,                                      // 9. Automotive ✓ (was showing Arts pic)
+    'Jewelry & Accessories': jewelryImg,                             // 10. Jewelry & Accessories ✓
+    'Food & Beverages': '/groc.jpeg',                                // 11. Food & Beverages (public folder)
+    'Art & Crafts': artsImg,                                          // 12. Art & Crafts ✓ (was showing Electronics pic)
+    
+    // Alternative/legacy category name variations
+    'Technology & Electronics': electronicsImg,
+    'Electronics & Tech': electronicsImg,
+    'Tech Products': electronicsImg,
+    'Clothing & Fashion': clothingImg,
+    'Clothes': clothingImg,
+    'Home Decor': homeImg,
+    'Home Deco': homeImg,
+    'Cosmetics & Beauty': beautyImg,
+    'Beauty & Cosmetics': beautyImg,
+    'Cosmetics': beautyImg,
+    'Para-Pharmacy': beautyImg,
+    'Sports': sportsImg,
+    'Books': booksImg,
+    'Media': booksImg,
+    'Toys': toysImg,
+    'Games': toysImg,
+    'Car': automotiveImg,
+    'Auto': automotiveImg,
+    'Jewelry': jewelryImg,
+    'Accessories': jewelryImg,
     'Food & Groceries': '/groc.jpeg',
     'Food': '/groc.jpeg',
-    'Home Decor': '/home.jpg',
-    'Home Deco': '/home.jpg',
-    'Health & Wellness': '/med.jpg',
-    'Para-Pharmacy': '/med.jpg',
-    'Toys & Games': '/toys.jpg',
-    'Toys': '/toys.jpg',
+    'Beverages & Drinks': '/bev.png',
+    'Beverages': '/bev.png',
+    'Art & Collectibles': artsImg,
+    'Crafts': artsImg,
+    'Art': artsImg,
   };
   
-  return imageMap[categoryName] || '/bev.png'; // Default fallback
+  return imageMap[categoryName] || clothingImg; // Default fallback
 };
 
 // Vibrant and dynamic color mapping for premium e-commerce experience
