@@ -5,11 +5,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { getApiBaseUrl } from '@/utils/api';
+
+const API_BASE_URL = getApiBaseUrl();
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { setSession, clearSession } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
@@ -42,57 +47,89 @@ const AuthCallback = () => {
           return;
         }
 
-        // Store the token and user data
-        localStorage.setItem('auth_token', token);
-        
-        // Decode the token to get user info (basic decode, not verification)
+        const decodeJwtPayload = (jwtToken: string) => {
+          const parts = jwtToken.split('.');
+          if (parts.length !== 3) {
+            throw new Error('Invalid token format');
+          }
+
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const padding = (4 - (base64.length % 4 || 4)) % 4;
+          const paddedBase64 = base64.padEnd(base64.length + padding, '=');
+          const decodedPayload = atob(paddedBase64);
+
+          return JSON.parse(decodedPayload);
+        };
+
         try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const userData = {
-            id: payload.userId,
-            role: payload.role,
-            email: payload.email || 'user@example.com', // You might need to get this from the token or make an API call
-          };
-          
-          localStorage.setItem('auth_user', JSON.stringify(userData));
-          
-          setStatus('success');
-          setMessage(isNewUser ? 'Welcome to WENZE TII NDAKU! Your account has been created successfully.' : 'Welcome back! You have been logged in successfully.');
-          
-          toast({
-            title: "Authentication Successful",
-            description: isNewUser ? "Welcome to WENZE TII NDAKU!" : "Welcome back!",
-          });
-
-          // Redirect to profile update page for new users, home for existing users
-          setTimeout(() => {
-            if (isNewUser) {
-              navigate('/update-profile');
-            } else {
-              navigate('/');
-            }
-          }, 2000);
-
+          const payload = decodeJwtPayload(token);
+          if (!payload?.userId || !payload?.role) {
+            throw new Error('Missing token claims');
+          }
         } catch (decodeError) {
-          console.error('Error decoding token:', decodeError);
+          console.error('Error decoding token payload:', decodeError);
           setStatus('error');
           setMessage('Invalid authentication token.');
+          clearSession();
+          return;
         }
+
+        // Fetch complete user data from backend
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => null);
+          const errorMessage = errorBody?.error?.message || 'Failed to validate authentication session.';
+          throw new Error(errorMessage);
+        }
+
+        const userData = await response.json();
+        const user = userData?.data?.user;
+
+        if (!user) {
+          throw new Error('User data missing in authentication response.');
+        }
+
+        // Persist session
+        setSession(token, user);
+
+        setStatus('success');
+        setMessage(isNewUser ? 'Welcome to WENZE TII NDAKU! Your account has been created successfully.' : 'Welcome back! You have been logged in successfully.');
+
+        toast({
+          title: "Authentication Successful",
+          description: isNewUser ? "Welcome to WENZE TII NDAKU!" : "Welcome back!",
+        });
+
+        // Redirect to profile update page for new users, home for existing users
+        setTimeout(() => {
+          if (isNewUser) {
+            navigate('/update-profile');
+          } else {
+            navigate('/');
+          }
+        }, 2000);
 
       } catch (error) {
         console.error('Callback error:', error);
         setStatus('error');
-        setMessage('An unexpected error occurred during authentication.');
+        setMessage(error instanceof Error ? error.message : 'An unexpected error occurred during authentication.');
+        clearSession();
         toast({
           title: "Authentication Error",
-          description: "An unexpected error occurred.",
+          description: "We could not complete Google authentication.",
           variant: "destructive",
         });
       }
     };
 
     handleCallback();
-  }, [searchParams, navigate, toast]);
+  }, [searchParams, navigate, toast, setSession, clearSession]);
 
   const handleRetry = () => {
     navigate('/customer/login');

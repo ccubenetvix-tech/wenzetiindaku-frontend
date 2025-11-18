@@ -11,11 +11,13 @@
 import { useState, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Star, Heart, ShoppingCart } from "lucide-react";
+import { Star, Heart, ShoppingCart, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
   id: string;
@@ -32,8 +34,8 @@ interface Product {
 
 interface MinimalProductCardProps {
   product: Product;
-  onWishlistToggle: () => void;
-  onAddToCart: () => void;
+  onWishlistToggle?: () => void;
+  onAddToCart?: () => void;
 }
 
 export const MinimalProductCard = memo(function MinimalProductCard({
@@ -45,35 +47,137 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const navigate = useNavigate();
   const { id, name, price, originalPrice, rating, reviewCount = 0, image, vendor, isNew = false, isFeatured = false } = product;
   
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
+  const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
+  const wishlisted = isProductWishlisted(id);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isCartLoading, setIsCartLoading] = useState(false);
 
-  const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
+  const handleWishlistToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
-    setIsWishlisted(prev => !prev);
-  }, []);
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to manage your wishlist.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Action not allowed",
+        description: "Only customers can manage wishlists.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsWishlistLoading(true);
+      const added = await toggleWishlist({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+        originalPrice,
+        rating,
+        reviewCount,
+        isNew,
+        isFeatured,
+      });
+
+      toast({
+        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        description: added
+          ? `${name} has been added to your wishlist.`
+          : `${name} has been removed from your wishlist.`,
+      });
+
+      onWishlistToggle?.();
+    } catch (error) {
+      console.error('Failed to toggle wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Unable to update wishlist. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  }, [id, image, isAuthenticated, isFeatured, isNew, name, navigate, onWishlistToggle, originalPrice, price, rating, reviewCount, toast, toggleWishlist, user?.role, vendor]);
 
   const handleProductClick = useCallback(() => {
     navigate(`/product/${id}`);
   }, [navigate, id]);
 
-  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+  const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking add to cart
-    addToCart({
-      id,
-      name,
-      price,
-      image,
-      vendor,
-    });
     
-    toast({
-      title: "Added to cart",
-      description: `${name} has been added to your cart.`,
-    });
-  }, [addToCart, toast, id, name, price, image, vendor]);
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add items to your cart.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+    
+    // Check if user is a vendor (vendors cannot add to cart)
+    if (user?.role === 'vendor') {
+      toast({
+        title: "Not Available",
+        description: "Vendors cannot add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Only customers can add to cart
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Access Denied",
+        description: "Only customers can add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsCartLoading(true);
+      await addToCart({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+      });
+      
+      toast({
+        title: "Added to cart",
+        description: `${name} has been added to your cart.`,
+      });
+
+      onAddToCart?.();
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCartLoading(false);
+    }
+  }, [addToCart, id, image, isAuthenticated, name, navigate, onAddToCart, price, toast, user, vendor]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -102,15 +206,20 @@ export const MinimalProductCard = memo(function MinimalProductCard({
           <button
             onClick={handleWishlistToggle}
             className="absolute top-2 right-2 p-1 rounded-full bg-white/90 dark:bg-navy-800/90 shadow-sm hover:shadow-md transition-all duration-200"
-            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            disabled={isWishlistProcessing || isWishlistLoading}
           >
-            <Heart 
-              className={`h-3 w-3 transition-colors duration-200 ${
-                isWishlisted 
+            {isWishlistProcessing || isWishlistLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Heart 
+                className={`h-3 w-3 transition-colors duration-200 ${
+                  wishlisted 
                   ? 'text-red-500 fill-red-500' 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-              }`} 
-            />
+                    : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
+                }`} 
+              />
+            )}
           </button>
 
           {/* Minimal Badges - Only if needed */}
@@ -157,14 +266,32 @@ export const MinimalProductCard = memo(function MinimalProductCard({
             )}
           </div>
           
-          {/* Minimal Add to Cart - Only on hover */}
+          {/* Minimal Add to Cart / View Product - Only on hover */}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
-              onClick={handleAddToCart}
+              onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
               size="sm"
-              className="w-full h-7 text-xs bg-navy-600 hover:bg-navy-700 text-white"
+              className={`w-full h-7 text-xs ${
+                !isAuthenticated 
+                  ? 'bg-gray-400 hover:bg-gray-500 text-white' 
+                  : user?.role === 'vendor'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  : 'bg-navy-600 hover:bg-navy-700 text-white'
+              }`}
+              disabled={isCartLoading}
             >
-              {t('addToCart')}
+              {isCartLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t('addingToCart', 'Adding...')}
+                </span>
+              ) : (
+                (!isAuthenticated 
+                  ? 'Login to Add' 
+                  : user?.role === 'vendor'
+                  ? 'View Product'
+                  : t('addToCart'))
+              )}
             </Button>
           </div>
         </div>

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { apiClient, setAuthState, getApiBaseUrl } from '@/utils/api';
 
 interface User {
   id: string;
@@ -16,6 +17,19 @@ interface User {
   dateOfBirth?: string;
   profile_completed?: boolean;
   createdAt: string;
+  registrationMethod?: 'google' | 'email';
+  // Vendor-specific properties
+  businessEmail?: string;
+  businessPhone?: string;
+  businessWebsite?: string;
+  businessAddress?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  businessType?: string;
+  description?: string;
+  categories?: string[];
 }
 
 interface AuthContextType {
@@ -30,11 +44,13 @@ interface AuthContextType {
   googleLogin: () => void;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  setSession: (sessionToken: string, sessionUser: User) => void;
+  clearSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = getApiBaseUrl();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -74,7 +90,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             },
           });
 
-          if (!response.ok) {
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Auth initialization - User data received:', data);
+            if (data.success) {
+              setUser(data.data.user);
+            }
+          } else {
             // Token is invalid, clear auth state
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_user');
@@ -97,46 +119,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuth();
   }, []);
 
-  // Handle Google OAuth callback
+  // Keep API client token in sync with auth token
   useEffect(() => {
-    const handleGoogleCallback = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const isNewUser = urlParams.get('isNewUser') === 'true';
+    apiClient.setToken(token);
+  }, [token]);
 
-      if (token) {
-        // Get user info from token
-        fetch(`${API_BASE_URL}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              setToken(token);
-              setUser(data.data.user);
-              localStorage.setItem('auth_token', token);
-              localStorage.setItem('auth_user', JSON.stringify(data.data.user));
-              // Redirect to appropriate page
-              if (isNewUser) {
-                window.location.href = '#';
-              } else {
-                window.location.href = '#';
-              }
-            }
-          })
-          .catch(error => {
-            console.error('Google callback error:', error);
-          });
-      }
-    };
+  const clearSession = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    apiClient.setToken(null);
+  }, []);
 
-    // Check if this is a Google OAuth callback
-    if (window.location.pathname === '/auth/callback') {
-      handleGoogleCallback();
-    }
+  const setSession = useCallback((sessionToken: string, sessionUser: User) => {
+    setToken(sessionToken);
+    setUser(sessionUser);
+    localStorage.setItem('auth_token', sessionToken);
+    localStorage.setItem('auth_user', JSON.stringify(sessionUser));
+    apiClient.setToken(sessionToken);
   }, []);
 
   const login = async (email: string, password: string, role: 'customer' | 'vendor') => {
@@ -157,10 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.success) {
-        setToken(data.data.token);
-        setUser(data.data.user);
-        localStorage.setItem('auth_token', data.data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.data.user));
+        setSession(data.data.token, data.data.user);
         return { user: data.data.user, token: data.data.token };
       }
     } catch (error) {
@@ -249,25 +247,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const googleLogin = () => {
+  const googleLogin = useCallback(() => {
     window.location.href = `${API_BASE_URL}/auth/google`;
-  };
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    window.location.href = '/';
-  };
-
-  const updateUser = (userData: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...userData };
-      setUser(updatedUser);
-      localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+  const logout = useCallback(() => {
+    // Get user role before clearing session
+    const storedUser = localStorage.getItem('auth_user');
+    let userRole = 'customer'; // default
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        userRole = parsedUser.role || 'customer';
+      } catch (e) {
+        // If parsing fails, use default
+      }
     }
-  };
+    
+    clearSession();
+    // Navigate to logout confirmation page with role info
+    window.location.href = `/logout?role=${userRole}`;
+  }, [clearSession]);
+
+  const redirectToLogin = useCallback(() => {
+    window.location.href = '/customer/login';
+  }, []);
+
+  // Set up auth state for API client
+  useEffect(() => {
+    setAuthState({
+      clearAuth: logout,
+      redirectToLogin,
+    });
+  }, [logout, redirectToLogin]);
+
+  const updateUser = useCallback((userData: Partial<User>) => {
+    setUser((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      const updatedUser = { ...currentUser, ...userData };
+      localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  }, []);
 
   const value: AuthContextType = {
     user,
@@ -281,6 +305,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     googleLogin,
     logout,
     updateUser,
+    setSession,
+    clearSession,
   };
 
   return (

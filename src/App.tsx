@@ -9,10 +9,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Import i18next for internationalization support
 import { I18nextProvider } from "react-i18next";
-// Import cart context provider for global cart state management
-import { CartProvider } from "@/contexts/CartContext";
 // Import auth context provider for authentication state management
 import { AuthProvider } from "@/contexts/AuthContext";
+// Import cart and wishlist providers for shopping experience state
+import { CartProvider } from "@/contexts/CartContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
+import { ChatProvider } from "@/contexts/ChatContext";
 // Import cookie consent component for GDPR compliance
 import { CookieConsent } from "@/components/CookieConsent";
 // Import i18n configuration for multi-language support
@@ -27,16 +29,23 @@ import Stores from "./pages/Stores";                  // Stores listing page
 import ProductDetail from "./pages/ProductDetail";    // Product details and purchase page
 import Cart from "./pages/Cart";                      // Shopping cart page
 import Checkout from "./pages/Checkout";              // Checkout and payment page
+import OrderSuccess from "./pages/OrderSuccess";      // Order success confirmation page
+import OrderFailure from "./pages/OrderFailure";      // Order failure page
 import Profile from "./pages/Profile";                // User profile management
 import CustomerProfile from "./pages/CustomerProfile"; // Customer profile management
+import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
+import AddAddress from "./pages/AddAddress"; // Add Address page
 import VendorProfile from "./pages/VendorProfile";     // Vendor profile management
 import SearchResults from "./pages/SearchResults";    // Search results page
+import Chat from "./pages/Chat";                        // Chat page
+import LogoutConfirmation from "./pages/LogoutConfirmation"; // Logout confirmation page
 
 // Information and legal pages
 import About from "./pages/About";                    // About the marketplace
 import Contact from "./pages/Contact";                // Contact information and form
 import PrivacyPolicy from "./pages/PrivacyPolicy";    // Privacy policy page
 import TermsOfService from "./pages/TermsOfService";  // Terms of service page
+import VendorTerms from "./pages/VendorTerms";        // Vendor terms page
 import CookiePolicy from "./pages/CookiePolicy";      // Cookie policy page
 import HelpCenter from "./pages/HelpCenter";          // Help and support center
 import FAQs from "./pages/FAQs";                      // Frequently asked questions
@@ -71,68 +80,79 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       {/* Auth context provider for authentication state */}
       <AuthProvider>
-        {/* Cart context provider for global shopping cart state */}
+        {/* Cart and wishlist providers for shopping experience state */}
         <CartProvider>
-        {/* Tooltip provider for enhanced UI interactions */}
-        <TooltipProvider>
-          {/* Toast notification components for user feedback */}
-          <Toaster />
-          <Sonner />
-          {/* Browser router for client-side navigation */}
-          <BrowserRouter>
-            {/* Route definitions for all application pages */}
-            <Routes>
-              {/* Main marketplace routes */}
-              <Route path="/" element={<Index />} />                                    {/* Homepage */}
-              <Route path="/categories" element={<Categories />} />                    {/* Categories listing */}
-              <Route path="/category/:categoryName" element={<Category />} />          {/* Individual category with dynamic parameter */}
-              <Route path="/stores" element={<Stores />} />                            {/* Stores listing */}
-              <Route path="/store/:storeId" element={<Store />} />                     {/* Individual store with dynamic parameter */}
-              <Route path="/product/:productId" element={<ProductDetail />} />         {/* Product details with dynamic parameter */}
-              <Route path="/cart" element={<Cart />} />                                {/* Shopping cart */}
-              <Route path="/checkout" element={<Checkout />} />                        {/* Checkout process */}
-              <Route path="/profile" element={<Profile />} />                          {/* User profile */}
-              <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
-              <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
-              <Route path="/search" element={<SearchResults />} />                     {/* Search results */}
-              
-              {/* Information and legal pages */}
-              <Route path="/about" element={<About />} />                              {/* About page */}
-              <Route path="/contact" element={<Contact />} />                          {/* Contact page */}
-              <Route path="/privacy" element={<PrivacyPolicy />} />                    {/* Privacy policy */}
-              <Route path="/terms" element={<TermsOfService />} />                     {/* Terms of service */}
-              <Route path="/cookies" element={<CookiePolicy />} />                     {/* Cookie policy */}
-              <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
-              <Route path="/faqs" element={<FAQs />} />                                {/* FAQ page */}
-              <Route path="/shipping" element={<ShippingInfo />} />                    {/* Shipping information */}
-              <Route path="/returns" element={<Returns />} />                          {/* Returns policy */}
-              
-              {/* Authentication routes */}
-              <Route path="/customer/login" element={<CustomerLogin />} />             {/* Customer login */}
-              <Route path="/customer/signup" element={<CustomerSignup />} />           {/* Customer registration */}
-              <Route path="/vendor/login" element={<VendorLogin />} />                 {/* Vendor login */}
-              <Route path="/vendor/register" element={<VendorRegister />} />           {/* Vendor registration */}
-              <Route path="/admin/login" element={<AdminLogin />} />                   {/* Admin login */}
-              <Route path="/auth/callback" element={<AuthCallback />} />               {/* OAuth callback */}
-              <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
-              
-              {/* Dashboard routes */}
-              <Route path="/vendor/dashboard" element={<VendorDashboard />} />         {/* Vendor dashboard */}
-              {/* Admin dashboard with route protection */}
-              <Route path="/admin/dashboard" element={
-                <ProtectedAdminRoute>
-                  <AdminDashboard />
-                </ProtectedAdminRoute>
-              } />
-              
-              {/* Catch-all route for 404 errors - MUST be last */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            {/* Cookie consent component for GDPR compliance - rendered on all pages */}
-            <CookieConsent />
-          </BrowserRouter>
-        </TooltipProvider>
-          </CartProvider>
+          <WishlistProvider>
+            <ChatProvider>
+            {/* Tooltip provider for enhanced UI interactions */}
+            <TooltipProvider>
+              {/* Toast notification components for user feedback */}
+              <Toaster />
+              <Sonner />
+              {/* Browser router for client-side navigation */}
+              <BrowserRouter>
+                {/* Route definitions for all application pages */}
+                <Routes>
+                  {/* Main marketplace routes */}
+                  <Route path="/" element={<Index />} />                                    {/* Homepage */}
+                  <Route path="/categories" element={<Categories />} />                    {/* Categories listing */}
+                  <Route path="/category/:categoryName" element={<Category />} />          {/* Individual category with dynamic parameter */}
+                  <Route path="/stores" element={<Stores />} />                            {/* Stores listing */}
+                  <Route path="/store/:storeId" element={<Store />} />                     {/* Individual store with dynamic parameter */}
+                  <Route path="/product/:productId" element={<ProductDetail />} />         {/* Product details with dynamic parameter */}
+                  <Route path="/cart" element={<Cart />} />                                {/* Shopping cart */}
+                  <Route path="/checkout" element={<Checkout />} />                        {/* Checkout process */}
+                  <Route path="/checkout/success" element={<OrderSuccess />} />            {/* Order success */}
+                  <Route path="/checkout/failure" element={<OrderFailure />} />            {/* Order failure */}
+                  <Route path="/profile" element={<Profile />} />                          {/* User profile */}
+                  <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
+                  <Route path="/customer/address/add" element={<AddAddress />} />          {/* Add Address */}
+                  <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
+                  <Route path="/search" element={<SearchResults />} />                     {/* Search results */}
+                  
+                  {/* Information and legal pages */}
+                  <Route path="/about" element={<About />} />                              {/* About page */}
+                  <Route path="/contact" element={<Contact />} />                          {/* Contact page */}
+                  <Route path="/privacy" element={<PrivacyPolicy />} />                    {/* Privacy policy */}
+                  <Route path="/terms" element={<TermsOfService />} />                     {/* Terms of service */}
+                  <Route path="/vendor-terms" element={<VendorTerms />} />                 {/* Vendor terms */}
+                  <Route path="/cookies" element={<CookiePolicy />} />                     {/* Cookie policy */}
+                  <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
+                  <Route path="/faqs" element={<FAQs />} />                                {/* FAQ page */}
+                  <Route path="/shipping" element={<ShippingInfo />} />                    {/* Shipping information */}
+                  <Route path="/returns" element={<Returns />} />                          {/* Returns policy */}
+                  
+                  {/* Authentication routes */}
+                  <Route path="/customer/login" element={<CustomerLogin />} />             {/* Customer login */}
+                  <Route path="/customer/signup" element={<CustomerSignup />} />           {/* Customer registration */}
+                  <Route path="/vendor/login" element={<VendorLogin />} />                 {/* Vendor login */}
+                  <Route path="/vendor/register" element={<VendorRegister />} />           {/* Vendor registration */}
+                  <Route path="/admin/login" element={<AdminLogin />} />                   {/* Admin login */}
+                  <Route path="/auth/callback" element={<AuthCallback />} />               {/* OAuth callback */}
+                  <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
+                  <Route path="/logout" element={<LogoutConfirmation />} />                 {/* Logout confirmation */}
+                  
+                  {/* Dashboard routes */}
+                  <Route path="/customer/dashboard" element={<CustomerDashboard />} />     {/* Customer dashboard */}
+                  <Route path="/vendor/dashboard" element={<VendorDashboard />} />         {/* Vendor dashboard */}
+                  <Route path="/chat" element={<Chat />} />                                {/* Chat page */}
+                  {/* Admin dashboard with route protection */}
+                  <Route path="/admin/dashboard" element={
+                    <ProtectedAdminRoute>
+                      <AdminDashboard />
+                    </ProtectedAdminRoute>
+                  } />
+                  
+                  {/* Catch-all route for 404 errors - MUST be last */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                {/* Cookie consent component for GDPR compliance - rendered on all pages */}
+                <CookieConsent />
+              </BrowserRouter>
+            </TooltipProvider>
+            </ChatProvider>
+          </WishlistProvider>
+        </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
   </I18nextProvider>

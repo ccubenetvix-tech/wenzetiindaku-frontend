@@ -60,7 +60,7 @@ const resources = {
       searchResults: "Search Results",
       
       // Homepage specific
-      yourPremierMarketplace: "Your Premier",
+      yourPremierMarketplace: "Your Premium",
       marketplace: "Marketplace",
       discoverMillions: "Discover millions of products from trusted sellers worldwide. Shop with confidence and get the best deals.",
       startShopping: "Start Shopping",
@@ -105,8 +105,7 @@ const resources = {
       // Product cards
       by: "by",
       new: "NEW",
-      hot: "HOT",
-      addToCart: "Add to Cart"
+      hot: "HOT"
     }
   },
   fr: {
@@ -167,7 +166,7 @@ const resources = {
       
       // Homepage specific
       yourPremierMarketplace: "Votre Marché",
-      marketplace: "de Premier Plan",
+      marketplace: "de Qualité Premium",
       discoverMillions: "Découvrez des millions de produits de vendeurs de confiance du monde entier. Achetez en toute confiance et obtenez les meilleures offres.",
       startShopping: "Commencer à Acheter",
       sellOnPlatform: "Vendre sur la Plateforme",
@@ -211,8 +210,7 @@ const resources = {
       // Product cards
       by: "par",
       new: "NOUVEAU",
-      hot: "TENDANCE",
-      addToCart: "Ajouter au Panier"
+      hot: "TENDANCE"
     }
   },
   af: {
@@ -272,7 +270,7 @@ const resources = {
       searchResults: "Soek Resultate",
       
       // Homepage specific
-      yourPremierMarketplace: "Jou Voorste",
+      yourPremierMarketplace: "Jou Premium",
       marketplace: "Mark",
       discoverMillions: "Ontdek miljoene produkte van vertroude verkopers wêreldwyd. Koop met vertroue en kry die beste aanbiedings.",
       startShopping: "Begin Koop",
@@ -317,8 +315,7 @@ const resources = {
       // Product cards
       by: "deur",
       new: "NUUT",
-      hot: "GEWILD",
-      addToCart: "Voeg by Mandjie"
+      hot: "GEWILD"
     }
   },
   sw: {
@@ -378,8 +375,8 @@ const resources = {
       searchResults: "Matokeo ya Utafutaji",
       
       // Homepage specific
-      yourPremierMarketplace: "Soko Lako",
-      marketplace: "Kuu",
+      yourPremierMarketplace: "Soko Lako la Premium",
+      marketplace: "",
       discoverMillions: "Gundua mamilioni ya bidhaa kutoka kwa wachuuzi wa kuegemea duniani kote. Nunua kwa ujasiri na upate makubaliano bora.",
       startShopping: "Anza Kununua",
       sellOnPlatform: "Uza kwenye Jukwaa",
@@ -423,8 +420,7 @@ const resources = {
       // Product cards
       by: "na",
       new: "MPYA",
-      hot: "HOT",
-      addToCart: "Ongeza Kikarpuni"
+      hot: "HOT"
     }
   },
   zu: {
@@ -484,8 +480,8 @@ const resources = {
       searchResults: "Imiphumela Yokusesha",
       
       // Homepage specific
-      yourPremierMarketplace: "Imakethe Yakho",
-      marketplace: "Ephambili",
+      yourPremierMarketplace: "Imakethe Yakho Ephremiyamu",
+      marketplace: "",
       discoverMillions: "Thola izigidi zemikhiqizo ezivela kubathengisi abathembekile emhlabeni wonke. Thenga ngokuzethemba futhi uthole izivumelwano ezinhle kakhulu.",
       startShopping: "Qala Ukuthenga",
       sellOnPlatform: "Thengisa ku-Platform",
@@ -529,8 +525,7 @@ const resources = {
       // Product cards
       by: "ngu",
       new: "ENTSHA",
-      hot: "HOT",
-      addToCart: "Engeza Esitsheni"
+      hot: "HOT"
     }
   },
   yo: {
@@ -590,8 +585,8 @@ const resources = {
       searchResults: "Awọn Abajade Wiwa",
       
       // Homepage specific
-      yourPremierMarketplace: "Oja Pataki Rẹ",
-      marketplace: "Ti O Ga Julọ",
+      yourPremierMarketplace: "Oja Premium Rẹ",
+      marketplace: "",
       discoverMillions: "Ṣe awari awọn miliọnu awọn oja lati awọn olutaja ti a gbekele ni agbaye. Ra pẹlu igbekele ki o gba awọn adehun ti o dara julọ.",
       startShopping: "Bẹrẹ Ra",
       sellOnPlatform: "Ta lori Jukwaa",
@@ -635,8 +630,7 @@ const resources = {
       // Product cards
       by: "nipasẹ",
       new: "TUNTUN",
-      hot: "HOT",
-      addToCart: "Fi Kun Apoti"
+      hot: "HOT"
     }
   }
 };

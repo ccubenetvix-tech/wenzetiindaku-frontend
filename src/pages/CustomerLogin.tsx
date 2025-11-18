@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { User, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 const CustomerLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, googleLogin, isLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { login, googleLogin, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
@@ -21,6 +22,49 @@ const CustomerLogin = () => {
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'customer') {
+        navigate('/customer/profile', { replace: true });
+      } else if (user.role === 'vendor') {
+        navigate('/vendor/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (!error) {
+      return;
+    }
+
+    const messageParam = searchParams.get("message");
+    let handled = false;
+
+    if (error === "account_type_conflict") {
+      toast({
+        title: "Unable to Continue",
+        description:
+          messageParam ||
+          "This email is already registered under a different account type. Please use another email.",
+        variant: "destructive",
+      });
+      handled = true;
+    }
+
+    if (handled) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("error");
+      if (messageParam) {
+        nextParams.delete("message");
+      }
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -22,23 +22,56 @@ import {
   Shield,
   AlertTriangle,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { apiClient } from '@/utils/api';
 
 const CustomerProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, isLoading: authLoading } = useAuth();
+  
+  // Debug logging
+  console.log('User data in CustomerProfile:', {
+    id: user?.id,
+    email: user?.email,
+    registrationMethod: user?.registrationMethod,
+    profilePhoto: user?.profilePhoto,
+    verified: user?.verified
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [profileImagePreview, setProfileImagePreview] = useState<string>(user?.profilePhoto || '');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [dobError, setDobError] = useState('');
+
+  // Age validation function
+  const validateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return true; // Allow empty DOB
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
+      ? age - 1 
+      : age;
+    
+    return actualAge >= 18;
+  };
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -55,7 +88,13 @@ const CustomerProfile = () => {
   });
 
   useEffect(() => {
-    if (!user) {
+    // Wait for auth to load before checking
+    if (authLoading) {
+      return;
+    }
+    
+    // Only redirect if user is definitely not authenticated
+    if (!user || user.role !== 'customer') {
       navigate('/customer/login');
       return;
     }
@@ -68,12 +107,14 @@ const CustomerProfile = () => {
       gender: user.gender || '',
       address: user.address || '',
       phoneNumber: user.phoneNumber || '',
-      dateOfBirth: user.dateOfBirth || '',
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
       profilePhoto: user.profilePhoto || '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     });
+
+    setProfileImagePreview(user.profilePhoto || '');
   }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -83,6 +124,15 @@ const CustomerProfile = () => {
       [name]: value
     }));
     if (error) setError('');
+    
+    // Validate DOB for age requirement
+    if (name === 'dateOfBirth') {
+      if (value && !validateAge(value)) {
+        setDobError('You must be at least 18 years old to use this service');
+      } else {
+        setDobError('');
+      }
+    }
   };
 
   const handleSelectChange = (value: string) => {
@@ -128,19 +178,34 @@ const CustomerProfile = () => {
     setIsLoading(true);
     setError('');
 
+    // Validate DOB before saving
+    if (formData.dateOfBirth && !validateAge(formData.dateOfBirth)) {
+      setError('You must be at least 18 years old to use this service');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Validate password change if provided
       if (formData.newPassword || formData.confirmPassword) {
         if (!formData.currentPassword) {
           setError('Current password is required to change password.');
+          setIsLoading(false);
           return;
         }
         if (formData.newPassword !== formData.confirmPassword) {
           setError('New passwords do not match.');
+          setIsLoading(false);
           return;
         }
         if (formData.newPassword.length < 8) {
           setError('New password must be at least 8 characters long.');
+          setIsLoading(false);
+          return;
+        }
+        if (user?.registrationMethod === 'google') {
+          setError('Password changes must be managed via your Google account.');
+          setIsLoading(false);
           return;
         }
       }
@@ -161,34 +226,47 @@ const CustomerProfile = () => {
         updateData.newPassword = formData.newPassword;
       }
 
-      const response = await fetch('/api/customer/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await apiClient.updateCustomerProfile(updateData) as {
+        success: boolean;
+        message?: string;
+        data?: {
+          customer?: {
+            firstName?: string;
+            lastName?: string;
+            gender?: string;
+            address?: string;
+            phoneNumber?: string;
+            dateOfBirth?: string;
+            profilePhoto?: string;
+            profile_completed?: boolean;
+          }
+        };
+        error?: { message?: string };
+      };
 
-      const data = await response.json();
+      if (response.success) {
+        const updatedCustomer = response.data?.customer;
+        const updatedProfilePhoto = updatedCustomer?.profilePhoto ?? (profileImagePreview || formData.profilePhoto);
+        const updatedDateOfBirth = updatedCustomer?.dateOfBirth ?? formData.dateOfBirth;
 
-      if (data.success) {
         toast({
           title: "Profile Updated",
-          description: data.message,
+          description: response.message,
         });
 
         // Update user context
         updateUser({
-          ...user,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gender: formData.gender,
-          address: formData.address,
-          phoneNumber: formData.phoneNumber,
-          dateOfBirth: formData.dateOfBirth,
-          profilePhoto: profileImagePreview || formData.profilePhoto
+          firstName: updatedCustomer?.firstName ?? formData.firstName,
+          lastName: updatedCustomer?.lastName ?? formData.lastName,
+          gender: updatedCustomer?.gender ?? formData.gender,
+          address: updatedCustomer?.address ?? formData.address,
+          phoneNumber: updatedCustomer?.phoneNumber ?? formData.phoneNumber,
+          dateOfBirth: updatedDateOfBirth,
+          profilePhoto: updatedProfilePhoto,
+          profile_completed: updatedCustomer?.profile_completed ?? user?.profile_completed
         });
+
+        setProfileImagePreview(updatedProfilePhoto);
 
         setIsEditing(false);
         setFormData(prev => ({
@@ -198,19 +276,33 @@ const CustomerProfile = () => {
           confirmPassword: ''
         }));
       } else {
-        setError(data.error?.message || 'Failed to update profile');
+        const errorMessage = response.error?.message || 'Failed to update profile';
+        setError(errorMessage);
         toast({
           title: "Update Failed",
-          description: data.error?.message || "Failed to update profile",
+          description: errorMessage,
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      setError('Network error. Please try again.');
+      const status = (error as { status?: number })?.status;
+      if (status === 401) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        logout();
+        navigate('/customer/login');
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : 'Network error. Please try again.';
+      setError(message);
       toast({
         title: "Update Failed",
-        description: "Network error. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -230,16 +322,7 @@ const CustomerProfile = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/customer/delete-account', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify({ confirmation: deleteConfirmation }),
-      });
-
-      const data = await response.json();
+      const data = await apiClient.deleteCustomerAccount(deleteConfirmation) as { success: boolean; message?: string; error?: { message: string } };
 
       if (data.success) {
         toast({
@@ -271,12 +354,47 @@ const CustomerProfile = () => {
     }
   };
 
+  const handleFixRegistrationMethod = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.fixRegistrationMethod('google') as { success: boolean; message?: string; error?: { message: string } };
+      
+      if (response.success) {
+        toast({
+          title: "Registration Method Fixed",
+          description: "Your registration method has been updated to Google. Please refresh the page to see the changes.",
+        });
+        
+        // Refresh user data
+        window.location.reload();
+      } else {
+        toast({
+          title: "Error",
+          description: response.error?.message || "Failed to fix registration method. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Fix registration method error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fix registration method. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   if (!user) {
     return null; // Will redirect to login
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
@@ -338,6 +456,40 @@ const CustomerProfile = () => {
                   <span className={`text-sm font-medium ${user.profile_completed ? 'text-green-600' : 'text-yellow-600'}`}>
                     {user.profile_completed ? 'Complete' : 'Incomplete'}
                   </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Mode of Registration</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="flex items-center space-x-2 text-sm font-medium">
+                      {user.registrationMethod === 'google' ? (
+                        <>
+                          <svg className="h-4 w-4" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                          <span className="text-blue-600">Google</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 text-gray-600" />
+                          <span className="text-gray-600">Manual Email</span>
+                        </>
+                      )}
+                    </span>
+                    {user.registrationMethod === 'email' && user.profilePhoto && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleFixRegistrationMethod}
+                        disabled={isLoading}
+                        className="text-xs h-6 px-2"
+                      >
+                        Fix
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Account Status</span>
@@ -478,9 +630,15 @@ const CustomerProfile = () => {
                         value={formData.dateOfBirth}
                         onChange={handleChange}
                         disabled={!isEditing}
-                        className="pl-10 border-muted focus:border-primary focus:ring-primary"
+                        className={`pl-10 border-muted focus:border-primary focus:ring-primary ${dobError ? 'border-red-500' : ''}`}
                       />
                     </div>
+                    {dobError && (
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        {dobError}
+                      </p>
+                    )}
                   </div>
 
                   {/* Address */}
@@ -647,6 +805,8 @@ const CustomerProfile = () => {
           </div>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };

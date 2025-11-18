@@ -1,0 +1,25 @@
+{
+  "name": "Wenze Tii Ndaku",
+  "short_name": "WenzeTii",
+  "description": "Shop trusted African vendors and global brands on the Wenze Tii Ndaku multi-vendor marketplace.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0c4a6e",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
+

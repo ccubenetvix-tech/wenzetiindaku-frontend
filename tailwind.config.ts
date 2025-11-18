@@ -31,7 +31,13 @@ export default {
 		// Container configuration for responsive layouts
 		container: {
 			center: true,              // Center container horizontally
-			padding: '2rem',           // Default horizontal padding
+			padding: {
+				DEFAULT: '1rem',      // Reduced default padding for small screens
+				sm: '1.5rem',
+				lg: '2rem',
+				xl: '2.5rem',
+				'2xl': '3rem'
+			},
 			screens: {
 				'2xl': '1400px'        // Max width for 2xl screens
 			}

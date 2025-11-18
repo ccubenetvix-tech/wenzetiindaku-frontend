@@ -1,7 +1,42 @@
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Global auth state management for API client
+let authState: { 
+  clearAuth: () => void; 
+  redirectToLogin: () => void; 
+} | null = null;
+
+export const setAuthState = (state: typeof authState) => {
+  authState = state;
+};
+
+// Environment-based API URL configuration
+export const getApiBaseUrl = () => {
+  // Priority 1: VITE_API_URL (explicit override, highest priority)
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Priority 2: Check environment setting
+  const environment = import.meta.env.VITE_ENVIRONMENT || 'production';
+  
+  if (environment === 'development') {
+    // In development, use local backend from env
+    const localUrl = import.meta.env.VITE_LOCAL_BACKEND_URL;
+    if (!localUrl) {
+      throw new Error('VITE_LOCAL_BACKEND_URL is not set in .env file. Please set it to your local backend URL (e.g., http://localhost:5000/api)');
+    }
+    return localUrl;
+  } else {
+    // In production, use deployed backend from env
+    const productionUrl = import.meta.env.VITE_PRODUCTION_BACKEND_URL;
+    if (!productionUrl) {
+      throw new Error('VITE_PRODUCTION_BACKEND_URL is not set in .env file. Please set it to your production backend URL');
+    }
+    return productionUrl;
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export class ApiClient {
   private baseURL: string;
@@ -24,7 +59,7 @@ export class ApiClient {
     
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
         ...options.headers,
       },
       ...options,
@@ -34,7 +69,15 @@ export class ApiClient {
     const adminToken = localStorage.getItem('adminToken');
     const userToken = this.token || localStorage.getItem('auth_token');
     
-    if (adminToken) {
+    // For vendor routes, prioritize user token over admin token
+    const isVendorRoute = endpoint.includes('/vendor/');
+    
+    if (isVendorRoute && userToken) {
+      config.headers = {
+        ...config.headers,
+        'Authorization': `Bearer ${userToken}`,
+      };
+    } else if (adminToken) {
       config.headers = {
         ...config.headers,
         'Authorization': `Bearer ${adminToken}`,
@@ -48,13 +91,22 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
-
+      const contentType = response.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      
       if (!response.ok) {
-        throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+        // read text to avoid JSON parse on HTML/text errors (e.g., 429)
+        const text = await response.text();
+        const error = new Error(text || response.statusText || `HTTP ${response.status}`);
+        (error as Error & { status?: number }).status = response.status;
+        throw error;
       }
 
-      return data;
+      if (isJson) {
+        return await response.json();
+      }
+      const text = await response.text();
+      return text as unknown as T;
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
@@ -73,6 +125,19 @@ export class ApiClient {
     return this.request(`/auth/${role}/signup`, {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async getEmailStatus(email: string, role?: 'customer' | 'vendor', signal?: AbortSignal) {
+    const params = new URLSearchParams({ email });
+    if (role) {
+      params.append('role', role);
+    }
+
+    const query = params.toString();
+    return this.request(`/auth/email-status?${query}`, {
+      method: 'GET',
+      signal,
     });
   }
 
@@ -106,12 +171,85 @@ export class ApiClient {
     });
   }
 
+  // Address management methods
+  async getCustomerAddresses() {
+    return this.request(`/customer/addresses`);
+  }
+
+  async createCustomerAddress(addressData: {
+    label?: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    street1: string;
+    street2?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    isDefault?: boolean;
+  }) {
+    return this.request(`/customer/addresses`, {
+      method: 'POST',
+      body: JSON.stringify(addressData),
+    });
+  }
+
+  async updateCustomerAddress(addressId: string, addressData: {
+    label?: string;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    street1?: string;
+    street2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+    isDefault?: boolean;
+  }) {
+    return this.request(`/customer/addresses/${addressId}`, {
+      method: 'PUT',
+      body: JSON.stringify(addressData),
+    });
+  }
+
+  async deleteCustomerAddress(addressId: string) {
+    return this.request(`/customer/addresses/${addressId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async setDefaultCustomerAddress(addressId: string) {
+    return this.request(`/customer/addresses/${addressId}/set-default`, {
+      method: 'PUT',
+    });
+  }
+
   async getCustomerOrders(page = 1, limit = 10) {
     return this.request(`/customer/orders?page=${page}&limit=${limit}`);
   }
 
+  async createCustomerOrders(payload: {
+    paymentMethod: string;
+    shippingAddress: Record<string, unknown>;
+    saveAddressToProfile?: boolean;
+  }) {
+    return this.request(`/customer/orders`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   async getCustomerOrder(orderId: string) {
     return this.request(`/customer/orders/${orderId}`);
+  }
+
+  async cancelCustomerOrder(orderId: string, cancellationReason: string) {
+    return this.request(`/customer/orders/${orderId}/cancel`, {
+      method: 'PUT',
+      body: JSON.stringify({ cancellationReason }),
+    });
   }
 
   async getWishlist() {
@@ -127,6 +265,66 @@ export class ApiClient {
 
   async removeFromWishlist(productId: string) {
     return this.request(`/customer/wishlist/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteCustomerAccount(confirmation: string): Promise<{ success: boolean; message?: string; error?: { message: string } }> {
+    return this.request(`/customer/delete-account`, {
+      method: 'DELETE',
+      body: JSON.stringify({ confirmation }),
+    });
+  }
+
+  async fixRegistrationMethod(registrationMethod: 'google' | 'email'): Promise<{ success: boolean; message?: string; error?: { message: string } }> {
+    return this.request(`/customer/fix-registration-method`, {
+      method: 'POST',
+      body: JSON.stringify({ registrationMethod }),
+    });
+  }
+
+  // Vendor uploads
+  async uploadVendorProfilePhoto(fileBase64: string, fileName: string): Promise<{ success: boolean; data?: { url: string } }> {
+    return this.request(`/vendor/profile/photo`, {
+      method: 'POST',
+      body: JSON.stringify({ fileBase64, fileName })
+    });
+  }
+
+  async uploadProductImage(productId: string, fileBase64: string, fileName: string): Promise<{ success: boolean; data?: { url: string } }> {
+    return this.request(`/vendor/products/${productId}/image`, {
+      method: 'POST',
+      body: JSON.stringify({ fileBase64, fileName })
+    });
+  }
+
+  // Cart methods
+  async getCart() {
+    return this.request(`/cart`);
+  }
+
+  async addToCart(productId: string, quantity = 1) {
+    return this.request(`/cart`, {
+      method: 'POST',
+      body: JSON.stringify({ productId, quantity }),
+    });
+  }
+
+  async updateCartItem(itemId: string, quantity: number) {
+    return this.request(`/cart/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ quantity }),
+    });
+  }
+
+  async removeFromCart(itemId: string) {
+    return this.request(`/cart/${itemId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async clearCart() {
+    return this.request(`/cart`, {
       method: 'DELETE',
     });
   }
@@ -147,12 +345,13 @@ export class ApiClient {
     return this.request(`/vendor/dashboard`);
   }
 
-  async getVendorProducts(page = 1, limit = 10, status?: string) {
+  async getVendorProducts(page = 1, limit = 10, status?: string, search?: string) {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
     if (status) params.append('status', status);
+    if (search) params.append('search', search);
     
     return this.request(`/vendor/products?${params}`);
   }
@@ -365,19 +564,149 @@ export class ApiClient {
       body: JSON.stringify({ reason }),
     });
   }
+
+  // Admin Order Management Methods
+  async getAdminOrders(page = 1, limit = 20, status = '', search = '', dateFrom = '', dateTo = '') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (status) params.append('status', status);
+    if (search) params.append('search', search);
+    if (dateFrom) params.append('dateFrom', dateFrom);
+    if (dateTo) params.append('dateTo', dateTo);
+    
+    return this.request(`/admin/orders?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  async getAdminOrderDetails(orderId: string) {
+    return this.request(`/admin/orders/${orderId}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateAdminOrderStatus(orderId: string, status: string, notes?: string) {
+    return this.request(`/admin/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    });
+  }
+
+  async updateAdminOrderPaymentStatus(orderId: string, paymentStatus: string) {
+    return this.request(`/admin/orders/${orderId}/payment-status`, {
+      method: 'PUT',
+      body: JSON.stringify({ paymentStatus }),
+    });
+  }
+
+  async getAdminOrderStats() {
+    return this.request(`/admin/orders/stats`, {
+      method: 'GET',
+    });
+  }
+
+  // Public vendor methods
+  async getAllVendors() {
+    return this.request('/products/vendors');
+  }
+
+  async getVendorById(vendorId: string) {
+    return this.request(`/products/vendors/${vendorId}`);
+  }
+
+  // Review Methods
+  async createReview(productId: string, rating: number, comment: string, orderId?: string) {
+    return this.request('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({ productId, rating, comment, orderId }),
+    });
+  }
+
+  async updateReview(reviewId: string, rating?: number, comment?: string) {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ rating, comment }),
+    });
+  }
+
+  async deleteReview(reviewId: string) {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getProductReviews(productId: string, page = 1, limit = 20, sort = 'newest') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      sort,
+    });
+    return this.request(`/reviews/product/${productId}?${params}`);
+  }
+
+  async getCustomerReviews(page = 1, limit = 20) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return this.request(`/reviews/customer?${params}`);
+  }
+
+  async getVendorReviews(page = 1, limit = 20) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return this.request(`/reviews/vendor?${params}`);
+  }
+
+  async canReviewProduct(productId: string) {
+    return this.request(`/reviews/can-review/${productId}`);
+  }
+
+  // Chat Methods
+  async getChatConversations() {
+    return this.request('/chat/conversations');
+  }
+
+  async getChatMessages(conversationId: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages`);
+  }
+
+  async createChatConversation(vendorId: string) {
+    return this.request('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ vendorId }),
+    });
+  }
+
+  async sendChatMessage(conversationId: string, content: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async markChatMessageAsRead(conversationId: string, messageId: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages/${messageId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async markChatConversationAsRead(conversationId: string) {
+    return this.request(`/chat/conversations/${conversationId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async getChatUnreadCount() {
+    return this.request('/chat/unread-count');
+  }
 }
 
 // Create a singleton instance
 export const apiClient = new ApiClient();
 
-// Hook for using API client with auth context
-export const useApi = () => {
-  const { token } = useAuth();
-  
-  // Update token when it changes
-  React.useEffect(() => {
-    apiClient.setToken(token);
-  }, [token]);
-
-  return apiClient;
-};
+// Note: Do not import AuthContext here to avoid circular imports during HMR

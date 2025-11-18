@@ -16,15 +16,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { filterBySearch, sortBy } from "@/utils";
+import { apiClient } from "@/utils/api";
+import { PageLoader } from "@/components/PageLoader";
+import { useLoaderTransition } from "@/hooks/useLoaderTransition";
+import { cn } from "@/lib/utils";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const query = searchParams.get("q") || "";
+  const categoryParam = searchParams.get("category") || "";
+
+  // Products state
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isMounted: showLoader, isFadingOut } = useLoaderTransition(isLoading, {
+    minimumVisibleMs: 1600,
+    fadeDurationMs: 400,
+  });
+  const contentVisibilityClass =
+    showLoader && !isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100";
 
   // Filter state
   const [refineSearch, setRefineSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || "all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState(0);
@@ -34,8 +49,32 @@ const SearchResults = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Import all products data
-  const { allProducts } = require('@/data/products');
+  // Fetch products from API
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response: any = await apiClient.getAllProducts({
+          search: query,
+          category: categoryParam || undefined,
+          limit: 100
+        });
+        
+        if (response.success && response.data) {
+          setAllProducts(response.data.products || []);
+        } else {
+          setAllProducts([]);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setAllProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [query, categoryParam]);
 
   // Apply client-side filters
   const filteredProducts = useMemo(() => {
@@ -44,25 +83,25 @@ const SearchResults = () => {
     // Filter by search query
     const searchQuery = refineSearch || query;
     if (searchQuery) {
-      filtered = filterBySearch(filtered, searchQuery);
+      filtered = filterBySearch(filtered, searchQuery, ['name', 'description', 'category', 'vendor']);
     }
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+                    filtered = filtered.filter((product: any) => product.category === selectedCategory);
     }
 
     // Filter by price range
     if (minPrice) {
-      filtered = filtered.filter(product => product.price >= parseFloat(minPrice));
+      filtered = filtered.filter((product: any) => product.price >= parseFloat(minPrice));
     }
     if (maxPrice) {
-      filtered = filtered.filter(product => product.price <= parseFloat(maxPrice));
+      filtered = filtered.filter((product: any) => product.price <= parseFloat(maxPrice));
     }
 
     // Filter by minimum rating
     if (minRating > 0) {
-      filtered = filtered.filter(product => product.rating >= minRating);
+      filtered = filtered.filter((product: any) => (product.rating || 0) >= minRating);
     }
 
     // Sort products
@@ -91,38 +130,74 @@ const SearchResults = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-8">
-          {/* Search Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <Search className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">
-                {t('searchResults')} "{query}"
-              </h1>
+
+      <main className="relative flex-1">
+        {showLoader && (
+          <PageLoader
+            variant="product"
+            title="Loading products"
+            subtitle="Bringing the best items for you"
+            fadingOut={isFadingOut}
+          />
+        )}
+
+        <div
+          className={cn(
+            "min-h-full flex flex-col transition-opacity duration-500",
+            contentVisibilityClass
+          )}
+        >
+          <div className="container mx-auto px-4 pt-4 pb-8 flex-1">
+          {/* Header Section - aligned with controls */}
+          <div className="mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <Search className="h-6 w-6 text-primary" />
+                <h1 className="text-3xl md:text-4xl font-bold">
+                  {categoryParam ? `Products in ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : "All Products")}
+                </h1>
+              </div>
+              
+              {/* Sort and View Options - aligned on same line */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Sort by:</span>
+                </div>
+                <Select value={sortByValue} onValueChange={setSortByValue}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Relevance" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="alpha">Alphabetical</SelectItem>
+                    <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <p className="text-muted-foreground">
-              Found {filteredProducts.length} results for "{query}"
-            </p>
+            
+            {/* Results count and Featured */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                {filteredProducts.length} results
+              </span>
+              <Badge variant="secondary">
+                <Star className="h-3 w-3 mr-1" />
+                Featured
+              </Badge>
+            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Filters Sidebar */}
             <aside className="lg:w-1/4">
               <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-lg">Filters</h3>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Clear All
-                  </Button>
-                </div>
-                
                 {/* Search within results */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-2">
@@ -151,13 +226,13 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="cosmetics">Cosmetics</SelectItem>
-                      <SelectItem value="tech">Tech Products</SelectItem>
-                      <SelectItem value="clothes">Clothes</SelectItem>
-                      <SelectItem value="toys">Toys</SelectItem>
-                      <SelectItem value="food">Food</SelectItem>
-                      <SelectItem value="beverages">Beverages</SelectItem>
-                      <SelectItem value="para-pharmacy">Para-Pharmacy</SelectItem>
+                      <SelectItem value="Technology & Electronics">Electronics</SelectItem>
+                      <SelectItem value="Clothing & Fashion">Fashion & Clothing</SelectItem>
+                      <SelectItem value="Home & Garden">Home & Garden</SelectItem>
+                      <SelectItem value="Cosmetics & Beauty">Cosmetics & Beauty</SelectItem>
+                      <SelectItem value="Health & Wellness">Health & Wellness</SelectItem>
+                      <SelectItem value="Sports & Outdoors">Sports & Outdoors</SelectItem>
+                      <SelectItem value="Food & Beverages">Food & Beverages</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -220,71 +295,69 @@ const SearchResults = () => {
                     </label>
                   </div>
                 </div>
+
+                {/* Clear All Button */}
+                <div className="mt-6 pt-4 border-t">
+                  <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
+                    Clear All
+                  </Button>
+                </div>
               </div>
             </aside>
 
             {/* Search Results */}
             <div className="lg:w-3/4">
-              {/* Sort and View Options */}
-              <div className="bg-card p-4 rounded-lg shadow-sm mb-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">
-                      {filteredProducts.length} results
-                    </span>
-                    <Badge variant="secondary">
-                      <Star className="h-3 w-3 mr-1" />
-                      Featured
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Sort by:</span>
+                {/* Promoted Results */}
+                {filteredProducts.filter(p => p.isFeatured || p.is_featured).length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold mb-4 flex items-center">
+                      <Star className="h-5 w-5 text-secondary mr-2" />
+                      Promoted Results
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+                      {filteredProducts.filter(p => p.isFeatured || p.is_featured).map((product) => (
+                        <ProductCard 
+                          key={product.id}
+                          id={product.id}
+                          name={product.name}
+                          price={product.price}
+                          originalPrice={product.original_price}
+                          rating={product.rating || 0}
+                          reviewCount={product.review_count || 0}
+                          image={product.images?.[0] || product.image || "/marketplace.jpeg"}
+                          vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                          isNew={product.is_new || product.isNew || false}
+                          isFeatured={product.is_featured || product.isFeatured || false}
+                        />
+                      ))}
                     </div>
-                    <Select value={sortByValue} onValueChange={setSortByValue}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Relevance" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="relevance">Relevance</SelectItem>
-                        <SelectItem value="price-low">Price: Low to High</SelectItem>
-                        <SelectItem value="price-high">Price: High to Low</SelectItem>
-                        <SelectItem value="rating">Highest Rated</SelectItem>
-                        <SelectItem value="alpha">Alphabetical</SelectItem>
-                        <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
-                </div>
-              </div>
-
-              {/* Promoted Results */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Star className="h-5 w-5 text-secondary mr-2" />
-                  Promoted Results
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProducts.filter(p => p.isFeatured).map((product) => (
-                    <ProductCard key={product.id} {...product} />
-                  ))}
-                </div>
-              </div>
+                )}
 
               {/* All Results */}
               <div>
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Grid className="h-5 w-5 text-primary mr-2" />
-                  All Results
-                </h2>
+                <div className="flex items-center gap-2 mb-4">
+                  <Grid className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-bold">All Results</h2>
+                </div>
                 
                 {paginatedProducts.length > 0 ? (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {paginatedProducts.map((product) => (
-                        <ProductCard key={product.id} {...product} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+                      {paginatedProducts.map((product: any) => (
+                        <ProductCard 
+                          key={product.id}
+                          id={product.id}
+                          name={product.name}
+                          price={product.price}
+                          originalPrice={product.original_price}
+                          rating={product.rating || 0}
+                          reviewCount={product.review_count || 0}
+                          image={product.images?.[0] || product.image || "/marketplace.jpeg"}
+                          vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                          isNew={product.is_new || product.isNew || false}
+                          isFeatured={product.is_featured || product.isFeatured || false}
+                        />
                       ))}
                     </div>
 
@@ -318,8 +391,8 @@ const SearchResults = () => {
                       <h3 className="text-xl font-semibold mb-2">No products found</h3>
                       <p className="text-sm">
                         {query 
-                          ? `No products found for "${query}"${selectedLocation ? ` in ${selectedLocation.name}` : ''}.`
-                          : `No products available${selectedLocation ? ` in ${selectedLocation.name}` : ''} at the moment.`
+                          ? `No products found for "${query}".`
+                          : `No products available at the moment.`
                         }
                       </p>
                     </div>
@@ -332,9 +405,10 @@ const SearchResults = () => {
             </div>
           </div>
         </div>
+        </div>
       </main>
 
-      <Footer />
+      {!isLoading && <Footer />}
     </div>
   );
 };

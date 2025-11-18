@@ -201,6 +201,7 @@ All colors MUST be HSL.
   body {
     font-weight: 400;
     letter-spacing: -0.01em;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -409,6 +410,25 @@ All colors MUST be HSL.
   /* Hero background */
   .hero-bg {
     background-image: url('/image.png');
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .tabs-scroll {
+    @apply flex w-full gap-2 overflow-x-auto sm:grid sm:gap-0;
+  }
+
+  .tabs-scroll > * {
+    @apply flex-shrink-0 sm:flex-shrink;
   }
 }
 

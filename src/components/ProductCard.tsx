@@ -11,11 +11,13 @@
 import { useState, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Star, Heart, ShoppingCart } from "lucide-react";
+import { Star, Heart, ShoppingCart, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProductCardProps {
   id: string;
@@ -28,51 +30,151 @@ interface ProductCardProps {
   vendor: string;
   isNew?: boolean;
   isFeatured?: boolean;
+  compact?: boolean;
 }
 
 export const ProductCard = memo(function ProductCard({
   id,
   name,
-  price,
+  price = 0,
   originalPrice,
-  rating,
+  rating = 0,
   reviewCount = 0,
   image,
   vendor,
   isNew = false,
   isFeatured = false,
+  compact = false,
 }: ProductCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
+  const { toggleWishlist, isWishlisted: isProductWishlisted, isProcessing: isWishlistProcessing } = useWishlist();
+  const wishlisted = isProductWishlisted(id);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isCartLoading, setIsCartLoading] = useState(false);
 
-  const handleWishlistToggle = useCallback((e: React.MouseEvent) => {
+  const handleWishlistToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking wishlist
-    setIsWishlisted(prev => !prev);
-  }, []);
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to manage your wishlist.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Action not allowed",
+        description: "Only customers can manage wishlists.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsWishlistLoading(true);
+      const added = await toggleWishlist({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+        originalPrice,
+        rating,
+        reviewCount,
+        isNew,
+        isFeatured,
+      });
+
+      toast({
+        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        description: added
+          ? `${name} has been added to your wishlist.`
+          : `${name} has been removed from your wishlist.`,
+      });
+    } catch (error) {
+      console.error('Failed to toggle wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Unable to update wishlist. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  }, [id, image, isAuthenticated, isFeatured, isNew, name, navigate, originalPrice, price, rating, reviewCount, toast, toggleWishlist, user?.role, vendor]);
 
   const handleProductClick = useCallback(() => {
     navigate(`/product/${id}`);
   }, [navigate, id]);
 
-  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+  const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking add to cart
-    addToCart({
-      id,
-      name,
-      price,
-      image,
-      vendor,
-    });
     
-    toast({
-      title: "Added to cart",
-      description: `${name} has been added to your cart.`,
-    });
-  }, [addToCart, toast, id, name, price, image, vendor]);
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add items to your cart.",
+        variant: "destructive"
+      });
+      navigate('/customer/login');
+      return;
+    }
+    
+    // Check if user is a vendor (vendors cannot add to cart)
+    if (user?.role === 'vendor') {
+      toast({
+        title: "Not Available",
+        description: "Vendors cannot add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Only customers can add to cart
+    if (user?.role !== 'customer') {
+      toast({
+        title: "Access Denied",
+        description: "Only customers can add products to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsCartLoading(true);
+      await addToCart({
+        productId: id,
+        name,
+        price,
+        image,
+        vendor,
+      });
+      
+      toast({
+        title: "Added to cart",
+        description: `${name} has been added to your cart.`,
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCartLoading(false);
+    }
+  }, [addToCart, id, image, isAuthenticated, name, navigate, price, toast, user, vendor]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -84,17 +186,17 @@ export const ProductCard = memo(function ProductCard({
 
   return (
     <Card 
-      className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg h-full flex flex-col cursor-pointer"
+      className={`group relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg h-full flex flex-col cursor-pointer ${compact ? 'text-[0.95rem]' : ''}`}
       onClick={handleProductClick}
     >
       <CardContent className="p-0 flex flex-col h-full">
         {/* Professional Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-navy-800">
+        <div className={`relative ${compact ? 'aspect-video' : 'aspect-[4/3]'} overflow-hidden bg-gray-50 dark:bg-navy-800`}>
           {!imageError ? (
             <img
               src={image}
               alt={name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${compact ? '' : ''}`}
                onError={handleImageError}
               loading="lazy"
             />
@@ -134,40 +236,72 @@ export const ProductCard = memo(function ProductCard({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 bg-white/90 hover:bg-white w-8 h-8 shadow-sm hover:shadow-md z-10 rounded-full"
+            className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${compact ? 'w-7 h-7' : 'w-8 h-8'} shadow-sm hover:shadow-md z-10 rounded-full`}
             onClick={handleWishlistToggle}
+            disabled={isWishlistProcessing || isWishlistLoading}
           >
-            <Heart
-              className={`h-4 w-4 transition-colors duration-200 ${
-                isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
-              }`}
-            />
+            {isWishlistProcessing || isWishlistLoading ? (
+              <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} animate-spin`} />
+            ) : (
+              <Heart
+                className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
+                  wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+                }`}
+              />
+            )}
           </Button>
 
-          {/* Add to Cart Button - Professional overlay */}
+          {/* Add to Cart / View Product Button - Professional overlay */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="p-3">
+            <div className={`${compact ? 'p-2' : 'p-3'}`}> 
             <Button
-              size="sm"
-                className="w-full bg-navy-600 hover:bg-navy-700 text-white rounded-md"
-              onClick={handleAddToCart}
+              size={compact ? 'sm' : 'sm'}
+              className={`w-full rounded-md ${
+                !isAuthenticated 
+                  ? 'bg-gray-400 hover:bg-gray-500 text-white' 
+                  : user?.role === 'vendor'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  : 'bg-navy-600 hover:bg-navy-700 text-white'
+              }`}
+              onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
+              disabled={isCartLoading}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-                {t('addToCart')}
+              {isCartLoading ? (
+                <>
+                  <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2 animate-spin`} />
+                  {t('addingToCart', 'Adding...')}
+                </>
+              ) : (
+                <>
+                  {user?.role === 'vendor' ? (
+                    <>
+                      <span className="text-xs">View Product</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
+                      {!isAuthenticated 
+                        ? 'Login to Add' 
+                        : t('addToCart')
+                      }
+                    </>
+                  )}
+                </>
+              )}
             </Button>
             </div>
           </div>
         </div>
 
         {/* Professional Product Information */}
-        <div className="p-3 space-y-2 flex-1 flex flex-col">
+        <div className={`${compact ? 'p-2 space-y-1.5' : 'p-3 space-y-2'} flex-1 flex flex-col`}>
           {/* Vendor Name */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+          <p className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-500 dark:text-gray-400 font-medium`}>
             {vendor}
           </p>
 
           {/* Product Name */}
-          <h3 className="font-medium text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 flex-1">
+          <h3 className={`font-medium text-gray-900 dark:text-white ${compact ? 'text-xs' : 'text-sm'} leading-tight line-clamp-2 flex-1`}>
             {name}
           </h3>
 
@@ -177,7 +311,7 @@ export const ProductCard = memo(function ProductCard({
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-3 w-3 ${
+                  className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${
                     i < Math.floor(rating)
                       ? 'text-orange-400 fill-orange-400'
                       : 'text-gray-300 dark:text-gray-600'
@@ -185,7 +319,7 @@ export const ProductCard = memo(function ProductCard({
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-500 dark:text-gray-400`}>
               ({reviewCount})
             </span>
           </div>
@@ -193,11 +327,11 @@ export const ProductCard = memo(function ProductCard({
           {/* Price Section - Professional layout */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
+              <span className={`${compact ? 'text-base' : 'text-lg'} font-bold text-gray-900 dark:text-white`}>
                 ${price.toFixed(2)}
               </span>
               {originalPrice && (
-                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-400 line-through`}>
                   ${originalPrice.toFixed(2)}
                 </span>
               )}
@@ -206,8 +340,8 @@ export const ProductCard = memo(function ProductCard({
 
           {/* Free Shipping Badge */}
           {price > 50 && (
-            <div className="flex items-center text-xs text-green-600 dark:text-green-400">
-              <span className="bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded text-xs font-medium">
+            <div className={`flex items-center ${compact ? 'text-[10px]' : 'text-xs'} text-green-6 00 dark:text-green-400`}>
+              <span className={`bg-green-100 dark:bg-green-900/30 ${compact ? 'px-1.5 py-0.5' : 'px-2 py-1'} rounded ${compact ? 'text-[10px]' : 'text-xs'} font-medium`}>
                 Free Shipping
                 </span>
               </div>
