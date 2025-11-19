@@ -17,6 +17,7 @@ import {
   Edit,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
@@ -31,6 +32,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
+import { RazorpayPaymentButton } from "@/components/RazorpayPaymentButton";
 
 type CheckoutStep = "address" | "payment" | "review";
 type PaymentMethod = "cod" | "online";
@@ -607,13 +609,6 @@ const Checkout = () => {
     .join("\n");
 
   const handlePlaceOrder = async () => {
-    if (paymentMethod === "online") {
-      toast({
-        title: "Online payments coming soon",
-        description: "We're preparing secure online payments. Please choose Pay on Delivery for now.",
-      });
-      return;
-    }
 
     const missingField = requiredAddressFields.find((field) => {
       const value = selectedShippingAddress[field];
@@ -1149,7 +1144,9 @@ const Checkout = () => {
                       <div>
                         <h2 className="text-lg md:text-xl font-semibold">Review & confirm</h2>
                         <p className="text-sm text-muted-foreground">
-                          Check your details before placing the order.
+                          {paymentMethod === "online" 
+                            ? "Complete your payment to place the order."
+                            : "Check your details before placing the order."}
                         </p>
                       </div>
                     </div>
@@ -1174,12 +1171,12 @@ const Checkout = () => {
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">Payment method</p>
                             <p className="mt-2 text-sm font-semibold">
-                              {paymentMethod === "cod" ? "Pay on delivery" : "Stripe (Card / UPI)"}
+                              {paymentMethod === "cod" ? "Pay on delivery" : "Razorpay (Card / UPI / Net Banking)"}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {paymentMethod === "cod"
                                 ? "Have cash or card ready at delivery. Our partner will contact you prior to arrival."
-                                : "You will be redirected securely to Stripe to complete the payment."}
+                                : "Complete your payment securely below."}
                             </p>
                           </div>
                           <Button variant="link" size="sm" onClick={() => setStep("payment")}>
@@ -1187,6 +1184,29 @@ const Checkout = () => {
                           </Button>
                         </div>
                       </div>
+
+                      {/* Razorpay Payment Button */}
+                      {paymentMethod === "online" && (
+                        <div className="border border-border/60 rounded-lg p-4">
+                          <div className="space-y-4">
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground mb-4">
+                                Click the button below to complete your payment securely via Razorpay. You will be redirected to the payment page.
+                              </p>
+                            </div>
+                            <RazorpayPaymentButton
+                              amount={total}
+                              onRedirect={() => {
+                                // Optional: Save order details before redirect
+                                // You can store cart/address info in sessionStorage if needed
+                              }}
+                            />
+                            <p className="text-xs text-muted-foreground text-center mt-2">
+                              After completing payment, you can return to complete your order.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="border border-border/60 rounded-lg">
@@ -1219,15 +1239,17 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
-                      <Button variant="outline" onClick={handleBack}>
-                        Back
-                      </Button>
-                      <Button size="lg" className="px-6" onClick={handlePlaceOrder} disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Place order
-                      </Button>
-                    </div>
+                    {paymentMethod === "cod" && (
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
+                        <Button variant="outline" onClick={handleBack}>
+                          Back
+                        </Button>
+                        <Button size="lg" className="px-6" onClick={() => handlePlaceOrder()} disabled={isSubmitting}>
+                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Place order
+                        </Button>
+                      </div>
+                    )}
 
                     {submitError && (
                       <p className="text-sm text-destructive pt-2">
