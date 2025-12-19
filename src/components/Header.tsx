@@ -61,7 +61,7 @@ export function Header() {
   // Chat context for unread count
   const { unreadCount } = useChat();
   // Location context for location management
-  
+
   // Local state management
   const [searchQuery, setSearchQuery] = useState("");           // Search input value
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Login modal visibility
@@ -69,6 +69,24 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile sheet state
   const lastScrollYRef = useRef(0);
   const scrollTickingRef = useRef(false);
+
+  // Profile menu hover logic
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleProfileMouseEnter = () => {
+    if (profileMenuTimeoutRef.current) {
+      clearTimeout(profileMenuTimeoutRef.current);
+      profileMenuTimeoutRef.current = null;
+    }
+    setIsProfileMenuOpen(true);
+  };
+
+  const handleProfileMouseLeave = () => {
+    profileMenuTimeoutRef.current = setTimeout(() => {
+      setIsProfileMenuOpen(false);
+    }, 200);
+  };
 
   // Hide blue navbar on scroll down, show on scroll up
   useEffect(() => {
@@ -201,13 +219,13 @@ export function Header() {
           <div className="flex items-center justify-between gap-3 md:gap-6 flex-wrap md:flex-nowrap">
             {/* Logo section - Professional and clean */}
             <div className="flex-shrink-0">
-              <div 
+              <div
                 className="flex items-center cursor-pointer"
                 onClick={() => handleNavigation('/')}
               >
-                <img 
-                  src="/marketplace.jpeg" 
-                  alt="WENZE TII NDAKU" 
+                <img
+                  src="/marketplace.jpeg"
+                  alt="WENZE TII NDAKU"
                   className="h-10 w-auto"
                 />
                 <div className="ml-3 hidden lg:block">
@@ -229,7 +247,7 @@ export function Header() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="flex-1 h-10 pl-4 pr-12 border-2 border-gray-300 dark:border-navy-700 focus:border-navy-500 dark:focus:border-navy-400 rounded-l-md rounded-r-none"
                   />
-                  <Button 
+                  <Button
                     type="submit"
                     className="h-10 px-6 bg-navy-600 hover:bg-navy-700 text-white rounded-l-none rounded-r-md border-2 border-navy-600 hover:border-navy-700"
                   >
@@ -241,185 +259,185 @@ export function Header() {
 
             {/* Right section - User Account & Cart */}
             <div className="flex items-center gap-1 sm:gap-2 ml-auto">
-            {/* User Account */}
-            {isAuthenticated && user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={user.profilePhoto} alt={user.firstName || user.businessName} />
-                      <AvatarFallback className="bg-navy-100 text-navy-600 text-xs">
-                        {(user.firstName || user.businessName || user.email).charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="hidden md:block text-left">
-                      <div className="text-xs text-gray-500">{t('hello')}</div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user.firstName || user.businessName || 'User'}
+              {/* User Account */}
+              {isAuthenticated && user ? (
+                <DropdownMenu open={isProfileMenuOpen} onOpenChange={setIsProfileMenuOpen}>
+                  <DropdownMenuTrigger asChild onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
+                    <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={user.profilePhoto} alt={user.firstName || user.businessName} />
+                        <AvatarFallback className="bg-navy-100 text-navy-600 text-xs">
+                          {(user.firstName || user.businessName || user.email).charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="hidden md:block text-left">
+                        <div className="text-xs text-gray-500">{t('hello')}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {user.firstName || user.businessName || 'User'}
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/dashboard' : '/vendor/dashboard')}>
-                    <User className="mr-2 h-4 w-4" />
-                    {user.role === 'customer' ? t('Dashboard') : t('Dashboard')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/profile' : '/vendor/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    {t('myProfile')}
-                  </DropdownMenuItem>
-                  {(user.role === 'customer' || user.role === 'vendor') && (
-                    <DropdownMenuItem onClick={() => navigate('/chat')}>
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Chat {unreadCount > 0 && `(${unreadCount})`}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-48"
+                    onMouseEnter={handleProfileMouseEnter}
+                    onMouseLeave={handleProfileMouseLeave}
+                  >
+                    <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/dashboard' : '/vendor/dashboard')}>
+                      <User className="mr-2 h-4 w-4" />
+                      {user.role === 'customer' ? t('Dashboard') : t('Dashboard')}
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t('signOut')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-1 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
-                onClick={() => setIsLoginModalOpen(true)}
-              >
-                <User className="h-4 w-4" />
-                <div className="hidden md:block text-left">
-                  <div className="text-xs text-gray-500">{t('hello')}</div>
-                  <div className="text-sm font-medium">{t('signIn')}</div>
-                </div>
-              </Button>
-            )}
+                    <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/profile' : '/vendor/profile')}>
+                      <User className="mr-2 h-4 w-4" />
+                      {t('myProfile')}
+                    </DropdownMenuItem>
 
-            {/* Cart */}
-            <Button 
-              variant="ghost" 
-              className="relative flex items-center gap-1 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
-              onClick={() => navigate('/cart')}
-            >
-              <ShoppingCart className="h-5 w-5" />
-              <div className="hidden md:block text-left">
-                <div className="text-xs text-gray-500">{t('cart')}</div>
-                <div className="text-sm font-medium">{getTotalItems()}</div>
-              </div>
-              {getTotalItems() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                  {getTotalItems()}
-                </span>
-              )}
-            </Button>
-
-            {/* Mobile Menu */}
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
-                  <Menu className="h-5 w-5" />
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} className="text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {t('signOut')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-1 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
+                  onClick={() => setIsLoginModalOpen(true)}
+                >
+                  <User className="h-4 w-4" />
+                  <div className="hidden md:block text-left">
+                    <div className="text-xs text-gray-500">{t('hello')}</div>
+                    <div className="text-sm font-medium">{t('signIn')}</div>
+                  </div>
                 </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[85vw] max-w-sm px-6">
-                <div className="flex flex-col space-y-6 mt-8">
-                  {/* Mobile Search */}
-                  <form onSubmit={handleSearch} className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      type="text"
-                      placeholder={t('search')}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </form>
+              )}
 
-                  {/* Mobile Navigation */}
-                  <nav className="flex flex-col space-y-2">
-                    {navigation.map((item) => (
-                      <SheetClose
-                        key={item.name}
-                        asChild
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleNavigation(item.href)}
-                          className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-3 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-navy-950/20 border border-transparent hover:border-gray-200 dark:hover:border-navy-800 text-left"
+              {/* Cart */}
+              <Button
+                variant="ghost"
+                className="relative flex items-center gap-1 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
+                onClick={() => navigate('/cart')}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                <div className="hidden md:block text-left">
+                  <div className="text-xs text-gray-500">{t('cart')}</div>
+                  <div className="text-sm font-medium">{getTotalItems()}</div>
+                </div>
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                    {getTotalItems()}
+                  </span>
+                )}
+              </Button>
+
+              {/* Mobile Menu */}
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[85vw] max-w-sm px-6">
+                  <div className="flex flex-col space-y-6 mt-8">
+                    {/* Mobile Search */}
+                    <form onSubmit={handleSearch} className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        type="text"
+                        placeholder={t('search')}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </form>
+
+                    {/* Mobile Navigation */}
+                    <nav className="flex flex-col space-y-2">
+                      {navigation.map((item) => (
+                        <SheetClose
+                          key={item.name}
+                          asChild
                         >
-                          {item.name}
-                        </button>
-                      </SheetClose>
-                    ))}
-                  </nav>
-
-                  {/* Language Selector */}
-                  <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                      {t('language', { defaultValue: 'Language' })}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {languages.map((language) => (
-                        <SheetClose asChild key={language.code}>
-                          <Button
-                            variant={i18n.language === language.code ? "default" : "outline"}
-                            onClick={() => changeLanguage(language.code)}
-                            className="justify-start"
+                          <button
+                            type="button"
+                            onClick={() => handleNavigation(item.href)}
+                            className="text-foreground hover:text-navy-600 dark:hover:text-navy-400 transition-colors duration-200 py-3 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-navy-950/20 border border-transparent hover:border-gray-200 dark:hover:border-navy-800 text-left"
                           >
-                            {language.name}
-                          </Button>
+                            {item.name}
+                          </button>
                         </SheetClose>
                       ))}
-                    </div>
-                  </div>
+                    </nav>
 
-                  {/* Help & Support */}
-                  <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
-                    <SheetClose asChild>
-                      <button
-                        type="button"
-                        onClick={() => handleNavigation('/help')}
-                        className="flex items-center gap-3 w-full py-3 px-4 rounded-md text-foreground hover:bg-gray-50 dark:hover:bg-navy-950/20 text-left font-medium"
-                      >
-                        <LifeBuoy className="h-5 w-5 text-navy-500 dark:text-navy-300" />
-                        {t('helpSupport')}
-                      </button>
-                    </SheetClose>
-                  </div>
-
-                  {/* Mobile Auth Options - Only show if not authenticated */}
-                  {!isAuthenticated && (
+                    {/* Language Selector */}
                     <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
-                      <div className="space-y-2">
-                        <SheetClose asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleNavigation('/customer/login')}
-                            className="w-full justify-start"
-                          >
-                            <LogIn className="mr-2 h-4 w-4" />
-                            {t('customerLogin')}
-                          </Button>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleNavigation('/vendor/login')}
-                            className="w-full justify-start"
-                          >
-                            <Store className="mr-2 h-4 w-4" />
-                            {t('sellerLogin')}
-                          </Button>
-                        </SheetClose>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                        {t('language', { defaultValue: 'Language' })}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {languages.map((language) => (
+                          <SheetClose asChild key={language.code}>
+                            <Button
+                              variant={i18n.language === language.code ? "default" : "outline"}
+                              onClick={() => changeLanguage(language.code)}
+                              className="justify-start"
+                            >
+                              {language.name}
+                            </Button>
+                          </SheetClose>
+                        ))}
                       </div>
                     </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
+
+                    {/* Help & Support */}
+                    <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
+                      <SheetClose asChild>
+                        <button
+                          type="button"
+                          onClick={() => handleNavigation('/help')}
+                          className="flex items-center gap-3 w-full py-3 px-4 rounded-md text-foreground hover:bg-gray-50 dark:hover:bg-navy-950/20 text-left font-medium"
+                        >
+                          <LifeBuoy className="h-5 w-5 text-navy-500 dark:text-navy-300" />
+                          {t('helpSupport')}
+                        </button>
+                      </SheetClose>
+                    </div>
+
+                    {/* Mobile Auth Options - Only show if not authenticated */}
+                    {!isAuthenticated && (
+                      <div className="pt-4 border-t border-gray-200 dark:border-navy-800">
+                        <div className="space-y-2">
+                          <SheetClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleNavigation('/customer/login')}
+                              className="w-full justify-start"
+                            >
+                              <LogIn className="mr-2 h-4 w-4" />
+                              {t('customerLogin')}
+                            </Button>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleNavigation('/vendor/login')}
+                              className="w-full justify-start"
+                            >
+                              <Store className="mr-2 h-4 w-4" />
+                              {t('sellerLogin')}
+                            </Button>
+                          </SheetClose>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       <MobileNavigationBar />
@@ -441,15 +459,15 @@ export function Header() {
                 </button>
               ))}
             </nav>
-            
+
             {/* Right side - Language and Help & Support */}
             <div className="flex items-center space-x-4">
               {/* Language Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-8 px-3 text-white hover:bg-navy-700 dark:hover:bg-navy-800 text-sm transition-colors"
                   >
                     <Globe className="h-4 w-4 mr-2" />
@@ -468,18 +486,18 @@ export function Header() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              
+
               {/* Help & Support */}
               <span className="text-white/70 text-sm font-medium">{t('helpSupport')}</span>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Login Modal */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
       />
     </header>
   );

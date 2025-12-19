@@ -23,7 +23,7 @@ import { useParams, useNavigate } from "react-router-dom"; // For accessing URL 
 import { useTranslation } from "react-i18next"; // For internationalization support
 
 // Import Lucide React icons for UI elements
-import { 
+import {
   Search,        // Search icon for search input
   Star,          // Star icon for ratings and featured products
   MapPin,        // Map pin icon for location
@@ -71,15 +71,15 @@ const Store = () => {
   // Extract storeId from URL parameters
   const { storeId } = useParams();
   const navigate = useNavigate();
-  
+
   // Initialize translation hook for internationalization
   const { t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Dynamic store and products state
   const [store, setStore] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -107,10 +107,10 @@ const Store = () => {
 
         // Load vendor data
         const vendorResponse = await apiClient.getVendorById(storeId) as any;
-        
+
         if (vendorResponse.success) {
           const vendor = vendorResponse.data.vendor;
-          
+
           // Transform vendor data to store format
           const storeData = {
             id: vendor.id,
@@ -124,7 +124,7 @@ const Store = () => {
             banner: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
             profilePhoto: vendor.profile_photo || vendor.profilePhoto || null
           };
-          
+
           setStore(storeData);
 
           // Load products from this vendor
@@ -133,7 +133,7 @@ const Store = () => {
               vendor_id: storeId
             } as any
           ) as any;
-          
+
           if (productsResponse.success) {
             const vendorProducts = (productsResponse.data.products || []).map((product: any) => ({
               id: product.id,
@@ -147,7 +147,7 @@ const Store = () => {
               isNew: product.is_new || false,
               isFeatured: product.is_featured || false,
             }));
-            
+
             setProducts(vendorProducts);
             setStore(prev => ({ ...prev, totalProducts: vendorProducts.length }));
           }
@@ -170,9 +170,9 @@ const Store = () => {
     if (!searchQuery.trim()) {
       return products;
     }
-    
+
     const query = searchQuery.toLowerCase();
-    return products.filter(product => 
+    return products.filter(product =>
       product.name.toLowerCase().includes(query) ||
       product.vendor.toLowerCase().includes(query)
     );
@@ -251,12 +251,12 @@ const Store = () => {
                 {/* Store Information Card */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-6 border border-gray-200 dark:border-gray-700">
                   <h3 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">Store Information</h3>
-                  
+
                   {/* Store description */}
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
                     {store?.description}
                   </p>
-                  
+
                   {/* Store location */}
                   <div className="mb-8">
                     <div className="flex items-center text-sm">
@@ -265,70 +265,7 @@ const Store = () => {
                     </div>
                   </div>
 
-                  {/* Message store button - only for customers */}
-                  {user?.role === 'customer' && (
-                    <Button 
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
-                      disabled={isMessagingLoading}
-                      onClick={async () => {
-                        if (!isAuthenticated || user?.role !== 'customer') {
-                          toast({
-                            title: "Login Required",
-                            description: "Please log in as a customer to message stores",
-                            variant: "destructive",
-                          });
-                          navigate('/customer/login');
-                          return;
-                        }
-
-                        if (!storeId) {
-                          toast({
-                            title: "Error",
-                            description: "Store ID not found",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-
-                        try {
-                          setIsMessagingLoading(true);
-                          // Create or get conversation
-                          const response = await apiClient.createChatConversation(storeId) as {
-                            success?: boolean;
-                            data?: { conversationId?: string };
-                            error?: { message?: string };
-                          };
-
-                          if (response?.success && response.data?.conversationId) {
-                            navigate(`/chat?conversation=${response.data.conversationId}`);
-                          } else {
-                            throw new Error(response?.error?.message || "Failed to create conversation");
-                          }
-                        } catch (error: any) {
-                          console.error("Failed to create conversation:", error);
-                          toast({
-                            title: "Error",
-                            description: error?.message || "Failed to start conversation",
-                            variant: "destructive",
-                          });
-                        } finally {
-                          setIsMessagingLoading(false);
-                        }
-                      }}
-                    >
-                      {isMessagingLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Opening...
-                        </>
-                      ) : (
-                        <>
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Message Store
-                        </>
-                      )}
-                    </Button>
-                  )}
+                  {/* Message Store button removed as requested */}
                 </div>
 
                 {/* Store Stats Card */}
@@ -340,13 +277,13 @@ const Store = () => {
                       <span className="text-muted-foreground">Total Products</span>
                       <span className="font-medium">{store?.totalProducts ?? 0}</span>
                     </div>
-                    
+
                     {/* Average rating stat */}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Average Rating</span>
                       <span className="font-medium">{store?.rating}/5</span>
                     </div>
-                    
+
                     {/* Reviews count stat */}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Reviews</span>
@@ -362,7 +299,7 @@ const Store = () => {
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-3xl md:text-4xl font-bold">All Products</h2>
-                    
+
                     {/* Right side - Search and Sort Controls */}
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -375,7 +312,7 @@ const Store = () => {
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
                       </div>
-                      
+
                       <Select>
                         <SelectTrigger className="w-40">
                           <SelectValue placeholder="Sort by" />
@@ -391,7 +328,7 @@ const Store = () => {
                       </Select>
                     </div>
                   </div>
-                  
+
                   {/* Results count and Featured */}
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground">
@@ -416,7 +353,7 @@ const Store = () => {
                         <Star className="h-6 w-6 text-secondary mr-2" />
                         Featured Products
                       </h2>
-                      
+
                       {/* Featured products grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Filter and map through featured products only */}
@@ -435,14 +372,14 @@ const Store = () => {
                           <ProductCard key={product.id} {...product} />
                         ))}
                       </div>
-                      
+
                       {filteredProducts.length === 0 && searchQuery && (
                         <div className="text-center py-8">
                           <p className="text-muted-foreground text-lg">
                             No products found for "{searchQuery}"
                           </p>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="mt-4"
                             onClick={() => setSearchQuery("")}
                           >
