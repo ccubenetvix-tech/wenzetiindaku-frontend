@@ -1,13 +1,26 @@
 
 // Global auth state management for API client
-let authState: { 
-  clearAuth: () => void; 
-  redirectToLogin: () => void; 
+let authState: {
+  clearAuth: () => void;
+  redirectToLogin: () => void;
 } | null = null;
 
 export const setAuthState = (state: typeof authState) => {
   authState = state;
 };
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: any;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    limit: number;
+  };
+}
 
 // Environment-based API URL configuration
 export const getApiBaseUrl = () => {
@@ -15,10 +28,10 @@ export const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  
+
   // Priority 2: Check environment setting
   const environment = import.meta.env.VITE_ENVIRONMENT || 'production';
-  
+
   if (environment === 'development') {
     // In development, use local backend from env
     const localUrl = import.meta.env.VITE_LOCAL_BACKEND_URL;
@@ -56,7 +69,7 @@ export class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -68,10 +81,10 @@ export class ApiClient {
     // Check for admin token first, then regular token
     const adminToken = localStorage.getItem('adminToken');
     const userToken = this.token || localStorage.getItem('auth_token');
-    
+
     // For vendor routes, prioritize user token over admin token
     const isVendorRoute = endpoint.includes('/vendor/');
-    
+
     if (isVendorRoute && userToken) {
       config.headers = {
         ...config.headers,
@@ -93,7 +106,7 @@ export class ApiClient {
       const response = await fetch(url, config);
       const contentType = response.headers.get('content-type') || '';
       const isJson = contentType.includes('application/json');
-      
+
       if (!response.ok) {
         // read text to avoid JSON parse on HTML/text errors (e.g., 429)
         const text = await response.text();
@@ -353,7 +366,7 @@ export class ApiClient {
     });
     if (status) params.append('status', status);
     if (search) params.append('search', search);
-    
+
     return this.request(`/vendor/products?${params}`);
   }
 
@@ -401,7 +414,7 @@ export class ApiClient {
       limit: limit.toString(),
     });
     if (location) params.append('location', location);
-    
+
     return this.request(`/products/featured?${params}`);
   }
 
@@ -415,13 +428,13 @@ export class ApiClient {
     sortOrder?: string;
   } = {}) {
     const searchParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         searchParams.append(key, value.toString());
       }
     });
-    
+
     return this.request(`/products?${searchParams}`);
   }
 
@@ -435,7 +448,7 @@ export class ApiClient {
       limit: limit.toString(),
     });
     if (status) params.append('status', status);
-    
+
     return this.request(`/vendor/orders?${params}`);
   }
 
@@ -458,38 +471,39 @@ export class ApiClient {
     });
   }
 
-  async getAdminDashboard() {
+  async getAdminDashboard(): Promise<ApiResponse> {
     return this.request(`/admin/dashboard`, {
       method: 'GET',
     });
   }
 
-  async getVendors(page = 1, limit = 10, status?: string) {
+  async getVendors(page = 1, limit = 10, status?: string, search?: string): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
-    if (status) params.append('status', status);
-    
+    if (status && status !== 'all') params.append('status', status);
+    if (search) params.append('search', search);
+
     return this.request(`/admin/vendors?${params.toString()}`, {
       method: 'GET',
     });
   }
 
-  async updateVendor(vendorId: string, vendorData: any) {
+  async updateVendor(vendorId: string, vendorData: any): Promise<ApiResponse> {
     return this.request(`/admin/vendors/${vendorId}`, {
       method: 'PUT',
       body: JSON.stringify(vendorData),
     });
   }
 
-  async deleteVendor(vendorId: string) {
+  async deleteVendor(vendorId: string): Promise<ApiResponse> {
     return this.request(`/admin/vendors/${vendorId}`, {
       method: 'DELETE',
     });
   }
 
-  async getAdminProducts(page = 1, limit = 10, search = '', status = '', vendorId = '') {
+  async getAdminProducts(page = 1, limit = 10, search = '', status = '', vendorId = ''): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -497,39 +511,39 @@ export class ApiClient {
     if (search) params.append('search', search);
     if (status) params.append('status', status);
     if (vendorId) params.append('vendor_id', vendorId);
-    
+
     return this.request(`/admin/products?${params.toString()}`, {
       method: 'GET',
     });
   }
 
-  async updateAdminProduct(productId: string, productData: any) {
+  async updateAdminProduct(productId: string, productData: any): Promise<ApiResponse> {
     return this.request(`/admin/products/${productId}`, {
       method: 'PUT',
       body: JSON.stringify(productData),
     });
   }
 
-  async deleteAdminProduct(productId: string) {
+  async deleteAdminProduct(productId: string): Promise<ApiResponse> {
     return this.request(`/admin/products/${productId}`, {
       method: 'DELETE',
     });
   }
 
-  async redMarkProduct(productId: string, reason: string) {
+  async redMarkProduct(productId: string, reason: string): Promise<ApiResponse> {
     return this.request(`/admin/products/${productId}/red-mark`, {
       method: 'PUT',
       body: JSON.stringify({ reason }),
     });
   }
 
-  async getAdminCustomers(page = 1, limit = 10, search = '') {
+  async getAdminCustomers(page = 1, limit = 10, search = ''): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
     if (search) params.append('search', search);
-    
+
     return this.request(`/admin/customers?${params.toString()}`, {
       method: 'GET',
     });
@@ -541,7 +555,7 @@ export class ApiClient {
     });
   }
 
-  async deleteAdminCustomer(customerId: string) {
+  async deleteAdminCustomer(customerId: string): Promise<ApiResponse> {
     return this.request(`/admin/customers/${customerId}`, {
       method: 'DELETE',
     });
@@ -553,21 +567,48 @@ export class ApiClient {
     });
   }
 
-  async approveVendor(vendorId: string) {
+  async approveVendor(vendorId: string): Promise<ApiResponse> {
     return this.request(`/admin/vendors/${vendorId}/approve`, {
       method: 'PUT',
     });
   }
 
-  async rejectVendor(vendorId: string, reason: string) {
+  async rejectVendor(vendorId: string, reason: string): Promise<ApiResponse> {
     return this.request(`/admin/vendors/${vendorId}/reject`, {
       method: 'PUT',
       body: JSON.stringify({ reason }),
     });
   }
 
+  async getVendorRevenue(vendorId: string, startDate?: string, endDate?: string) {
+    let url = `/admin/vendors/${vendorId}/revenue`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    if (startDate || endDate) {
+      url += `?${params.toString()}`;
+    }
+
+    return this.request(url, {
+      method: 'GET',
+    });
+  }
+
+  async getCustomerOrdersAdmin(customerId: string) {
+    return this.request(`/admin/customers/${customerId}/orders`, {
+      method: 'GET',
+    });
+  }
+
+  async getCustomerReviewsAdmin(customerId: string) {
+    return this.request(`/admin/customers/${customerId}/reviews`, {
+      method: 'GET',
+    });
+  }
+
   // Admin Order Management Methods
-  async getAdminOrders(page = 1, limit = 20, status = '', search = '', dateFrom = '', dateTo = '') {
+  async getAdminOrders(page = 1, limit = 20, status = '', search = '', dateFrom = '', dateTo = ''): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -576,7 +617,7 @@ export class ApiClient {
     if (search) params.append('search', search);
     if (dateFrom) params.append('dateFrom', dateFrom);
     if (dateTo) params.append('dateTo', dateTo);
-    
+
     return this.request(`/admin/orders?${params.toString()}`, {
       method: 'GET',
     });
@@ -588,14 +629,14 @@ export class ApiClient {
     });
   }
 
-  async updateAdminOrderStatus(orderId: string, status: string, notes?: string) {
+  async updateAdminOrderStatus(orderId: string, status: string, notes?: string): Promise<ApiResponse> {
     return this.request(`/admin/orders/${orderId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status, notes }),
     });
   }
 
-  async updateAdminOrderPaymentStatus(orderId: string, paymentStatus: string) {
+  async updateAdminOrderPaymentStatus(orderId: string, paymentStatus: string): Promise<ApiResponse> {
     return this.request(`/admin/orders/${orderId}/payment-status`, {
       method: 'PUT',
       body: JSON.stringify({ paymentStatus }),

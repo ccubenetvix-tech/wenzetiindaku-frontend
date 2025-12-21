@@ -13,36 +13,43 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Shield, 
-  Users, 
-  Store, 
+import {
+  Shield,
+  Users,
+  Store,
   Package,
-  CheckCircle, 
-  Clock, 
-  XCircle, 
-  Eye, 
+  CheckCircle,
+  Clock,
+  XCircle,
+  Eye,
+  RefreshCw,
   Edit,
   Trash2,
   AlertTriangle,
-  Mail, 
-  Phone, 
-  MapPin, 
+  Mail,
+  Phone,
+  LayoutDashboard,
   Calendar,
   LogOut,
   Search,
   Filter,
-  RefreshCw,
+  MapPin,
   Plus,
   DollarSign,
   ShoppingCart,
   TrendingUp,
   Truck,
   CreditCard,
-  FileText
+  FileText,
+  History,
+  MessageSquare,
+  BarChart2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '../utils/api';
+import VendorRevenueModal from '../components/admin/VendorRevenueModal';
+import CustomerHistoryModal from '../components/admin/CustomerHistoryModal';
+import CustomerReviewsModal from '../components/admin/CustomerReviewsModal';
 
 interface Vendor {
   id: string;
@@ -75,6 +82,7 @@ interface Product {
   description: string;
   price: number;
   category: string;
+  image?: string;
   images: string[];
   stock: number;
   status: string;
@@ -152,26 +160,37 @@ interface Order {
   updatedAt: string;
 }
 
+const formatDateSafe = (dateString: string | null | undefined, includeTime = false) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return includeTime ? date.toLocaleString() : date.toLocaleDateString();
+  } catch (error) {
+    return 'Error';
+  }
+};
+
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // State for different tabs
   const [activeTab, setActiveTab] = useState('overview');
-  
+
   // Dashboard stats
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  
+
   // Vendors state
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [vendorsLoading, setVendorsLoading] = useState(false);
   const [vendorsPage, setVendorsPage] = useState(1);
   const [vendorsSearch, setVendorsSearch] = useState('');
   const [vendorsStatusFilter, setVendorsStatusFilter] = useState('all');
-  
+
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -179,13 +198,13 @@ const AdminDashboard = () => {
   const [productsSearch, setProductsSearch] = useState('');
   const [productsStatusFilter, setProductsStatusFilter] = useState('all');
   const [productsVendorFilter, setProductsVendorFilter] = useState('all');
-  
+
   // Customers state
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [customersPage, setCustomersPage] = useState(1);
   const [customersSearch, setCustomersSearch] = useState('');
-  
+
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -195,7 +214,7 @@ const AdminDashboard = () => {
   const [ordersDateFrom, setOrdersDateFrom] = useState('');
   const [ordersDateTo, setOrdersDateTo] = useState('');
   const [ordersTotalPages, setOrdersTotalPages] = useState(1);
-  
+
   // Modals state
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -222,7 +241,17 @@ const AdminDashboard = () => {
   const [newPaymentStatus, setNewPaymentStatus] = useState('');
   const [isVendorActionLoading, setIsVendorActionLoading] = useState(false);
   const [isOrderActionLoading, setIsOrderActionLoading] = useState(false);
-  
+
+  // New Modals State
+  const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
+  const [selectedRevenueVendorId, setSelectedRevenueVendorId] = useState<string | null>(null);
+
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedHistoryCustomerId, setSelectedHistoryCustomerId] = useState<string | null>(null);
+
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [selectedReviewsCustomerId, setSelectedReviewsCustomerId] = useState<string | null>(null);
+
   // Form state
   const [vendorForm, setVendorForm] = useState<Partial<Vendor>>({});
   const [productForm, setProductForm] = useState<Partial<Product>>({});
@@ -231,7 +260,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const adminToken = localStorage.getItem('adminToken');
     const adminUser = localStorage.getItem('adminUser');
-    
+
     if (!adminToken || !adminUser) {
       navigate('/admin/login');
       return;
@@ -262,12 +291,35 @@ const AdminDashboard = () => {
     }
   };
 
+  // Clear Filters
+  const handleClearVendorFilters = () => {
+    setVendorsSearch('');
+    setVendorsStatusFilter('all');
+  };
+
+  const handleClearProductFilters = () => {
+    setProductsSearch('');
+    setProductsStatusFilter('all');
+    setProductsVendorFilter('all');
+  };
+
+  const handleClearCustomerFilters = () => {
+    setCustomersSearch('');
+  };
+
+  const handleClearOrderFilters = () => {
+    setOrdersSearch('');
+    setOrdersStatusFilter('all');
+    setOrdersDateFrom('');
+    setOrdersDateTo('');
+  };
+
   // Fetch vendors
   const fetchVendors = async () => {
     setVendorsLoading(true);
     try {
       const statusFilter = vendorsStatusFilter === 'all' ? '' : vendorsStatusFilter;
-      const response = await apiClient.getVendors(vendorsPage, 10, statusFilter);
+      const response = await apiClient.getVendors(vendorsPage, 10, statusFilter, vendorsSearch);
       if (response.success) {
         setVendors(response.data.vendors);
       }
@@ -331,11 +383,11 @@ const AdminDashboard = () => {
     try {
       const statusFilter = ordersStatusFilter === 'all' ? '' : ordersStatusFilter;
       const response = await apiClient.getAdminOrders(
-        ordersPage, 
-        20, 
-        statusFilter, 
-        ordersSearch, 
-        ordersDateFrom, 
+        ordersPage,
+        20,
+        statusFilter,
+        ordersSearch,
+        ordersDateFrom,
         ordersDateTo
       );
       if (response.success) {
@@ -365,7 +417,7 @@ const AdminDashboard = () => {
     } else if (activeTab === 'orders') {
       fetchOrders();
     }
-  }, [activeTab, vendorsPage, vendorsStatusFilter, productsPage, productsSearch, productsStatusFilter, productsVendorFilter, customersPage, customersSearch, ordersPage, ordersStatusFilter, ordersSearch, ordersDateFrom, ordersDateTo]);
+  }, [activeTab, vendorsPage, vendorsStatusFilter, vendorsSearch, productsPage, productsSearch, productsStatusFilter, productsVendorFilter, customersPage, customersSearch, ordersPage, ordersStatusFilter, ordersSearch, ordersDateFrom, ordersDateTo]);
 
   // Handle vendor actions
   const handleApproveVendor = async (vendorId: string) => {
@@ -421,7 +473,7 @@ const AdminDashboard = () => {
 
   const handleUpdateVendor = async () => {
     if (!selectedVendor) return;
-    
+
     try {
       const response = await apiClient.updateVendor(selectedVendor.id, vendorForm);
       if (response.success) {
@@ -473,7 +525,7 @@ const AdminDashboard = () => {
   // Handle product actions
   const handleUpdateProduct = async () => {
     if (!selectedProduct) return;
-    
+
     try {
       const response = await apiClient.updateAdminProduct(selectedProduct.id, productForm);
       if (response.success) {
@@ -570,12 +622,12 @@ const AdminDashboard = () => {
   // Handle order actions
   const handleUpdateOrderStatus = async () => {
     if (!selectedOrder || !newOrderStatus) return;
-    
+
     setIsOrderActionLoading(true);
     try {
       const response = await apiClient.updateAdminOrderStatus(
-        selectedOrder.id, 
-        newOrderStatus, 
+        selectedOrder.id,
+        newOrderStatus,
         orderStatusNotes || undefined
       );
       if (response.success) {
@@ -604,11 +656,11 @@ const AdminDashboard = () => {
 
   const handleUpdatePaymentStatus = async () => {
     if (!selectedOrder || !newPaymentStatus) return;
-    
+
     setIsOrderActionLoading(true);
     try {
       const response = await apiClient.updateAdminOrderPaymentStatus(
-        selectedOrder.id, 
+        selectedOrder.id,
         newPaymentStatus
       );
       if (response.success) {
@@ -679,37 +731,37 @@ const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-navy-600 rounded-lg flex items-center justify-center">
                   <Shield className="h-6 w-6 text-white" />
                 </div>
-              <div>
+                <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400">WENZE TII NDAKU Management</p>
+                </div>
               </div>
             </div>
-            </div>
-            
+
             {/* Header Actions */}
             <div className="flex items-center space-x-3">
-              <Button 
-                onClick={fetchDashboardData} 
-                variant="outline" 
+              <Button
+                onClick={fetchDashboardData}
+                variant="outline"
                 size="sm"
                 className="flex items-center space-x-2"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
-              <Button 
-                onClick={handleLogout} 
-                variant="outline" 
+              <Button
+                onClick={handleLogout}
+                variant="outline"
                 size="sm"
                 className="flex items-center space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-              <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Logout</span>
-            </Button>
+              </Button>
             </div>
           </div>
         </div>
@@ -718,46 +770,46 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-           {/* Professional Tab Navigation - Navy & Orange Balance */}
-           <div className="bg-white dark:bg-navy-900 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-navy-800">
-             <TabsList className="tabs-scroll no-scrollbar bg-transparent gap-1 sm:grid-cols-5">
-               <TabsTrigger 
-                 value="overview" 
-                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
-               >
-                 <TrendingUp className="h-4 w-4 mr-2" />
-                 Overview
-               </TabsTrigger>
-               <TabsTrigger 
-                 value="orders" 
-                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
-               >
-                 <ShoppingCart className="h-4 w-4 mr-2" />
-                 Orders
-               </TabsTrigger>
-               <TabsTrigger 
-                 value="vendors" 
-                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
-               >
-                 <Store className="h-4 w-4 mr-2" />
-                 Vendors
-               </TabsTrigger>
-               <TabsTrigger 
-                 value="products" 
-                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
-               >
-                 <Package className="h-4 w-4 mr-2" />
-                 Products
-               </TabsTrigger>
-               <TabsTrigger 
-                 value="customers" 
-                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
-               >
-                 <Users className="h-4 w-4 mr-2" />
-                 Customers
-               </TabsTrigger>
-          </TabsList>
-           </div>
+          {/* Professional Tab Navigation - Navy & Orange Balance */}
+          <div className="bg-white dark:bg-navy-900 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-navy-800">
+            <TabsList className="tabs-scroll no-scrollbar bg-transparent gap-1 sm:grid-cols-5">
+              <TabsTrigger
+                value="overview"
+                className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="orders"
+                className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Orders
+              </TabsTrigger>
+              <TabsTrigger
+                value="vendors"
+                className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
+              >
+                <Store className="h-4 w-4 mr-2" />
+                Vendors
+              </TabsTrigger>
+              <TabsTrigger
+                value="products"
+                className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Products
+              </TabsTrigger>
+              <TabsTrigger
+                value="customers"
+                className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Customers
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
@@ -883,46 +935,39 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
-                    <Button 
+                    <Button
                       onClick={() => setActiveTab('vendors')}
-                      variant="outline" 
+                      variant="outline"
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <Store className="h-6 w-6 text-navy-600" />
                       <span className="text-sm font-medium">Manage Vendors</span>
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => setActiveTab('products')}
-                      variant="outline" 
+                      variant="outline"
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <Package className="h-6 w-6 text-navy-600" />
                       <span className="text-sm font-medium">Review Products</span>
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => setActiveTab('orders')}
-                      variant="outline" 
+                      variant="outline"
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <ShoppingCart className="h-6 w-6 text-navy-600" />
                       <span className="text-sm font-medium">Manage Orders</span>
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => setActiveTab('customers')}
-                      variant="outline" 
+                      variant="outline"
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <Users className="h-6 w-6 text-navy-600" />
                       <span className="text-sm font-medium">View Customers</span>
                     </Button>
-                    <Button 
-                      onClick={fetchDashboardData}
-                      variant="outline" 
-                      className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
-                    >
-                      <RefreshCw className="h-6 w-6 text-navy-600" />
-                      <span className="text-sm font-medium">Refresh Data</span>
-                    </Button>
+
                   </div>
                 </CardContent>
               </Card>
@@ -944,7 +989,7 @@ const AdminDashboard = () => {
                     </div>
                     <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Online</Badge>
                   </div>
-                  
+
                   {isStatsLoading ? (
                     <div className="space-y-3">
                       <Skeleton className="h-12 w-full" />
@@ -961,7 +1006,7 @@ const AdminDashboard = () => {
                           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{stats?.pendingVendors ?? 0}</Badge>
                         </div>
                       )}
-                      
+
                       {(stats?.flaggedProducts ?? 0) > 0 && (
                         <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                           <div className="flex items-center space-x-3">
@@ -995,28 +1040,28 @@ const AdminDashboard = () => {
           {/* Professional Vendors Tab */}
           <TabsContent value="vendors" className="space-y-6">
             <Card>
-               <CardHeader className="bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-900/20 dark:to-orange-900/20 border-b border-navy-200 dark:border-orange-800">
+              <CardHeader className="bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-900/20 dark:to-orange-900/20 border-b border-navy-200 dark:border-orange-800">
                 <div className="flex justify-between items-center">
-                   <div className="flex items-center space-x-3">
-                     <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center">
-                       <Store className="h-5 w-5 text-white" />
-                     </div>
-                  <div>
-                       <CardTitle className="text-navy-900 dark:text-navy-100">Vendor Management</CardTitle>
-                       <CardDescription className="text-orange-600 dark:text-orange-400">
-                         Manage vendor accounts, approvals, and business profiles
-                       </CardDescription>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center">
+                      <Store className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">Vendor Management</CardTitle>
+                      <CardDescription className="text-orange-600 dark:text-orange-400">
+                        Manage vendor accounts, approvals, and business profiles
+                      </CardDescription>
+                    </div>
                   </div>
-                   </div>
-                   <div className="flex items-center space-x-2">
-                     <Badge variant="secondary" className="bg-navy-100 text-navy-800">
-                       {vendors.length} vendors
-                     </Badge>
-                     <Button onClick={fetchVendors} variant="outline" size="sm" className="border-orange-300 hover:bg-orange-50">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
-                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary" className="bg-navy-100 text-navy-800">
+                      {vendors.length} vendors
+                    </Badge>
+                    <Button onClick={fetchVendors} variant="outline" size="sm" className="border-orange-300 hover:bg-orange-50">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
@@ -1043,185 +1088,205 @@ const AdminDashboard = () => {
                       <SelectItem value="rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
+                  {(vendorsSearch || vendorsStatusFilter !== 'all') && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleClearVendorFilters}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Clear All
+                    </Button>
+                  )}
                 </div>
 
                 {/* Professional Vendor Table */}
                 <div className="bg-white dark:bg-navy-900 rounded-lg border border-gray-200 dark:border-navy-800 overflow-hidden shadow-sm">
                   <div className="overflow-x-auto">
                     <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50 dark:bg-navy-800/50 border-b border-gray-200 dark:border-navy-700">
-                        <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Business Details</TableHead>
-                        <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Contact</TableHead>
-                        <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
-                        <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Registration</TableHead>
-                        <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {vendorsLoading ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-12">
-                            <div className="flex flex-col items-center justify-center space-y-3">
-                              <div className="w-8 h-8 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"></div>
-                              <span className="text-gray-500 dark:text-gray-400">Loading vendors...</span>
-                            </div>
-                          </TableCell>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50 dark:bg-navy-800/50 border-b border-gray-200 dark:border-navy-700">
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Business Details</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Contact</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Registration</TableHead>
+                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">Actions</TableHead>
                         </TableRow>
-                      ) : vendors.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-12">
-                            <div className="flex flex-col items-center justify-center space-y-3">
-                              <Store className="h-12 w-12 text-gray-300 dark:text-gray-600" />
-                              <div className="text-center">
-                                <p className="text-gray-500 dark:text-gray-400 font-medium">No vendors found</p>
-                                <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filter criteria</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        vendors.map((vendor) => (
-                          <TableRow key={vendor.id} className="hover:bg-gray-50 dark:hover:bg-navy-800/30 transition-colors">
-                            <TableCell className="py-4">
-                              <div className="flex items-center space-x-3">
-                                {vendor.profile_photo ? (
-                                  <img
-                                    src={vendor.profile_photo}
-                                    alt={vendor.business_name}
-                                    className="w-10 h-10 rounded-lg object-cover border"
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 bg-navy-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-sm font-bold text-white">
-                                      {vendor.business_name.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
-                                <div>
-                                  <div className="font-medium text-gray-900 dark:text-gray-100">{vendor.business_name}</div>
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">{vendor.business_type}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{vendor.business_email}</div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">{vendor.business_phone}</div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4">
-                              <div className="flex flex-col space-y-1">
-                              <Badge 
-                                  className={`w-fit ${
-                                    vendor.approved 
-                                      ? "bg-green-100 text-green-800 hover:bg-green-100" 
-                                      : vendor.rejected_at 
-                                      ? "bg-red-100 text-red-800 hover:bg-red-100" 
-                                      : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                                  }`}
-                                >
-                                  {vendor.approved ? (
-                                    <>
-                                      <CheckCircle className="h-3 w-3 mr-1" />
-                                      Approved
-                                    </>
-                                  ) : vendor.rejected_at ? (
-                                    <>
-                                      <XCircle className="h-3 w-3 mr-1" />
-                                      Rejected
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      Pending
-                                    </>
-                                  )}
-                              </Badge>
-                                {vendor.verified && (
-                                  <Badge variant="secondary" className="w-fit text-xs bg-blue-100 text-blue-800">
-                                    Verified
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4">
-                              <div className="text-sm text-gray-900 dark:text-gray-100">
-                              {new Date(vendor.created_at).toLocaleDateString()}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {new Date(vendor.created_at).toLocaleTimeString()}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right py-4">
-                              <div className="flex items-center justify-end space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedVendor(vendor);
-                                    setSelectedProduct(null);
-                                    setSelectedCustomer(null);
-                                    setSelectedOrder(null);
-                                    setIsVendorViewModalOpen(true);
-                                  }}
-                                  className="hover:bg-blue-50 hover:border-blue-300"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedVendor(vendor);
-                                    setSelectedProduct(null);
-                                    setSelectedCustomer(null);
-                                    setVendorForm(vendor);
-                                    setIsVendorEditModalOpen(true);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                {!vendor.approved && !vendor.rejected_at && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedVendor(vendor);
-                                      setIsApproveModalOpen(true);
-                                    }}
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {!vendor.approved && !vendor.rejected_at && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedVendor(vendor);
-                                      setIsRejectModalOpen(true);
-                                    }}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedVendor(vendor);
-                                    setIsDeleteModalOpen(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                      </TableHeader>
+                      <TableBody>
+                        {vendorsLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-12">
+                              <div className="flex flex-col items-center justify-center space-y-3">
+                                <div className="w-8 h-8 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-gray-500 dark:text-gray-400">Loading vendors...</span>
                               </div>
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
+                        ) : vendors.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-12">
+                              <div className="flex flex-col items-center justify-center space-y-3">
+                                <Store className="h-12 w-12 text-gray-300 dark:text-gray-600" />
+                                <div className="text-center">
+                                  <p className="text-gray-500 dark:text-gray-400 font-medium">No vendors found</p>
+                                  <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filter criteria</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          vendors.map((vendor) => (
+                            <TableRow key={vendor.id} className="hover:bg-gray-50 dark:hover:bg-navy-800/30 transition-colors">
+                              <TableCell className="py-4">
+                                <div className="flex items-center space-x-3">
+                                  {vendor.profile_photo ? (
+                                    <img
+                                      src={vendor.profile_photo}
+                                      alt={vendor.business_name}
+                                      className="w-10 h-10 rounded-lg object-cover border"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-navy-600 rounded-lg flex items-center justify-center">
+                                      <span className="text-sm font-bold text-white">
+                                        {vendor.business_name.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">{vendor.business_name}</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">{vendor.business_type}</div>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{vendor.business_email}</div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">{vendor.business_phone}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="flex flex-col space-y-1">
+                                  <Badge
+                                    className={`w-fit ${vendor.approved
+                                      ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                      : vendor.rejected_at
+                                        ? "bg-red-100 text-red-800 hover:bg-red-100"
+                                        : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                                      }`}
+                                  >
+                                    {vendor.approved ? (
+                                      <>
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Approved
+                                      </>
+                                    ) : vendor.rejected_at ? (
+                                      <>
+                                        <XCircle className="h-3 w-3 mr-1" />
+                                        Rejected
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        Pending
+                                      </>
+                                    )}
+                                  </Badge>
+                                  {vendor.verified && (
+                                    <Badge variant="secondary" className="w-fit text-xs bg-blue-100 text-blue-800">
+                                      Verified
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-sm text-gray-900 dark:text-gray-100">
+                                  {new Date(vendor.created_at).toLocaleDateString()}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(vendor.created_at).toLocaleTimeString()}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right py-4">
+                                <div className="flex items-center justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedVendor(vendor);
+                                      setSelectedProduct(null);
+                                      setSelectedCustomer(null);
+                                      setSelectedOrder(null);
+                                      setIsVendorViewModalOpen(true);
+                                    }}
+                                    className="hover:bg-blue-50 hover:border-blue-300"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedVendor(vendor);
+                                      setSelectedProduct(null);
+                                      setSelectedCustomer(null);
+                                      setVendorForm(vendor);
+                                      setIsVendorEditModalOpen(true);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  {!vendor.approved && !vendor.rejected_at && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedVendor(vendor);
+                                        setIsApproveModalOpen(true);
+                                      }}
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  {!vendor.approved && !vendor.rejected_at && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedVendor(vendor);
+                                        setIsRejectModalOpen(true);
+                                      }}
+                                    >
+                                      <XCircle className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedRevenueVendorId(vendor.id);
+                                      setIsRevenueModalOpen(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  >
+                                    <BarChart2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedVendor(vendor);
+                                      setIsDeleteModalOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
                     </Table>
                   </div>
                 </div>
@@ -1299,6 +1364,16 @@ const AdminDashboard = () => {
                     onChange={(e) => setOrdersDateTo(e.target.value)}
                     className="w-48 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700"
                   />
+                  {(ordersSearch || ordersStatusFilter !== 'all' || ordersDateFrom || ordersDateTo) && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleClearOrderFilters}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Clear All
+                    </Button>
+                  )}
                 </div>
 
                 {/* Orders Table */}
@@ -1515,127 +1590,137 @@ const AdminDashboard = () => {
                       <SelectItem value="flagged">Flagged</SelectItem>
                     </SelectContent>
                   </Select>
+                  {(productsSearch || productsStatusFilter !== 'all' || productsVendorFilter !== 'all') && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleClearProductFilters}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Clear All
+                    </Button>
+                  )}
                 </div>
 
                 <div className="rounded-md border">
                   <div className="overflow-x-auto">
                     <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product Name</TableHead>
-                        <TableHead>Vendor</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Stock</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {productsLoading ? (
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8">
-                            <div className="flex items-center justify-center space-x-2">
-                              <RefreshCw className="h-4 w-4 animate-spin" />
-                              <span>Loading products...</span>
-                            </div>
-                          </TableCell>
+                          <TableHead>Product Name</TableHead>
+                          <TableHead>Vendor</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Stock</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ) : products.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                            No products found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        products.map((product) => (
-                          <TableRow key={product.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center space-x-3">
-                                {(product.image || (product.images && product.images.length > 0)) ? (
-                                  <img
-                                    src={product.image || product.images[0]}
-                                    alt={product.name}
-                                    className="w-12 h-12 rounded-lg object-cover border"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <Package className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                )}
-                                <span>{product.name}</span>
+                      </TableHeader>
+                      <TableBody>
+                        {productsLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">
+                              <div className="flex items-center justify-center space-x-2">
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <span>Loading products...</span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <div>
-                                <div className="font-medium">{product.vendor.business_name}</div>
-                                <div className="text-sm text-gray-500">{product.vendor.business_email}</div>
-                              </div>
+                          </TableRow>
+                        ) : products.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                              No products found
                             </TableCell>
-                            <TableCell>${product.price}</TableCell>
-                            <TableCell>{product.stock}</TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={product.status === 'active' ? "default" : product.status === 'flagged' ? "destructive" : "secondary"}
-                              >
-                                {product.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedProduct(product);
-                                    setSelectedVendor(null);
-                                    setSelectedCustomer(null);
-                                    setSelectedOrder(null);
-                                    setIsProductViewModalOpen(true);
-                                  }}
+                          </TableRow>
+                        ) : (
+                          products.map((product) => (
+                            <TableRow key={product.id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center space-x-3">
+                                  {(product.image || (product.images && product.images.length > 0)) ? (
+                                    <img
+                                      src={product.image || product.images[0]}
+                                      alt={product.name}
+                                      className="w-12 h-12 rounded-lg object-cover border"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                      <Package className="h-6 w-6 text-gray-400" />
+                                    </div>
+                                  )}
+                                  <span>{product.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">{product.vendor.business_name}</div>
+                                  <div className="text-sm text-gray-500">{product.vendor.business_email}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell>${product.price}</TableCell>
+                              <TableCell>{product.stock}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={product.status === 'active' ? "default" : product.status === 'flagged' ? "destructive" : "secondary"}
                                 >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedProduct(product);
-                                    setSelectedVendor(null);
-                                    setSelectedCustomer(null);
-                                    setProductForm(product);
-                                    setIsProductEditModalOpen(true);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                {product.status !== 'flagged' && (
+                                  {product.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end space-x-2">
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
                                       setSelectedProduct(product);
-                                      setIsRedMarkModalOpen(true);
+                                      setSelectedVendor(null);
+                                      setSelectedCustomer(null);
+                                      setSelectedOrder(null);
+                                      setIsProductViewModalOpen(true);
                                     }}
                                   >
-                                    <AlertTriangle className="h-4 w-4" />
+                                    <Eye className="h-4 w-4" />
                                   </Button>
-                                )}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedProduct(product);
-                                    setIsDeleteModalOpen(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedProduct(product);
+                                      setSelectedVendor(null);
+                                      setSelectedCustomer(null);
+                                      setProductForm(product);
+                                      setIsProductEditModalOpen(true);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  {product.status !== 'flagged' && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedProduct(product);
+                                        setIsRedMarkModalOpen(true);
+                                      }}
+                                    >
+                                      <AlertTriangle className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedProduct(product);
+                                      setIsDeleteModalOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
                     </Table>
                   </div>
                 </div>
@@ -1677,107 +1762,139 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="flex space-x-4 mb-6">
-                  <div className="flex-1">
+                  <div className="flex-1 flex items-center space-x-4">
                     <Input
                       placeholder="Search customers..."
                       value={customersSearch}
                       onChange={(e) => setCustomersSearch(e.target.value)}
                       className="max-w-sm"
                     />
+                    {customersSearch && (
+                      <Button
+                        variant="ghost"
+                        onClick={handleClearCustomerFilters}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Clear All
+                      </Button>
+                    )}
                   </div>
                 </div>
 
                 <div className="rounded-md border">
                   <div className="overflow-x-auto">
                     <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customersLoading ? (
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8">
-                            <div className="flex items-center justify-center space-x-2">
-                              <RefreshCw className="h-4 w-4 animate-spin" />
-                              <span>Loading customers...</span>
-                            </div>
-                          </TableCell>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Created</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ) : customers.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                            No customers found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        customers.map((customer) => (
-                          <TableRow key={customer.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center space-x-3">
-                                {customer.profile_photo ? (
-                                  <img
-                                    src={customer.profile_photo}
-                                    alt={`${customer.first_name} ${customer.last_name}`}
-                                    className="w-8 h-8 rounded-full object-cover border"
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <span className="text-xs font-bold text-white">
-                                      {customer.first_name.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
-                                <span>{customer.first_name} {customer.last_name}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>{customer.email}</TableCell>
-                            <TableCell>{customer.phone_number || 'N/A'}</TableCell>
-                            <TableCell>
-                              <Badge variant={customer.verified ? "default" : "secondary"}>
-                                {customer.verified ? "Verified" : "Unverified"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {new Date(customer.created_at).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedCustomer(customer);
-                                    setSelectedVendor(null);
-                                    setSelectedProduct(null);
-                                    setSelectedOrder(null);
-                                    setIsCustomerViewModalOpen(true);
-                                  }}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedCustomer(customer);
-                                    setIsDeleteModalOpen(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                      </TableHeader>
+                      <TableBody>
+                        {customersLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">
+                              <div className="flex items-center justify-center space-x-2">
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <span>Loading customers...</span>
                               </div>
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
+                        ) : customers.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                              No customers found
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          customers.map((customer) => (
+                            <TableRow key={customer.id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center space-x-3">
+                                  {customer.profile_photo ? (
+                                    <img
+                                      src={customer.profile_photo}
+                                      alt={`${customer.first_name} ${customer.last_name}`}
+                                      className="w-8 h-8 rounded-full object-cover border"
+                                    />
+                                  ) : (
+                                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                      <span className="text-xs font-bold text-white">
+                                        {customer.first_name.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <span>{customer.first_name} {customer.last_name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>{customer.email}</TableCell>
+                              <TableCell>{customer.phone_number || 'N/A'}</TableCell>
+                              <TableCell>
+                                <Badge variant={customer.verified ? "default" : "secondary"}>
+                                  {customer.verified ? "Verified" : "Unverified"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {new Date(customer.created_at).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedCustomer(customer);
+                                      setSelectedVendor(null);
+                                      setSelectedProduct(null);
+                                      setSelectedOrder(null);
+                                      setIsCustomerViewModalOpen(true);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedHistoryCustomerId(customer.id);
+                                      setIsHistoryModalOpen(true);
+                                    }}
+                                    title="Purchase History"
+                                  >
+                                    <History className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedReviewsCustomerId(customer.id);
+                                      setIsReviewsModalOpen(true);
+                                    }}
+                                    title="Feedback & Reviews"
+                                  >
+                                    <MessageSquare className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedCustomer(customer);
+                                      setIsDeleteModalOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
                     </Table>
                   </div>
                 </div>
@@ -1829,23 +1946,23 @@ const AdminDashboard = () => {
                   <Store className="h-5 w-5 mr-2 text-orange-600" />
                   Basic Information
                 </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <Label className="text-sm font-medium text-gray-500">Business Name</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.business_name}</p>
-                </div>
-                <div>
+                  </div>
+                  <div>
                     <Label className="text-sm font-medium text-gray-500">Business Type</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.business_type}</p>
-                </div>
-                <div>
+                  </div>
+                  <div>
                     <Label className="text-sm font-medium text-gray-500">Email</Label>
                     <div className="flex items-center mt-1">
                       <Mail className="h-4 w-4 text-gray-400 mr-2" />
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedVendor.business_email}</p>
                     </div>
-                </div>
-                <div>
+                  </div>
+                  <div>
                     <Label className="text-sm font-medium text-gray-500">Phone</Label>
                     <div className="flex items-center mt-1">
                       <Phone className="h-4 w-4 text-gray-400 mr-2" />
@@ -1913,10 +2030,10 @@ const AdminDashboard = () => {
                     {selectedVendor.categories.map((category, index) => (
                       <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">
                         {category}
-                  </Badge>
+                      </Badge>
                     ))}
+                  </div>
                 </div>
-              </div>
               )}
 
               {/* Status Information */}
@@ -1926,15 +2043,15 @@ const AdminDashboard = () => {
                   Status & Verification
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-              <div>
+                  <div>
                     <Label className="text-sm font-medium text-gray-500">Approval Status</Label>
                     <div className="mt-1">
                       <Badge className={
-                        selectedVendor.approved 
-                          ? "bg-green-100 text-green-800 hover:bg-green-100" 
-                          : selectedVendor.rejected_at 
-                          ? "bg-red-100 text-red-800 hover:bg-red-100" 
-                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                        selectedVendor.approved
+                          ? "bg-green-100 text-green-800 hover:bg-green-100"
+                          : selectedVendor.rejected_at
+                            ? "bg-red-100 text-red-800 hover:bg-red-100"
+                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
                       }>
                         {selectedVendor.approved ? (
                           <>
@@ -1978,11 +2095,11 @@ const AdminDashboard = () => {
                       <Label className="text-sm font-medium text-gray-500">Approved Date</Label>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
                         {new Date(selectedVendor.approved_at).toLocaleDateString()} at {new Date(selectedVendor.approved_at).toLocaleTimeString()}
-                </p>
-              </div>
+                      </p>
+                    </div>
                   )}
                   {selectedVendor.rejected_at && (
-              <div>
+                    <div>
                       <Label className="text-sm font-medium text-gray-500">Rejected Date</Label>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
                         {new Date(selectedVendor.rejected_at).toLocaleDateString()} at {new Date(selectedVendor.rejected_at).toLocaleTimeString()}
@@ -2039,7 +2156,7 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setIsApproveModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => selectedVendor && handleApproveVendor(selectedVendor.id)}
               disabled={isVendorActionLoading}
             >
@@ -2073,8 +2190,8 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setIsRejectModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => selectedVendor && handleRejectVendor(selectedVendor.id)}
               disabled={!rejectionReason.trim() || isVendorActionLoading}
             >
@@ -2099,8 +2216,8 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => {
                 if (selectedVendor) {
                   handleDeleteVendor(selectedVendor.id);
@@ -2142,8 +2259,8 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setIsRedMarkModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => selectedProduct && handleRedMarkProduct(selectedProduct.id)}
               disabled={!redMarkReason.trim()}
             >
@@ -2170,7 +2287,7 @@ const AdminDashboard = () => {
                   <Input
                     id="business_name"
                     value={vendorForm.business_name || ''}
-                    onChange={(e) => setVendorForm({...vendorForm, business_name: e.target.value})}
+                    onChange={(e) => setVendorForm({ ...vendorForm, business_name: e.target.value })}
                   />
                 </div>
                 <div>
@@ -2179,7 +2296,7 @@ const AdminDashboard = () => {
                     id="business_email"
                     type="email"
                     value={vendorForm.business_email || ''}
-                    onChange={(e) => setVendorForm({...vendorForm, business_email: e.target.value})}
+                    onChange={(e) => setVendorForm({ ...vendorForm, business_email: e.target.value })}
                   />
                 </div>
                 <div>
@@ -2187,7 +2304,7 @@ const AdminDashboard = () => {
                   <Input
                     id="business_phone"
                     value={vendorForm.business_phone || ''}
-                    onChange={(e) => setVendorForm({...vendorForm, business_phone: e.target.value})}
+                    onChange={(e) => setVendorForm({ ...vendorForm, business_phone: e.target.value })}
                   />
                 </div>
                 <div>
@@ -2195,7 +2312,7 @@ const AdminDashboard = () => {
                   <Input
                     id="business_type"
                     value={vendorForm.business_type || ''}
-                    onChange={(e) => setVendorForm({...vendorForm, business_type: e.target.value})}
+                    onChange={(e) => setVendorForm({ ...vendorForm, business_type: e.target.value })}
                   />
                 </div>
               </div>
@@ -2204,7 +2321,7 @@ const AdminDashboard = () => {
                 <Textarea
                   id="business_address"
                   value={vendorForm.business_address || ''}
-                  onChange={(e) => setVendorForm({...vendorForm, business_address: e.target.value})}
+                  onChange={(e) => setVendorForm({ ...vendorForm, business_address: e.target.value })}
                 />
               </div>
               <div>
@@ -2212,7 +2329,7 @@ const AdminDashboard = () => {
                 <Textarea
                   id="description"
                   value={vendorForm.description || ''}
-                  onChange={(e) => setVendorForm({...vendorForm, description: e.target.value})}
+                  onChange={(e) => setVendorForm({ ...vendorForm, description: e.target.value })}
                 />
               </div>
               <div className="flex items-center space-x-4">
@@ -2221,7 +2338,7 @@ const AdminDashboard = () => {
                     type="checkbox"
                     id="verified"
                     checked={vendorForm.verified || false}
-                    onChange={(e) => setVendorForm({...vendorForm, verified: e.target.checked})}
+                    onChange={(e) => setVendorForm({ ...vendorForm, verified: e.target.checked })}
                   />
                   <Label htmlFor="verified">Verified</Label>
                 </div>
@@ -2230,7 +2347,7 @@ const AdminDashboard = () => {
                     type="checkbox"
                     id="approved"
                     checked={vendorForm.approved || false}
-                    onChange={(e) => setVendorForm({...vendorForm, approved: e.target.checked})}
+                    onChange={(e) => setVendorForm({ ...vendorForm, approved: e.target.checked })}
                   />
                   <Label htmlFor="approved">Approved</Label>
                 </div>
@@ -2269,7 +2386,7 @@ const AdminDashboard = () => {
                   <Input
                     id="product_name"
                     value={productForm.name || selectedProduct.name || ''}
-                    onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                   />
                 </div>
                 <div>
@@ -2279,7 +2396,7 @@ const AdminDashboard = () => {
                     type="number"
                     step="0.01"
                     value={productForm.price || selectedProduct.price || ''}
-                    onChange={(e) => setProductForm({...productForm, price: parseFloat(e.target.value)})}
+                    onChange={(e) => setProductForm({ ...productForm, price: parseFloat(e.target.value) })}
                   />
                 </div>
                 <div>
@@ -2287,7 +2404,7 @@ const AdminDashboard = () => {
                   <Input
                     id="product_category"
                     value={productForm.category || selectedProduct.category || ''}
-                    onChange={(e) => setProductForm({...productForm, category: e.target.value})}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   />
                 </div>
                 <div>
@@ -2296,14 +2413,14 @@ const AdminDashboard = () => {
                     id="product_stock"
                     type="number"
                     value={productForm.stock || selectedProduct.stock || ''}
-                    onChange={(e) => setProductForm({...productForm, stock: parseInt(e.target.value)})}
+                    onChange={(e) => setProductForm({ ...productForm, stock: parseInt(e.target.value) })}
                   />
                 </div>
                 <div>
                   <Label htmlFor="product_status">Status</Label>
-                  <Select 
-                    value={productForm.status || selectedProduct.status || 'active'} 
-                    onValueChange={(value) => setProductForm({...productForm, status: value})}
+                  <Select
+                    value={productForm.status || selectedProduct.status || 'active'}
+                    onValueChange={(value) => setProductForm({ ...productForm, status: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -2321,7 +2438,7 @@ const AdminDashboard = () => {
                 <Textarea
                   id="product_description"
                   value={productForm.description || selectedProduct.description || ''}
-                  onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   className="min-h-[100px]"
                 />
               </div>
@@ -2332,7 +2449,7 @@ const AdminDashboard = () => {
                   value={Array.isArray(productForm.images) ? productForm.images.join(', ') : (productForm.images || '')}
                   onChange={(e) => {
                     const images = e.target.value.split(',').map(img => img.trim()).filter(img => img);
-                    setProductForm({...productForm, images});
+                    setProductForm({ ...productForm, images });
                   }}
                   placeholder="Enter image URLs separated by commas"
                   className="min-h-[80px]"
@@ -2780,7 +2897,7 @@ const AdminDashboard = () => {
             }}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleUpdateOrderStatus}
               disabled={!newOrderStatus || isOrderActionLoading}
             >
@@ -2824,7 +2941,7 @@ const AdminDashboard = () => {
             }}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleUpdatePaymentStatus}
               disabled={!newPaymentStatus || isOrderActionLoading}
             >
@@ -2833,6 +2950,27 @@ const AdminDashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Vendor Revenue Modal */}
+      <VendorRevenueModal
+        isOpen={isRevenueModalOpen}
+        onClose={() => setIsRevenueModalOpen(false)}
+        vendorId={selectedRevenueVendorId}
+      />
+
+      {/* Customer Purchase History Modal */}
+      <CustomerHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        customerId={selectedHistoryCustomerId}
+      />
+
+      {/* Customer Reviews Modal */}
+      <CustomerReviewsModal
+        isOpen={isReviewsModalOpen}
+        onClose={() => setIsReviewsModalOpen(false)}
+        customerId={selectedReviewsCustomerId}
+      />
     </div>
   );
 };
