@@ -44,7 +44,7 @@ const SearchResults = () => {
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState(0);
   const [sortByValue, setSortByValue] = useState("relevance");
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -59,7 +59,7 @@ const SearchResults = () => {
           category: categoryParam || undefined,
           limit: 100
         });
-        
+
         if (response.success && response.data) {
           setAllProducts(response.data.products || []);
         } else {
@@ -88,7 +88,7 @@ const SearchResults = () => {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-                    filtered = filtered.filter((product: any) => product.category === selectedCategory);
+      filtered = filtered.filter((product: any) => product.category === selectedCategory);
     }
 
     // Filter by price range
@@ -137,8 +137,8 @@ const SearchResults = () => {
         {showLoader && (
           <PageLoader
             variant="product"
-            title="Loading products"
-            subtitle="Bringing the best items for you"
+            title={t('loadingProducts')}
+            subtitle={t('loadingProductsSubtitle')}
             fadingOut={isFadingOut}
           />
         )}
@@ -150,173 +150,173 @@ const SearchResults = () => {
           )}
         >
           <div className="container mx-auto px-4 pt-4 pb-8 flex-1">
-          {/* Header Section - aligned with controls */}
-          <div className="mb-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <Search className="h-6 w-6 text-primary" />
-                <h1 className="text-3xl md:text-4xl font-bold">
-                  {categoryParam ? `Products in ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : "All Products")}
-                </h1>
-              </div>
-              
-              {/* Sort and View Options - aligned on same line */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Sort by:</span>
+            {/* Header Section - aligned with controls */}
+            <div className="mb-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <Search className="h-6 w-6 text-primary" />
+                  <h1 className="text-3xl md:text-4xl font-bold">
+                    {categoryParam ? `${t('productsIn')} ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : t('allProducts'))}
+                  </h1>
                 </div>
-                <Select value={sortByValue} onValueChange={setSortByValue}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Relevance" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevance">Relevance</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                    <SelectItem value="alpha">Alphabetical</SelectItem>
-                    <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {/* Results count and Featured */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                {filteredProducts.length} results
-              </span>
-              <Badge variant="secondary">
-                <Star className="h-3 w-3 mr-1" />
-                Featured
-              </Badge>
-            </div>
-          </div>
 
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters Sidebar */}
-            <aside className="lg:w-1/4">
-              <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
-                {/* Search within results */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">
-                    Refine Search
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      type="text"
-                      placeholder="Search in results..."
-                      className="pl-10"
-                      value={refineSearch}
-                      onChange={(e) => setRefineSearch(e.target.value)}
-                    />
+                {/* Sort and View Options - aligned on same line */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{t('sortBy')}:</span>
                   </div>
-                </div>
-
-                {/* Category Filter */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">
-                    Category
-                  </label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
+                  <Select value={sortByValue} onValueChange={setSortByValue}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder={t('relevance')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="Technology & Electronics">Electronics</SelectItem>
-                      <SelectItem value="Clothing & Fashion">Fashion & Clothing</SelectItem>
-                      <SelectItem value="Home & Garden">Home & Garden</SelectItem>
-                      <SelectItem value="Cosmetics & Beauty">Cosmetics & Beauty</SelectItem>
-                      <SelectItem value="Health & Wellness">Health & Wellness</SelectItem>
-                      <SelectItem value="Sports & Outdoors">Sports & Outdoors</SelectItem>
-                      <SelectItem value="Food & Beverages">Food & Beverages</SelectItem>
+                      <SelectItem value="relevance">{t('relevance')}</SelectItem>
+                      <SelectItem value="price-low">{t('priceLowToHigh')}</SelectItem>
+                      <SelectItem value="price-high">{t('priceHighToLow')}</SelectItem>
+                      <SelectItem value="rating">{t('highestRated')}</SelectItem>
+                      <SelectItem value="alpha">{t('alphabetical')}</SelectItem>
+                      <SelectItem value="alpha-reverse">{t('reverseAlphabetical')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                {/* Price Range */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">
-                    Price Range
-                  </label>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input 
-                        type="number" 
-                        placeholder="Min" 
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                      />
-                      <Input 
-                        type="number" 
-                        placeholder="Max" 
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
+              {/* Results count and Featured */}
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-muted-foreground">
+                  {filteredProducts.length} {t('results')}
+                </span>
+                <Badge variant="secondary">
+                  <Star className="h-3 w-3 mr-1" />
+                  {t('featuredBadge')}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Filters Sidebar */}
+              <aside className="lg:w-1/4">
+                <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
+                  {/* Search within results */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">
+                      {t('refineSearch')}
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        type="text"
+                        placeholder={t('searchInResults')}
+                        className="pl-10"
+                        value={refineSearch}
+                        onChange={(e) => setRefineSearch(e.target.value)}
                       />
                     </div>
                   </div>
-                </div>
 
-                {/* Rating Filter */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">
-                    Minimum Rating
-                  </label>
-                  <div className="space-y-2">
-                    {[4, 3, 2, 1].map((rating) => (
-                      <label key={rating} className="flex items-center">
-                        <input 
-                          type="radio" 
-                          name="rating" 
-                          className="mr-2" 
-                          checked={minRating === rating}
-                          onChange={() => setMinRating(rating)}
-                        />
-                        <div className="flex items-center">
-                          {[...Array(rating)].map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          ))}
-                          <span className="ml-1 text-sm">& up</span>
-                        </div>
-                      </label>
-                    ))}
-                    <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="rating" 
-                        className="mr-2" 
-                        checked={minRating === 0}
-                        onChange={() => setMinRating(0)}
-                      />
-                      <span className="text-sm">Any rating</span>
+                  {/* Category Filter */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">
+                      {t('categories')}
                     </label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('allCategories')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('allCategories')}</SelectItem>
+                        <SelectItem value="Technology & Electronics">{t('tech')}</SelectItem>
+                        <SelectItem value="Clothing & Fashion">{t('clothes')}</SelectItem>
+                        <SelectItem value="Home & Garden">{t('homeAndGarden')}</SelectItem>
+                        <SelectItem value="Cosmetics & Beauty">{t('cosmetics')}</SelectItem>
+                        <SelectItem value="Health & Wellness">{t('healthAndWellness')}</SelectItem>
+                        <SelectItem value="Sports & Outdoors">{t('sportsAndOutdoors')}</SelectItem>
+                        <SelectItem value="Food & Beverages">{t('food')} & {t('beverages')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Price Range */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">
+                      {t('priceRange')}
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder={t('min')}
+                          value={minPrice}
+                          onChange={(e) => setMinPrice(e.target.value)}
+                        />
+                        <Input
+                          type="number"
+                          placeholder={t('max')}
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rating Filter */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">
+                      {t('minimumRating')}
+                    </label>
+                    <div className="space-y-2">
+                      {[4, 3, 2, 1].map((rating) => (
+                        <label key={rating} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="rating"
+                            className="mr-2"
+                            checked={minRating === rating}
+                            onChange={() => setMinRating(rating)}
+                          />
+                          <div className="flex items-center">
+                            {[...Array(rating)].map((_, i) => (
+                              <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            ))}
+                            <span className="ml-1 text-sm">{t('andUp')}</span>
+                          </div>
+                        </label>
+                      ))}
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="rating"
+                          className="mr-2"
+                          checked={minRating === 0}
+                          onChange={() => setMinRating(0)}
+                        />
+                        <span className="text-sm">{t('anyRating')}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Clear All Button */}
+                  <div className="mt-6 pt-4 border-t">
+                    <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
+                      {t('clearAll')}
+                    </Button>
                   </div>
                 </div>
+              </aside>
 
-                {/* Clear All Button */}
-                <div className="mt-6 pt-4 border-t">
-                  <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
-                    Clear All
-                  </Button>
-                </div>
-              </div>
-            </aside>
-
-            {/* Search Results */}
-            <div className="lg:w-3/4">
+              {/* Search Results */}
+              <div className="lg:w-3/4">
                 {/* Promoted Results */}
                 {filteredProducts.filter(p => p.isFeatured || p.is_featured).length > 0 && (
                   <div className="mb-8">
                     <h2 className="text-xl font-bold mb-4 flex items-center">
                       <Star className="h-5 w-5 text-secondary mr-2" />
-                      Promoted Results
+                      {t('promotedResults')}
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
                       {filteredProducts.filter(p => p.isFeatured || p.is_featured).map((product) => (
-                        <ProductCard 
+                        <ProductCard
                           key={product.id}
                           id={product.id}
                           name={product.name}
@@ -334,77 +334,77 @@ const SearchResults = () => {
                   </div>
                 )}
 
-              {/* All Results */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Grid className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-bold">All Results</h2>
-                </div>
-                
-                {paginatedProducts.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
-                      {paginatedProducts.map((product: any) => (
-                        <ProductCard 
-                          key={product.id}
-                          id={product.id}
-                          name={product.name}
-                          price={product.price}
-                          originalPrice={product.original_price}
-                          rating={product.rating || 0}
-                          reviewCount={product.review_count || 0}
-                          image={product.images?.[0] || product.image || "/marketplace.jpeg"}
-                          vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
-                          isNew={product.is_new || product.isNew || false}
-                          isFeatured={product.is_featured || product.isFeatured || false}
-                        />
-                      ))}
-                    </div>
+                {/* All Results */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Grid className="h-5 w-5 text-primary" />
+                    <h2 className="text-xl font-bold">{t('allResults')}</h2>
+                  </div>
 
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                      <div className="flex justify-center items-center gap-2 mt-8">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                          disabled={currentPage === 1}
-                        >
-                          Previous
-                        </Button>
-                        <span className="px-4 py-2 text-sm">
-                          Page {currentPage} of {totalPages}
-                        </span>
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                          disabled={currentPage === totalPages}
-                        >
-                          Next
-                        </Button>
+                  {paginatedProducts.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+                        {paginatedProducts.map((product: any) => (
+                          <ProductCard
+                            key={product.id}
+                            id={product.id}
+                            name={product.name}
+                            price={product.price}
+                            originalPrice={product.original_price}
+                            rating={product.rating || 0}
+                            reviewCount={product.review_count || 0}
+                            image={product.images?.[0] || product.image || "/marketplace.jpeg"}
+                            vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                            isNew={product.is_new || product.isNew || false}
+                            isFeatured={product.is_featured || product.isFeatured || false}
+                          />
+                        ))}
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="text-gray-500 dark:text-gray-400 mb-4">
-                      <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <h3 className="text-xl font-semibold mb-2">No products found</h3>
-                      <p className="text-sm">
-                        {query 
-                          ? `No products found for "${query}".`
-                          : `No products available at the moment.`
-                        }
-                      </p>
+
+                      {/* Pagination */}
+                      {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-8">
+                          <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                          >
+                            {t('previous')}
+                          </Button>
+                          <span className="px-4 py-2 text-sm">
+                            {t('pageInfo', { current: currentPage, total: totalPages })}
+                          </span>
+                          <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                          >
+                            {t('next')}
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="text-gray-500 dark:text-gray-400 mb-4">
+                        <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-xl font-semibold mb-2">{t('noProductsFound')}</h3>
+                        <p className="text-sm">
+                          {query
+                            ? `${t('noProductsFoundFor')} "${query}".`
+                            : t('noProductsAvailableYet')
+                          }
+                        </p>
+                      </div>
+                      <Button onClick={() => window.location.href = '/'}>
+                        {t('browseAllProducts')}
+                      </Button>
                     </div>
-                    <Button onClick={() => window.location.href = '/'}>
-                      Browse All Products
-                    </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
       </main>
 

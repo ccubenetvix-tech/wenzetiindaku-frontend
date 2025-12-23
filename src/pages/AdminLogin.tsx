@@ -88,7 +88,7 @@ const AdminLogin = () => {
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            {t('backToHome')}
           </Button>
         </div>
 
@@ -98,10 +98,10 @@ const AdminLogin = () => {
               <Shield className="h-8 w-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              Admin Access
+              {t('adminAccess')}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Secure access to WENZE TII NDAKU admin panel
+              {t('adminPanelDesc')}
             </CardDescription>
           </CardHeader>
 
@@ -116,7 +116,7 @@ const AdminLogin = () => {
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                  Admin Email
+                  {t('adminEmail')}
                 </Label>
                 <Input
                   id="email"
@@ -133,14 +133,14 @@ const AdminLogin = () => {
               {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Password
+                  {t('password')}
                 </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter admin password"
+                    placeholder={t('enterPassword')}
                     value={formData.password}
                     onChange={handleChange}
                     required
@@ -171,10 +171,10 @@ const AdminLogin = () => {
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                    {t('signingIn')}
                   </div>
                 ) : (
-                  "Sign In to Admin Panel"
+                  t('signInToAdmin')
                 )}
               </Button>
             </form>
@@ -185,10 +185,10 @@ const AdminLogin = () => {
                 <Shield className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <h4 className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
-                    Security Notice
+                    {t('securityNotice')}
                   </h4>
                   <p className="text-xs text-red-700 dark:text-red-300">
-                    This is a restricted admin area. All access attempts are logged and monitored.
+                    {t('restrictedArea')}
                   </p>
                 </div>
               </div>

@@ -254,6 +254,13 @@ export class ApiClient {
     });
   }
 
+  async verifyPayment(sessionId: string) {
+    return this.request(`/customer/orders/verify-payment`, {
+      method: 'POST',
+      body: JSON.stringify({ sessionId }),
+    });
+  }
+
 
   async getCustomerOrder(orderId: string) {
     return this.request(`/customer/orders/${orderId}`);

@@ -47,6 +47,7 @@ interface CustomerProfileResponse {
       phoneNumber?: string | null;
       address?: string | Record<string, unknown> | null;
       phone_number?: string | null; // Fallback for database field name
+      createdAt?: string; // Fix for lint error
     };
   };
 }
@@ -71,6 +72,7 @@ interface CreateOrderResponse {
   data?: {
     orders?: any[];
     payment?: { method?: string; status?: string };
+    url?: string;
   } | null;
 }
 
@@ -644,6 +646,11 @@ const Checkout = () => {
         );
       }
 
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+        return;
+      }
+
       await refreshCart();
 
       navigate("/checkout/success", {
@@ -1099,8 +1106,8 @@ const Checkout = () => {
 
                       <label
                         className={`border rounded-lg p-4 transition-all ${import.meta.env.VITE_ENABLE_STRIPE === 'true'
-                            ? "cursor-pointer"
-                            : "cursor-not-allowed opacity-60"
+                          ? "cursor-pointer"
+                          : "cursor-not-allowed opacity-60"
                           } ${paymentMethod === "online"
                             ? "border-primary shadow-sm bg-primary/5"
                             : "border-border/80 hover:border-primary/60"

@@ -62,8 +62,8 @@ export const ProductCard = memo(function ProductCard({
 
     if (!isAuthenticated) {
       toast({
-        title: "Login Required",
-        description: "Please log in to manage your wishlist.",
+        title: t('loginRequired'),
+        description: t('loginToWishlist'),
         variant: "destructive"
       });
       navigate('/customer/login');
@@ -118,18 +118,18 @@ export const ProductCard = memo(function ProductCard({
 
   const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking add to cart
-    
+
     // Check if user is authenticated
     if (!isAuthenticated) {
       toast({
-        title: "Login Required",
-        description: "Please log in to add items to your cart.",
+        title: t('loginRequired'),
+        description: t('loginToCart'),
         variant: "destructive"
       });
       navigate('/customer/login');
       return;
     }
-    
+
     // Check if user is a vendor (vendors cannot add to cart)
     if (user?.role === 'vendor') {
       toast({
@@ -139,7 +139,7 @@ export const ProductCard = memo(function ProductCard({
       });
       return;
     }
-    
+
     // Only customers can add to cart
     if (user?.role !== 'customer') {
       toast({
@@ -149,7 +149,7 @@ export const ProductCard = memo(function ProductCard({
       });
       return;
     }
-    
+
     try {
       setIsCartLoading(true);
       await addToCart({
@@ -159,7 +159,7 @@ export const ProductCard = memo(function ProductCard({
         image,
         vendor,
       });
-      
+
       toast({
         title: "Added to cart",
         description: `${name} has been added to your cart.`,
@@ -180,12 +180,12 @@ export const ProductCard = memo(function ProductCard({
     setImageError(true);
   }, []);
 
-  const discountPercentage = originalPrice 
+  const discountPercentage = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
   return (
-    <Card 
+    <Card
       className={`group relative overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 hover:border-gray-300 dark:hover:border-navy-600 rounded-lg h-full flex flex-col cursor-pointer ${compact ? 'text-[0.95rem]' : ''}`}
       onClick={handleProductClick}
     >
@@ -197,7 +197,7 @@ export const ProductCard = memo(function ProductCard({
               src={image}
               alt={name}
               className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${compact ? '' : ''}`}
-               onError={handleImageError}
+              onError={handleImageError}
               loading="lazy"
             />
           ) : (
@@ -206,7 +206,7 @@ export const ProductCard = memo(function ProductCard({
                 <div className="w-12 h-12 bg-gray-200 dark:bg-navy-700 rounded-full flex items-center justify-center mx-auto mb-2">
                   <ShoppingCart className="w-6 h-6 text-gray-400 dark:text-navy-500" />
                 </div>
-                <p className="text-xs text-gray-400 dark:text-navy-500">No Image</p>
+                <p className="text-xs text-gray-400 dark:text-navy-500">{t('noImage')}</p>
               </div>
             </div>
           )}
@@ -244,51 +244,49 @@ export const ProductCard = memo(function ProductCard({
               <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} animate-spin`} />
             ) : (
               <Heart
-                className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
-                  wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
-                }`}
+                className={`transition-colors duration-200 ${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+                  }`}
               />
             )}
           </Button>
 
           {/* Add to Cart / View Product Button - Professional overlay */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className={`${compact ? 'p-2' : 'p-3'}`}> 
-            <Button
-              size={compact ? 'sm' : 'sm'}
-              className={`w-full rounded-md ${
-                !isAuthenticated 
-                  ? 'bg-gray-400 hover:bg-gray-500 text-white' 
-                  : user?.role === 'vendor'
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                  : 'bg-navy-600 hover:bg-navy-700 text-white'
-              }`}
-              onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
-              disabled={isCartLoading}
-            >
-              {isCartLoading ? (
-                <>
-                  <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2 animate-spin`} />
-                  {t('addingToCart', 'Adding...')}
-                </>
-              ) : (
-                <>
-                  {user?.role === 'vendor' ? (
-                    <>
-                      <span className="text-xs">View Product</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
-                      {!isAuthenticated 
-                        ? 'Login to Add' 
-                        : t('addToCart')
-                      }
-                    </>
-                  )}
-                </>
-              )}
-            </Button>
+            <div className={`${compact ? 'p-2' : 'p-3'}`}>
+              <Button
+                size={compact ? 'sm' : 'sm'}
+                className={`w-full rounded-md ${!isAuthenticated
+                    ? 'bg-gray-400 hover:bg-gray-500 text-white'
+                    : user?.role === 'vendor'
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                      : 'bg-navy-600 hover:bg-navy-700 text-white'
+                  }`}
+                onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
+                disabled={isCartLoading}
+              >
+                {isCartLoading ? (
+                  <>
+                    <Loader2 className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2 animate-spin`} />
+                    {t('addingToCart', 'Adding...')}
+                  </>
+                ) : (
+                  <>
+                    {user?.role === 'vendor' ? (
+                      <>
+                        <span className="text-xs">{t('viewProduct')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
+                        {!isAuthenticated
+                          ? t('loginToAdd')
+                          : t('addToCart')
+                        }
+                      </>
+                    )}
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -311,11 +309,10 @@ export const ProductCard = memo(function ProductCard({
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${
-                    i < Math.floor(rating)
+                  className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${i < Math.floor(rating)
                       ? 'text-orange-400 fill-orange-400'
                       : 'text-gray-300 dark:text-gray-600'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -342,11 +339,11 @@ export const ProductCard = memo(function ProductCard({
           {price > 50 && (
             <div className={`flex items-center ${compact ? 'text-[10px]' : 'text-xs'} text-green-6 00 dark:text-green-400`}>
               <span className={`bg-green-100 dark:bg-green-900/30 ${compact ? 'px-1.5 py-0.5' : 'px-2 py-1'} rounded ${compact ? 'text-[10px]' : 'text-xs'} font-medium`}>
-                Free Shipping
-                </span>
-              </div>
-            )}
-          </div>
+                {t('freeShipping')}
+              </span>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

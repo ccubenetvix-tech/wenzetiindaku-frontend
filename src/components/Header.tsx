@@ -151,11 +151,11 @@ export function Header() {
 
   // Main navigation items - Simplified
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'About', href: '/about' },
-    { name: 'Stores', href: '/stores' },
-    { name: 'Products', href: '/search' },
-    { name: 'Categories', href: '/categories' },
+    { name: t('home'), href: '/' },
+    { name: t('about'), href: '/about' },
+    { name: t('stores'), href: '/stores' },
+    { name: t('products'), href: '/search' },
+    { name: t('categories'), href: '/categories' },
   ];
 
   const MobileNavigationBar = () => (

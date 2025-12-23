@@ -9,5 +9,9 @@ VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-d
 # VITE_API_URL=http://localhost:5000/api
 
 # Stripe Configuration
-VITE_ENABLE_STRIPE=false
-# VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+VITE_ENABLE_STRIPE=true
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_... (Get this from Stripe Dashboard > Developers > API Keys)
+
+# Backend Stripe Configuration (Add these to wenzetiindaku-backend/.env)
+STRIPE_SECRET_KEY=sk_test_... (Get this from Stripe Dashboard > Developers > API Keys)
+STRIPE_WEBHOOK_SECRET=whsec_... (Optional for now, required if using webhooks)

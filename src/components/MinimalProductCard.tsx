@@ -46,7 +46,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id, name, price, originalPrice, rating, reviewCount = 0, image, vendor, isNew = false, isFeatured = false } = product;
-  
+
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -61,8 +61,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
 
     if (!isAuthenticated) {
       toast({
-        title: "Login Required",
-        description: "Please log in to manage your wishlist.",
+        title: t('loginRequired'),
+        description: t('loginToWishlist'),
         variant: "destructive"
       });
       navigate('/customer/login');
@@ -119,18 +119,18 @@ export const MinimalProductCard = memo(function MinimalProductCard({
 
   const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking add to cart
-    
+
     // Check if user is authenticated
     if (!isAuthenticated) {
       toast({
-        title: "Login Required",
-        description: "Please log in to add items to your cart.",
+        title: t('loginRequired'),
+        description: t('loginToCart'),
         variant: "destructive"
       });
       navigate('/customer/login');
       return;
     }
-    
+
     // Check if user is a vendor (vendors cannot add to cart)
     if (user?.role === 'vendor') {
       toast({
@@ -140,7 +140,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       });
       return;
     }
-    
+
     // Only customers can add to cart
     if (user?.role !== 'customer') {
       toast({
@@ -150,7 +150,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       });
       return;
     }
-    
+
     try {
       setIsCartLoading(true);
       await addToCart({
@@ -160,7 +160,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
         image,
         vendor,
       });
-      
+
       toast({
         title: "Added to cart",
         description: `${name} has been added to your cart.`,
@@ -212,12 +212,11 @@ export const MinimalProductCard = memo(function MinimalProductCard({
             {isWishlistProcessing || isWishlistLoading ? (
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              <Heart 
-                className={`h-3 w-3 transition-colors duration-200 ${
-                  wishlisted 
-                  ? 'text-red-500 fill-red-500' 
+              <Heart
+                className={`h-3 w-3 transition-colors duration-200 ${wishlisted
+                    ? 'text-red-500 fill-red-500'
                     : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-                }`} 
+                  }`}
               />
             )}
           </button>
@@ -245,7 +244,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
           <h3 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight">
             {name}
           </h3>
-          
+
           {/* Rating - Simplified */}
           <div className="flex items-center gap-1">
             <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
@@ -253,7 +252,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
               {rating.toFixed(1)} ({reviewCount})
             </span>
           </div>
-          
+
           {/* Price - Clean */}
           <div className="flex items-center gap-2 mt-auto">
             <span className="text-base font-bold text-gray-900 dark:text-white">
@@ -265,19 +264,18 @@ export const MinimalProductCard = memo(function MinimalProductCard({
               </span>
             )}
           </div>
-          
+
           {/* Minimal Add to Cart / View Product - Only on hover */}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
               onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
               size="sm"
-              className={`w-full h-7 text-xs ${
-                !isAuthenticated 
-                  ? 'bg-gray-400 hover:bg-gray-500 text-white' 
+              className={`w-full h-7 text-xs ${!isAuthenticated
+                  ? 'bg-gray-400 hover:bg-gray-500 text-white'
                   : user?.role === 'vendor'
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                  : 'bg-navy-600 hover:bg-navy-700 text-white'
-              }`}
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                    : 'bg-navy-600 hover:bg-navy-700 text-white'
+                }`}
               disabled={isCartLoading}
             >
               {isCartLoading ? (
@@ -286,11 +284,11 @@ export const MinimalProductCard = memo(function MinimalProductCard({
                   {t('addingToCart', 'Adding...')}
                 </span>
               ) : (
-                (!isAuthenticated 
-                  ? 'Login to Add' 
+                (!isAuthenticated
+                  ? t('loginToAdd')
                   : user?.role === 'vendor'
-                  ? 'View Product'
-                  : t('addToCart'))
+                    ? t('viewProduct')
+                    : t('addToCart'))
               )}
             </Button>
           </div>
@@ -298,4 +296,4 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       </div>
     </div>
   );
- });
+});

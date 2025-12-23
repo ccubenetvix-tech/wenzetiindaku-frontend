@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next"; // For internationalization supp
 import { useNavigate } from "react-router-dom"; // For programmatic navigation
 
 // Import Lucide React icons for UI elements
-import { 
+import {
   Store,           // Store icon for store avatars
   Star,            // Star icon for ratings
   MapPin,          // Map pin icon for location
@@ -55,13 +55,13 @@ import { cn } from "@/lib/utils";
 export default function Stores() {
   // Initialize translation hook for internationalization
   const { t } = useTranslation();
-  
+
   // Initialize navigation hook for programmatic routing
   const navigate = useNavigate();
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Dynamic stores state
   const [dynamicStores, setDynamicStores] = useStateHook<any[]>([]);
   const [isLoading, setIsLoading] = useStateHook(true);
@@ -78,7 +78,7 @@ export default function Stores() {
       try {
         setIsLoading(true);
         const response = await apiClient.getAllVendors() as any;
-        
+
         if (response.success) {
           // Transform vendor data to store format
           const transformedStores = response.data.vendors.map((vendor: any) => ({
@@ -97,7 +97,7 @@ export default function Stores() {
             followers: 0, // Default followers
             specialties: vendor.categories || []
           }));
-          
+
           setDynamicStores(transformedStores);
         }
       } catch (error) {
@@ -116,9 +116,9 @@ export default function Stores() {
     if (!searchQuery.trim()) {
       return dynamicStores;
     }
-    
+
     const query = searchQuery.toLowerCase();
-    return dynamicStores.filter(store => 
+    return dynamicStores.filter(store =>
       store.name.toLowerCase().includes(query) ||
       store.description.toLowerCase().includes(query) ||
       store.location.toLowerCase().includes(query)
@@ -150,10 +150,10 @@ export default function Stores() {
             <div className="container mx-auto px-4">
               <div className="text-center">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground">
-                  Our Stores
+                  {t('ourStores')}
                 </h1>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Discover amazing vendors and stores from across Africa and beyond
+                  {t('discoverStoresSubtitle')}
                 </p>
               </div>
             </div>
@@ -166,7 +166,7 @@ export default function Stores() {
                 <div className="relative w-full sm:w-80">
                   <Input
                     type="text"
-                    placeholder="Search stores..."
+                    placeholder={t('searchStoresPlaceholder')}
                     className="pl-10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -227,7 +227,7 @@ export default function Stores() {
 
                           <span className="hidden sm:inline">•</span>
 
-                          <span>{store.followers.toLocaleString()} followers</span>
+                          <span>{store.followers.toLocaleString()} {t('followers')}</span>
                         </div>
                       </div>
                     </div>
@@ -241,7 +241,7 @@ export default function Stores() {
 
                     <div className="mb-6">
                       <div className="mb-3">
-                        <h4 className="text-sm font-medium text-foreground mb-2">Categories</h4>
+                        <h4 className="text-sm font-medium text-foreground mb-2">{t('categories')}</h4>
                         <div className="flex flex-wrap gap-2">
                           {store.categories.map((category, index) => (
                             <span
@@ -255,7 +255,7 @@ export default function Stores() {
                       </div>
 
                       <div>
-                        <h4 className="text-sm font-medium text-foreground mb-2">Specialties</h4>
+                        <h4 className="text-sm font-medium text-foreground mb-2">{t('specialties')}</h4>
                         <div className="text-sm text-muted-foreground leading-relaxed">
                           {store.specialties.join(", ")}
                         </div>
@@ -267,7 +267,7 @@ export default function Stores() {
                         onClick={() => navigate(`/store/${store.id}`)}
                         className="flex-1 bg-gradient-to-r from-navy-600 to-navy-700 hover:from-navy-700 hover:to-navy-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
                       >
-                        Visit Store
+                        {t('visitStore')}
                       </Button>
                     </div>
                   </div>
@@ -276,7 +276,7 @@ export default function Stores() {
                 {!isLoading && filteredStores.length === 0 && (
                   <div className="col-span-full text-center py-12">
                     <p className="text-muted-foreground text-lg">
-                      No stores found{searchQuery ? ` for "${searchQuery}"` : ""}
+                      {t('noStoresFound')}{searchQuery ? ` for "${searchQuery}"` : ""}
                     </p>
                     {searchQuery && (
                       <Button
@@ -284,7 +284,7 @@ export default function Stores() {
                         className="mt-4"
                         onClick={() => setSearchQuery("")}
                       >
-                        Clear Search
+                        {t('clearSearch')}
                       </Button>
                     )}
                   </div>

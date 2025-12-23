@@ -191,7 +191,7 @@ const CustomerSignup = () => {
             className="mb-6 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            {t('backToHome')}
           </Button>
 
           {/* Signup Form */}
@@ -201,10 +201,10 @@ const CustomerSignup = () => {
                 <UserPlus className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-2">
-                Create Account
+                {t('createAccount')}
               </h1>
               <p className="text-muted-foreground">
-                Join WENZE TII NDAKU marketplace
+                {t('joinMarketplace')}
               </p>
             </div>
 
@@ -214,13 +214,13 @@ const CustomerSignup = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
-                      First Name
+                      {t('firstName')}
                     </Label>
                     <Input
                       id="firstName"
                       name="firstName"
                       type="text"
-                      placeholder="First name"
+                      placeholder={t('firstName')}
                       value={formData.firstName}
                       onChange={handleInputChange}
                       required
@@ -229,13 +229,13 @@ const CustomerSignup = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName" className="text-sm font-medium text-foreground">
-                      Last Name
+                      {t('lastName')}
                     </Label>
                     <Input
                       id="lastName"
                       name="lastName"
                       type="text"
-                      placeholder="Last name"
+                      placeholder={t('lastName')}
                       value={formData.lastName}
                       onChange={handleInputChange}
                       required
@@ -247,7 +247,7 @@ const CustomerSignup = () => {
                 {/* Email Field */}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                    Email Address
+                    {t('emailAddress')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -255,7 +255,7 @@ const CustomerSignup = () => {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t('enterEmail')}
                       value={formData.email}
                       onChange={handleInputChange}
                       required
@@ -276,7 +276,7 @@ const CustomerSignup = () => {
                 {/* Password Field */}
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                    Password
+                    {t('password')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -284,7 +284,7 @@ const CustomerSignup = () => {
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
+                      placeholder={t('createPassword')}
                       value={formData.password}
                       onChange={handleInputChange}
                       required
@@ -312,7 +312,7 @@ const CustomerSignup = () => {
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                    Confirm Password
+                    {t('confirmPassword')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -320,7 +320,7 @@ const CustomerSignup = () => {
                       id="confirmPassword"
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
+                      placeholder={t('confirmPassword')}
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       required
@@ -359,13 +359,13 @@ const CustomerSignup = () => {
                       title="Agree to terms and conditions"
                     />
                     <Label htmlFor="agreeToTerms" className="text-sm text-muted-foreground">
-                      I agree to the{" "}
+                      {t('agreeToTermsPrefix')}{" "}
                       <Link to="/terms" className="text-primary hover:text-primary/80 underline">
-                        Terms of Service
+                        {t('termsOfService')}
                       </Link>{" "}
-                      and{" "}
+                      {t('and')}{" "}
                       <Link to="/privacy" className="text-primary hover:text-primary/80 underline">
-                        Privacy Policy
+                        {t('privacyPolicy')}
                       </Link>
                     </Label>
                   </div>
@@ -381,10 +381,10 @@ const CustomerSignup = () => {
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating account...
+                      {t('creatingAccount')}
                     </div>
                   ) : (
-                    "Create Account"
+                    t('createAccount')
                   )}
                 </Button>
               </form>
@@ -396,10 +396,10 @@ const CustomerSignup = () => {
                     <Mail className="h-8 w-8 text-green-600 dark:text-green-400" />
                   </div>
                   <h2 className="text-xl font-bold text-foreground mb-2">
-                    Verify Your Email
+                    {t('verifyEmail')}
                   </h2>
                   <p className="text-muted-foreground">
-                    We've sent a 6-digit verification code to
+                    {t('sentCodeTo')}
                   </p>
                   <p className="text-sm font-medium text-primary">
                     {formData.email}
@@ -409,13 +409,13 @@ const CustomerSignup = () => {
                 {/* OTP Input */}
                 <div className="space-y-2">
                   <Label htmlFor="otp" className="text-sm font-medium text-foreground">
-                    Verification Code
+                    {t('verificationCode')}
                   </Label>
                   <Input
                     id="otp"
                     name="otp"
                     type="text"
-                    placeholder="Enter 6-digit code"
+                    placeholder={t('enterCode')}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     required
@@ -423,7 +423,7 @@ const CustomerSignup = () => {
                     className="text-center text-2xl tracking-widest border-muted focus:border-primary focus:ring-primary"
                   />
                   <p className="text-xs text-muted-foreground text-center">
-                    Enter the 6-digit code sent to your email
+                    {t('enterCodeInstructions', 'Enter the 6-digit code sent to your email')}
                   </p>
                 </div>
 
@@ -450,7 +450,7 @@ const CustomerSignup = () => {
                     }}
                     className="text-primary hover:text-primary/80"
                   >
-                    Didn't receive the code? Resend
+                    {t('resendCode')}
                   </Button>
                 </div>
 
@@ -463,10 +463,10 @@ const CustomerSignup = () => {
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Verifying...
+                      {t('verifying')}
                     </div>
                   ) : (
-                    "Verify Email"
+                    t('verify')
                   )}
                 </Button>
 
@@ -479,7 +479,7 @@ const CustomerSignup = () => {
                     onClick={() => setShowOTPForm(false)}
                     className="text-muted-foreground hover:text-foreground"
                   >
-                    ← Back to signup form
+                    ← {t('backToSignup')}
                   </Button>
                 </div>
               </form>
@@ -494,7 +494,7 @@ const CustomerSignup = () => {
                     <div className="w-full border-t border-muted"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    <span className="bg-background px-2 text-muted-foreground">{t('orContinueWith')}</span>
                   </div>
                 </div>
 
@@ -512,7 +512,7 @@ const CustomerSignup = () => {
                       <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                       <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
-                    Continue with Google
+                    {t('continueWithGoogle')}
                   </Button>
                 </div>
               </>
@@ -521,20 +521,20 @@ const CustomerSignup = () => {
             {/* Benefits */}
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-                Why join WENZE TII NDAKU?
+                {t('whyJoin')}
               </h3>
               <div className="space-y-1 text-xs text-blue-700 dark:text-blue-300">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-3 w-3" />
-                  <span>Access to thousands of products</span>
+                  <span>{t('accessProducts')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-3 w-3" />
-                  <span>Secure shopping experience</span>
+                  <span>{t('secureShopping')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-3 w-3" />
-                  <span>Exclusive member discounts</span>
+                  <span>{t('exclusiveDiscounts')}</span>
                 </div>
               </div>
             </div>
@@ -542,21 +542,21 @@ const CustomerSignup = () => {
             {/* Login Link */}
             <div className="text-center mt-6">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                {t('alreadyHaveAccount')}{" "}
                 <Link
                   to="/customer/login"
                   className="text-primary hover:text-primary/80 font-medium transition-colors"
                 >
-                  Sign in here
+                  {t('signInHere')}
                 </Link>
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Want to sell?{" "}
+                {t('wantToSell')}{" "}
                 <Link
                   to="/vendor/register"
                   className="text-orange-600 hover:text-orange-700 font-medium transition-colors"
                 >
-                  Become a vendor
+                  {t('becomeVendor')}
                 </Link>
               </p>
             </div>

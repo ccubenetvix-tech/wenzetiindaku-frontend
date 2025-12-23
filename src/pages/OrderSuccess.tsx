@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/utils/api";
 import {
   ArrowRight,
   BadgeCheck,
@@ -37,10 +39,68 @@ interface SuccessLocationState {
 const OrderSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = (location.state as SuccessLocationState) || {};
+  const { toast } = useToast();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Parse location state
+  const [state, setState] = useState<SuccessLocationState>((location.state as SuccessLocationState) || {});
+
+  useEffect(() => {
+    const fn = async () => {
+      const query = new URLSearchParams(location.search);
+      const sessionId = query.get("session_id");
+
+      if (sessionId && !state.orders) {
+        setIsVerifying(true);
+        try {
+          const { data } = await apiClient.verifyPayment(sessionId) as any;
+          if (data?.success && data?.data?.orders) {
+            // Determine payment status/method from confirmed order
+            const orders = data.data.orders;
+            setState({
+              orders: orders,
+              payment: { method: "online", status: "paid" },
+              shippingAddress: orders[0]?.shipping_address || {}
+            });
+            // Clean up URL
+            navigate(location.pathname, {
+              replace: true, state: {
+                orders: orders,
+                payment: { method: "online", status: "paid" },
+                shippingAddress: orders[0]?.shipping_address || {}
+              }
+            });
+          } else {
+            throw new Error("Payment verification failed");
+          }
+        } catch (error) {
+          console.error(error);
+          toast({ variant: "destructive", title: "Verification Failed", description: "Could not verify payment. Please contact support." });
+          navigate("/checkout/failure", { replace: true });
+        } finally {
+          setIsVerifying(false);
+        }
+      }
+    };
+    fn();
+  }, [location.search, navigate, state.orders, toast]);
+
   const orders = state.orders ?? [];
   const payment = state.payment ?? { method: "cod", status: "pending" };
   const shippingAddress = state.shippingAddress ?? {};
+
+  // Show loading during verification
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
+          <p className="text-muted-foreground">Verifying secure payment...</p>
+        </div>
+      </div>
+    );
+  }
 
   const formattedAddress = useMemo(() => {
     if (!shippingAddress || typeof shippingAddress !== "object") return null;
@@ -102,12 +162,12 @@ const OrderSuccess = () => {
       {
         label: "Awaiting payment",
         description: "Complete the secure Stripe payment to confirm.",
-        completed: false,
+        completed: true, // If we are here, payment is done or we are verifying
       },
       {
         label: "Payment received",
         description: "We will notify the vendor after payment confirmation.",
-        completed: false,
+        completed: true,
       },
       {
         label: "Processing order",

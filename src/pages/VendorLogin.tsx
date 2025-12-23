@@ -37,10 +37,10 @@ const VendorLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const { user } = await login(formData.email, formData.password, 'vendor');
-      
+
       // Check if vendor is approved
       if (user.role === 'vendor' && !user.approved) {
         toast({
@@ -75,7 +75,7 @@ const VendorLogin = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           {/* Back Button */}
@@ -85,7 +85,7 @@ const VendorLogin = () => {
             className="mb-6 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            {t('backToHome')}
           </Button>
 
           {/* Login Form */}
@@ -95,10 +95,10 @@ const VendorLogin = () => {
                 <Store className="h-8 w-8 text-orange-600" />
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-2">
-                Vendor Portal
+                {t('vendorPortal')}
               </h1>
               <p className="text-muted-foreground">
-                Sign in to your vendor account
+                {t('signInToVendor')}
               </p>
             </div>
 
@@ -106,16 +106,16 @@ const VendorLogin = () => {
             <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
               <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200 mb-2">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">Grow Your Business</span>
+                <span className="text-sm font-medium">{t('growBusiness')}</span>
               </div>
               <div className="space-y-1 text-xs text-orange-700 dark:text-orange-300">
                 <div className="flex items-center gap-2">
                   <Users className="h-3 w-3" />
-                  <span>Reach thousands of customers</span>
+                  <span>{t('reachCustomers')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-3 w-3" />
-                  <span>Track sales and analytics</span>
+                  <span>{t('trackSales')}</span>
                 </div>
               </div>
             </div>
@@ -124,7 +124,7 @@ const VendorLogin = () => {
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                  Business Email
+                  {t('businessEmail')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -132,7 +132,7 @@ const VendorLogin = () => {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter business email"
+                    placeholder={t('enterBusinessEmail')}
                     value={formData.email}
                     onChange={handleInputChange}
                     required
@@ -144,7 +144,7 @@ const VendorLogin = () => {
               {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Password
+                  {t('password')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -152,7 +152,7 @@ const VendorLogin = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter password"
+                    placeholder={t('enterPassword')}
                     value={formData.password}
                     onChange={handleInputChange}
                     required
@@ -188,14 +188,14 @@ const VendorLogin = () => {
                     title="Remember me"
                   />
                   <Label htmlFor="rememberMe" className="text-sm text-muted-foreground">
-                    Remember me
+                    {t('rememberMe')}
                   </Label>
                 </div>
                 <Link
                   to="/vendor/forgot-password"
                   className="text-sm text-orange-600 hover:text-orange-700 transition-colors"
                 >
-                  Forgot password?
+                  {t('forgotPassword')}
                 </Link>
               </div>
 
@@ -208,10 +208,10 @@ const VendorLogin = () => {
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                    {t('signingIn')}
                   </div>
                 ) : (
-                  "Access Vendor Portal"
+                  t('accessVendorPortal')
                 )}
               </Button>
             </form>
@@ -219,10 +219,10 @@ const VendorLogin = () => {
             {/* Become a Vendor CTA */}
             <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
               <h3 className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-2">
-                Want to become a vendor?
+                {t('wantToBecomeVendor')}
               </h3>
               <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
-                Join our marketplace and start selling your products to customers worldwide.
+                {t('joinAndStartSelling')}
               </p>
               <Button
                 variant="outline"
@@ -230,13 +230,13 @@ const VendorLogin = () => {
                 className="w-full border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white"
                 onClick={() => navigate("/vendor/register")}
               >
-                Apply to Become a Vendor
+                {t('applyToBecomeVendor')}
               </Button>
             </div>
 
             {/* Support Information */}
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-              <h3 className="text-sm font-medium text-foreground mb-2">Need Support?</h3>
+              <h3 className="text-sm font-medium text-foreground mb-2">{t('needSupport')}</h3>
               <div className="text-xs text-muted-foreground">
                 <p>Email: vendors@wenzetiindaku.com</p>
                 <p>Phone: +234 800 VENDOR</p>
@@ -247,12 +247,12 @@ const VendorLogin = () => {
             {/* Back to Customer Login */}
             <div className="text-center mt-6">
               <p className="text-sm text-muted-foreground">
-                Are you a customer?{" "}
+                {t('areYouCustomer')}{" "}
                 <Link
                   to="/customer/login"
                   className="text-orange-600 hover:text-orange-700 font-medium transition-colors"
                 >
-                  Sign in here
+                  {t('signInHere')}
                 </Link>
               </p>
             </div>

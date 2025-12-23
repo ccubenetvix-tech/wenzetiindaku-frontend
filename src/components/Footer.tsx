@@ -25,14 +25,14 @@ export function Footer() {
   // Footer link structure organized by categories
   const footerLinks = [
     {
-      title: "Company",                    // Company information section
+      title: t('company'),                    // Company information section
       links: [
         { name: t('about'), href: '/about' },           // About page
         { name: t('contact'), href: '/contact' },       // Contact page
       ]
     },
     {
-      title: "Support",                    // Customer support section
+      title: t('support'),                    // Customer support section
       links: [
         { name: t('helpCenter'), href: '/help' },       // Help center
         { name: t('faqs'), href: '/faqs' },             // FAQ page
@@ -41,12 +41,12 @@ export function Footer() {
       ]
     },
     {
-      title: "Legal",                      // Legal documents section
+      title: t('legal'),                      // Legal documents section
       links: [
         { name: t('privacyPolicy'), href: '/privacy' }, // Privacy policy
         { name: t('termsOfService'), href: '/terms' },  // Terms of service
         { name: t('cookiePolicy'), href: '/cookies' },  // Cookie policy
-        { name: "Vendor Terms", href: '/vendor-terms' }, // Vendor terms (static text)
+        { name: t('vendorTerms'), href: '/vendor-terms' }, // Vendor terms (static text)
       ]
     }
   ];
@@ -61,7 +61,7 @@ export function Footer() {
               WENZE TII NDAKU
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Your premier multi-vendor marketplace connecting you with the best local and international vendors across Africa and beyond.
+              {t('heroSubtitle')}
             </p>
 
             {/* Contact Info */}
@@ -105,14 +105,14 @@ export function Footer() {
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4 md:mb-0">
             <p className="text-muted-foreground text-sm">
-              © 2025 WENZE TII NDAKU. All rights reserved.
+              © 2025 WENZE TII NDAKU. {t('allRightsReserved')}
             </p>
             {/* Admin Access Link - for testing purposes */}
             <button
               onClick={() => navigate('/admin/login')}
               className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200 underline"
             >
-              Admin Access
+              {t('adminAccess')}
             </button>
           </div>
 
@@ -141,7 +141,7 @@ export function Footer() {
             </a>
           </div>
         </div>
-      </div>
-    </footer>
+      </div >
+    </footer >
   );
 }
