@@ -9,7 +9,7 @@ const VendorTerms = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
@@ -37,13 +37,13 @@ const VendorTerms = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700 dark:text-gray-300">
-                Welcome to WENZE TII NDAKU, Africa's premier marketplace platform. These Vendor Terms of Service 
-                ("Terms") govern your use of our platform as a vendor. By registering as a vendor and using our 
+                Welcome to WENZE TII NDAKU, Africa's premier marketplace platform. These Vendor Terms of Service
+                ("Terms") govern your use of our platform as a vendor. By registering as a vendor and using our
                 services, you agree to be bound by these terms.
               </p>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Important:</strong> Please read these terms carefully. If you do not agree with any part 
+                  <strong>Important:</strong> Please read these terms carefully. If you do not agree with any part
                   of these terms, you should not use our platform as a vendor.
                 </p>
               </div>
@@ -109,7 +109,7 @@ const VendorTerms = () => {
               <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
                   <AlertTriangle className="h-4 w-4 inline mr-1" />
-                  <strong>Note:</strong> Account verification may take 3-5 business days. You will be notified 
+                  <strong>Note:</strong> Account verification may take 3-5 business days. You will be notified
                   once your account is approved.
                 </p>
               </div>
@@ -228,7 +228,7 @@ const VendorTerms = () => {
               <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
                 <p className="text-sm text-red-800 dark:text-red-200">
                   <AlertTriangle className="h-4 w-4 inline mr-1" />
-                  <strong>Warning:</strong> Account termination may result in loss of access to your vendor 
+                  <strong>Warning:</strong> Account termination may result in loss of access to your vendor
                   dashboard and pending payments may be held for up to 90 days.
                 </p>
               </div>
@@ -245,9 +245,9 @@ const VendorTerms = () => {
                 If you have any questions about these Vendor Terms of Service, please contact us:
               </p>
               <div className="space-y-2 text-gray-700 dark:text-gray-300">
-                <p><strong>Email:</strong> vendors@wenzetiindaku.com</p>
-                <p><strong>Phone:</strong> +1 (555) 123-4567</p>
-                <p><strong>Address:</strong> 123 Marketplace Street, Business District, City, Country</p>
+                <p><strong>Email:</strong> wenzetiindaku@outlook.com</p>
+                <p><strong>Phone:</strong> +32 495 84 68 66</p>
+                <p><strong>Address:</strong> Kinshasa, R.D. CONGO</p>
               </div>
             </CardContent>
           </Card>

@@ -63,20 +63,20 @@ export function Footer() {
             <p className="text-muted-foreground mb-6 max-w-md">
               Your premier multi-vendor marketplace connecting you with the best local and international vendors across Africa and beyond.
             </p>
-            
+
             {/* Contact Info */}
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary" />
-                <span>support@wenzetiindaku.com</span>
+                <span>wenzetiindaku@outlook.com</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <span>+1 (555) 123-4567</span>
+                <span>+32 495 84 68 66</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span>123 Marketplace St, Commerce City</span>
+                <span>Kinshasa, R.D. CONGO</span>
               </div>
             </div>
           </div>
@@ -115,7 +115,7 @@ export function Footer() {
               Admin Access
             </button>
           </div>
-          
+
           {/* Social Links */}
           <div className="flex items-center gap-4">
             <a

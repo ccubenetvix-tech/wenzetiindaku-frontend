@@ -32,11 +32,12 @@ export const generateInvoicePDF = (order: InvoiceOrder) => {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(41, 128, 185); // Blue color
-    doc.text('WENZE TII NDAKU', 14, 20);
+    doc.text('WENZE TII NDAKU (WTN)', 14, 20);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text('Your Trusted Marketplace', 14, 26);
+    doc.text('Kinshasa, R.D. CONGO', 14, 26);
+    doc.text('wenzetiindaku@outlook.com | +32 495 84 68 66', 14, 31);
 
     // Invoice details
     doc.setFontSize(16);
@@ -123,7 +124,7 @@ export const generateInvoicePDF = (order: InvoiceOrder) => {
     doc.setTextColor(150);
     const pageHeight = doc.internal.pageSize.height;
     doc.text('Thank you for shopping with WENZE TII NDAKU!', 105, pageHeight - 20, { align: 'center' });
-    doc.text('For questions, contact support@wenzetiindaku.com', 105, pageHeight - 15, { align: 'center' });
+    doc.text('For questions, contact wenzetiindaku@outlook.com', 105, pageHeight - 15, { align: 'center' });
 
     // Save PDF
     doc.save(`invoice_${order.orderId}.pdf`);
