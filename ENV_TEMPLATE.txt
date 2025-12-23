@@ -8,6 +8,6 @@ VITE_PRODUCTION_BACKEND_URL=https://wenzetiindaku-backend-ccubenetvix-tech2481-d
 # Optional: Direct override (highest priority)
 # VITE_API_URL=http://localhost:5000/api
 
-# Razorpay Configuration
-# Payment link: https://rzp.io/rzp/zlDr3g6R
-# No API key needed - using direct payment link redirect
+# Stripe Configuration
+VITE_ENABLE_STRIPE=false
+# VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...

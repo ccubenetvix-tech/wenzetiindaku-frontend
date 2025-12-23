@@ -1390,6 +1390,7 @@ const AdminDashboard = () => {
                           <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
                           <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Payment</TableHead>
                           <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Date</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Invoice</TableHead>
                           <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1456,9 +1457,41 @@ const AdminDashboard = () => {
                                 <div className="text-sm text-gray-900 dark:text-gray-100">
                                   {new Date(order.createdAt).toLocaleDateString()}
                                 </div>
+
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
                                   {new Date(order.createdAt).toLocaleTimeString()}
                                 </div>
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const invoiceData = {
+                                      orderId: order.orderId,
+                                      createdAt: order.createdAt,
+                                      customer: {
+                                        name: order.customer.name,
+                                        email: order.customer.email,
+                                        phone: order.customer.phone,
+                                        address: order.shippingAddress
+                                      },
+                                      items: order.items.map(item => ({
+                                        productName: item.productName,
+                                        quantity: item.quantity,
+                                        price: item.price,
+                                        subtotal: item.subtotal
+                                      })),
+                                      totalAmount: order.totalAmount,
+                                      paymentMethod: order.paymentMethod,
+                                      status: order.status
+                                    };
+                                    import("@/utils/invoice").then(mod => mod.generateInvoicePDF(invoiceData));
+                                  }}
+                                  title="Download Invoice"
+                                >
+                                  <FileText className="h-4 w-4 text-blue-600" />
+                                </Button>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex items-center justify-end space-x-2">
@@ -2971,7 +3004,7 @@ const AdminDashboard = () => {
         onClose={() => setIsReviewsModalOpen(false)}
         customerId={selectedReviewsCustomerId}
       />
-    </div>
+    </div >
   );
 };
 

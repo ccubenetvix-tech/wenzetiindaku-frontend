@@ -41,10 +41,14 @@ const AdminLogin = () => {
       const data: any = await apiClient.adminLogin(formData.email, formData.password);
 
       if (data.success) {
+        // Clear any existing user session to prevent conflicts
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+
         // Store admin token
         localStorage.setItem('adminToken', data.data.token);
         localStorage.setItem('adminUser', JSON.stringify(data.data.admin));
-        
+
         toast({
           title: "Login Successful",
           description: "Welcome to the admin dashboard!",

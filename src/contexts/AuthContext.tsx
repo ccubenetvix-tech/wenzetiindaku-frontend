@@ -133,6 +133,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const setSession = useCallback((sessionToken: string, sessionUser: User) => {
+    // Clear any admin session data to prevent conflicts
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+
     setToken(sessionToken);
     setUser(sessionUser);
     localStorage.setItem('auth_token', sessionToken);
@@ -263,7 +267,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // If parsing fails, use default
       }
     }
-    
+
     clearSession();
     // Navigate to logout confirmation page with role info
     window.location.href = `/logout?role=${userRole}`;

@@ -32,7 +32,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
-import { RazorpayPaymentButton } from "@/components/RazorpayPaymentButton";
+
 
 type CheckoutStep = "address" | "payment" | "review";
 type PaymentMethod = "cod" | "online";
@@ -187,8 +187,8 @@ const Checkout = () => {
               typeof parsed.street1 === "string" && parsed.street1.trim()
                 ? parsed.street1
                 : typeof parsed.street === "string" && parsed.street.trim()
-                ? parsed.street
-                : base.street1,
+                  ? parsed.street
+                  : base.street1,
             street2:
               typeof parsed.street2 === "string" && parsed.street2.trim()
                 ? parsed.street2
@@ -205,8 +205,8 @@ const Checkout = () => {
               typeof parsed.postalCode === "string" && parsed.postalCode.trim()
                 ? parsed.postalCode
                 : typeof parsed.zip === "string" && parsed.zip.trim()
-                ? parsed.zip
-                : base.postalCode,
+                  ? parsed.zip
+                  : base.postalCode,
             country:
               typeof parsed.country === "string" && parsed.country.trim()
                 ? parsed.country
@@ -334,7 +334,7 @@ const Checkout = () => {
         if (profileAddressData?.street) {
           const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
           const fullName = nameParts || customer.email || "Customer";
-          
+
           allAddresses.push({
             id: "profile-address",
             label: "Home",
@@ -364,7 +364,7 @@ const Checkout = () => {
       }
 
       setSavedAddresses(allAddresses);
-      
+
       // If selectNewest is true (returning from Add Address page), select the most recently added address
       if (selectNewest && allAddresses.length > 0) {
         // Sort by created_at descending and select the first one (excluding profile address)
@@ -492,7 +492,7 @@ const Checkout = () => {
 
     // Check if we're returning from Add Address page
     const isReturningFromAddAddress = (location.state as any)?.from === "/customer/address/add";
-    
+
     void loadSavedAddresses(isReturningFromAddAddress);
   }, [cartItems.length, isAuthenticated, isLoading, loadSavedAddresses, navigate, toast]);
 
@@ -525,8 +525,8 @@ const Checkout = () => {
 
   const handleAddNewAddress = () => {
     // Redirect to Add Address page
-    navigate("/customer/address/add", { 
-      state: { from: "/checkout" } 
+    navigate("/customer/address/add", {
+      state: { from: "/checkout" }
     });
   };
 
@@ -640,7 +640,7 @@ const Checkout = () => {
       if (!response?.success) {
         throw new Error(
           response?.error?.message ||
-            "Unable to place order. Please try again.",
+          "Unable to place order. Please try again.",
         );
       }
 
@@ -660,7 +660,7 @@ const Checkout = () => {
         error instanceof Error
           ? error.message
           : (error as CreateOrderResponse)?.error?.message ??
-            "Something went wrong while placing your order. Please try again.";
+          "Something went wrong while placing your order. Please try again.";
       setSubmitError(message);
       toast({
         title: "Order not placed",
@@ -711,11 +711,10 @@ const Checkout = () => {
                 return (
                   <div
                     key={item.id}
-                    className={`px-4 py-4 md:px-6 md:py-5 flex flex-col gap-1 transition-colors ${
-                      isActive
-                        ? "bg-background text-foreground border-b-2 border-primary"
-                        : "text-muted-foreground"
-                    } ${isCompleted ? "bg-background/70" : ""}`}
+                    className={`px-4 py-4 md:px-6 md:py-5 flex flex-col gap-1 transition-colors ${isActive
+                      ? "bg-background text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground"
+                      } ${isCompleted ? "bg-background/70" : ""}`}
                   >
                     <span className="text-xs font-medium uppercase tracking-wide">
                       Step {steps.findIndex((s) => s.id === item.id) + 1}
@@ -762,15 +761,14 @@ const Checkout = () => {
                             {savedAddresses.map((address) => {
                               const isExpanded = expandedAddressId === address.id;
                               const isSelected = selectedAddressId === address.id;
-                              
+
                               return (
                                 <div
                                   key={address.id}
-                                  className={`border rounded-lg transition-all ${
-                                    isSelected
-                                      ? "border-primary shadow-sm bg-primary/5"
-                                      : "border-border/80 hover:border-primary/60"
-                                  }`}
+                                  className={`border rounded-lg transition-all ${isSelected
+                                    ? "border-primary shadow-sm bg-primary/5"
+                                    : "border-border/80 hover:border-primary/60"
+                                    }`}
                                 >
                                   <label
                                     className="cursor-pointer block"
@@ -789,7 +787,7 @@ const Checkout = () => {
                                                 <Badge variant="secondary" className="text-xs">Default</Badge>
                                               )}
                                             </div>
-                                            
+
                                             {/* Always show basic info */}
                                             <div className="space-y-1">
                                               <p className="text-sm font-medium text-foreground">
@@ -811,7 +809,7 @@ const Checkout = () => {
                                                 </p>
                                               )}
                                             </div>
-                                            
+
                                             {/* Expanded details */}
                                             {isExpanded && (
                                               <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
@@ -841,7 +839,7 @@ const Checkout = () => {
                                       </div>
                                     </div>
                                   </label>
-                                  
+
                                   {/* Action buttons */}
                                   <div className="px-4 pb-4 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
                                     <Button
@@ -913,11 +911,10 @@ const Checkout = () => {
                         <button
                           type="button"
                           onClick={handleAddNewAddress}
-                          className={`w-full border rounded-lg p-4 cursor-pointer transition-all text-left ${
-                            selectedAddressId === "new"
-                              ? "border-primary shadow-sm bg-primary/5"
-                              : "border-border/80 hover:border-primary/60"
-                          }`}
+                          className={`w-full border rounded-lg p-4 cursor-pointer transition-all text-left ${selectedAddressId === "new"
+                            ? "border-primary shadow-sm bg-primary/5"
+                            : "border-border/80 hover:border-primary/60"
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -934,120 +931,120 @@ const Checkout = () => {
 
                         {/* New address form */}
                         {showNewAddressForm && (
-                        <div className="border border-border/60 rounded-lg p-4 md:p-6 space-y-4">
-                          <div className="grid gap-4 md:grid-cols-2">
+                          <div className="border border-border/60 rounded-lg p-4 md:p-6 space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <div>
+                                <Label htmlFor="fullName">Full name</Label>
+                                <Input
+                                  id="fullName"
+                                  value={addressForm.fullName}
+                                  onChange={(event) => updateAddressField("fullName", event.target.value)}
+                                  placeholder="Jane Doe"
+                                  autoComplete="name"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="email">Email address</Label>
+                                <Input
+                                  id="email"
+                                  type="email"
+                                  value={addressForm.email}
+                                  onChange={(event) => updateAddressField("email", event.target.value)}
+                                  placeholder="jane@example.com"
+                                  autoComplete="email"
+                                />
+                              </div>
+                            </div>
+
                             <div>
-                              <Label htmlFor="fullName">Full name</Label>
+                              <Label htmlFor="phone">Phone number</Label>
                               <Input
-                                id="fullName"
-                                value={addressForm.fullName}
-                                onChange={(event) => updateAddressField("fullName", event.target.value)}
-                                placeholder="Jane Doe"
-                                autoComplete="name"
+                                id="phone"
+                                value={addressForm.phone}
+                                onChange={(event) => updateAddressField("phone", event.target.value)}
+                                placeholder="+260 700 000 000"
+                                autoComplete="tel"
                               />
                             </div>
+
                             <div>
-                              <Label htmlFor="email">Email address</Label>
+                              <Label htmlFor="street1">Street address</Label>
                               <Input
-                                id="email"
-                                type="email"
-                                value={addressForm.email}
-                                onChange={(event) => updateAddressField("email", event.target.value)}
-                                placeholder="jane@example.com"
-                                autoComplete="email"
+                                id="street1"
+                                value={addressForm.street1}
+                                onChange={(event) => updateAddressField("street1", event.target.value)}
+                                placeholder="123 Market Avenue"
+                                autoComplete="address-line1"
                               />
                             </div>
-                          </div>
 
-                          <div>
-                            <Label htmlFor="phone">Phone number</Label>
-                            <Input
-                              id="phone"
-                              value={addressForm.phone}
-                              onChange={(event) => updateAddressField("phone", event.target.value)}
-                              placeholder="+260 700 000 000"
-                              autoComplete="tel"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="street1">Street address</Label>
-                            <Input
-                              id="street1"
-                              value={addressForm.street1}
-                              onChange={(event) => updateAddressField("street1", event.target.value)}
-                              placeholder="123 Market Avenue"
-                              autoComplete="address-line1"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="street2">Apartment, suite (optional)</Label>
-                            <Input
-                              id="street2"
-                              value={addressForm.street2 ?? ""}
-                              onChange={(event) => updateAddressField("street2", event.target.value)}
-                              placeholder="Apartment 5B"
-                              autoComplete="address-line2"
-                            />
-                          </div>
-
-                          <div className="grid gap-4 md:grid-cols-3">
                             <div>
-                              <Label htmlFor="city">City</Label>
+                              <Label htmlFor="street2">Apartment, suite (optional)</Label>
                               <Input
-                                id="city"
-                                value={addressForm.city}
-                                onChange={(event) => updateAddressField("city", event.target.value)}
-                                placeholder="Lusaka"
-                                autoComplete="address-level2"
+                                id="street2"
+                                value={addressForm.street2 ?? ""}
+                                onChange={(event) => updateAddressField("street2", event.target.value)}
+                                placeholder="Apartment 5B"
+                                autoComplete="address-line2"
                               />
                             </div>
+
+                            <div className="grid gap-4 md:grid-cols-3">
+                              <div>
+                                <Label htmlFor="city">City</Label>
+                                <Input
+                                  id="city"
+                                  value={addressForm.city}
+                                  onChange={(event) => updateAddressField("city", event.target.value)}
+                                  placeholder="Lusaka"
+                                  autoComplete="address-level2"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="state">State / Region</Label>
+                                <Input
+                                  id="state"
+                                  value={addressForm.state}
+                                  onChange={(event) => updateAddressField("state", event.target.value)}
+                                  placeholder="Lusaka Province"
+                                  autoComplete="address-level1"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="postalCode">Postal code</Label>
+                                <Input
+                                  id="postalCode"
+                                  value={addressForm.postalCode}
+                                  onChange={(event) => updateAddressField("postalCode", event.target.value)}
+                                  placeholder="10101"
+                                  autoComplete="postal-code"
+                                />
+                              </div>
+                            </div>
+
                             <div>
-                              <Label htmlFor="state">State / Region</Label>
+                              <Label htmlFor="country">Country</Label>
                               <Input
-                                id="state"
-                                value={addressForm.state}
-                                onChange={(event) => updateAddressField("state", event.target.value)}
-                                placeholder="Lusaka Province"
-                                autoComplete="address-level1"
+                                id="country"
+                                value={addressForm.country}
+                                onChange={(event) => updateAddressField("country", event.target.value)}
+                                placeholder="Zambia"
+                                autoComplete="country-name"
                               />
                             </div>
-                            <div>
-                              <Label htmlFor="postalCode">Postal code</Label>
-                              <Input
-                                id="postalCode"
-                                value={addressForm.postalCode}
-                                onChange={(event) => updateAddressField("postalCode", event.target.value)}
-                                placeholder="10101"
-                                autoComplete="postal-code"
+
+                            <div className="flex items-center gap-2 pt-2">
+                              <Checkbox
+                                id="saveAddress"
+                                checked={saveAddressToProfile}
+                                onCheckedChange={(checked) => setSaveAddressToProfile(checked === true)}
                               />
+                              <Label htmlFor="saveAddress" className="text-sm text-muted-foreground cursor-pointer">
+                                Save this address to my profile
+                              </Label>
                             </div>
                           </div>
-
-                          <div>
-                            <Label htmlFor="country">Country</Label>
-                            <Input
-                              id="country"
-                              value={addressForm.country}
-                              onChange={(event) => updateAddressField("country", event.target.value)}
-                              placeholder="Zambia"
-                              autoComplete="country-name"
-                            />
-                          </div>
-
-                          <div className="flex items-center gap-2 pt-2">
-                            <Checkbox
-                              id="saveAddress"
-                              checked={saveAddressToProfile}
-                              onCheckedChange={(checked) => setSaveAddressToProfile(checked === true)}
-                            />
-                            <Label htmlFor="saveAddress" className="text-sm text-muted-foreground cursor-pointer">
-                              Save this address to my profile
-                            </Label>
-                          </div>
-                        </div>
-                      )}
+                        )}
                       </div>
                     )}
 
@@ -1076,11 +1073,10 @@ const Checkout = () => {
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <label
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          paymentMethod === "cod"
-                            ? "border-primary shadow-sm bg-primary/5"
-                            : "border-border/80 hover:border-primary/60"
-                        }`}
+                        className={`border rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === "cod"
+                          ? "border-primary shadow-sm bg-primary/5"
+                          : "border-border/80 hover:border-primary/60"
+                          }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3">
@@ -1102,11 +1098,13 @@ const Checkout = () => {
                       </label>
 
                       <label
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          paymentMethod === "online"
+                        className={`border rounded-lg p-4 transition-all ${import.meta.env.VITE_ENABLE_STRIPE === 'true'
+                            ? "cursor-pointer"
+                            : "cursor-not-allowed opacity-60"
+                          } ${paymentMethod === "online"
                             ? "border-primary shadow-sm bg-primary/5"
                             : "border-border/80 hover:border-primary/60"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3">
@@ -1116,13 +1114,26 @@ const Checkout = () => {
                             <div>
                               <p className="font-medium">Pay Now</p>
                               <p className="text-xs text-muted-foreground">
-                                Secure online payment with cards and UPI. We will redirect you to Stripe to complete the payment.
+                                {import.meta.env.VITE_ENABLE_STRIPE === 'true'
+                                  ? "Secure online payment with cards and UPI. We will redirect you to Stripe to complete the payment."
+                                  : "Online payments are currently unavailable. Please check back later."}
                               </p>
                             </div>
                           </div>
                           <Checkbox
                             checked={paymentMethod === "online"}
-                            onCheckedChange={() => setPaymentMethod("online")}
+                            onCheckedChange={() => {
+                              if (import.meta.env.VITE_ENABLE_STRIPE === 'true') {
+                                setPaymentMethod("online");
+                              } else {
+                                toast({
+                                  title: "Unavailable",
+                                  description: "Online payments are currently disabled.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            disabled={import.meta.env.VITE_ENABLE_STRIPE !== 'true'}
                           />
                         </div>
                       </label>
@@ -1144,7 +1155,7 @@ const Checkout = () => {
                       <div>
                         <h2 className="text-lg md:text-xl font-semibold">Review & confirm</h2>
                         <p className="text-sm text-muted-foreground">
-                          {paymentMethod === "online" 
+                          {paymentMethod === "online"
                             ? "Complete your payment to place the order."
                             : "Check your details before placing the order."}
                         </p>
@@ -1171,7 +1182,7 @@ const Checkout = () => {
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">Payment method</p>
                             <p className="mt-2 text-sm font-semibold">
-                              {paymentMethod === "cod" ? "Pay on delivery" : "Razorpay (Card / UPI / Net Banking)"}
+                              {paymentMethod === "cod" ? "Pay on delivery" : "Stripe (Card / Apple Pay / Google Pay)"}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {paymentMethod === "cod"
@@ -1185,24 +1196,35 @@ const Checkout = () => {
                         </div>
                       </div>
 
-                      {/* Razorpay Payment Button */}
+                      {/* Stripe Payment Section */}
                       {paymentMethod === "online" && (
                         <div className="border border-border/60 rounded-lg p-4">
                           <div className="space-y-4">
                             <div className="text-center">
                               <p className="text-sm text-muted-foreground mb-4">
-                                Click the button below to complete your payment securely via Razorpay. You will be redirected to the payment page.
+                                Click the button below to complete your payment securely via Stripe.
                               </p>
                             </div>
-                            <RazorpayPaymentButton
-                              amount={total}
-                              onRedirect={() => {
-                                // Optional: Save order details before redirect
-                                // You can store cart/address info in sessionStorage if needed
+                            <Button
+                              size="lg"
+                              className="w-full bg-[#635BFF] hover:bg-[#635BFF]/90 text-white"
+                              onClick={() => {
+                                // TODO: Implement Stripe Checkout
+                                handlePlaceOrder();
                               }}
-                            />
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Processing to Stripe...
+                                </>
+                              ) : (
+                                "Pay with Stripe"
+                              )}
+                            </Button>
                             <p className="text-xs text-muted-foreground text-center mt-2">
-                              After completing payment, you can return to complete your order.
+                              You will be redirected to Stripe's secure payment page.
                             </p>
                           </div>
                         </div>
