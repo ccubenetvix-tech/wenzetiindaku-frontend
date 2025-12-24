@@ -153,7 +153,7 @@ const Categories = () => {
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
                   {t('noVendorsMessage')}
                 </p>
-                <Button onClick={() => navigate('/vendor/signup')}>
+                <Button onClick={() => navigate('/vendor/register')}>
                   {t('becomeSeller')}
                 </Button>
               </div>

@@ -269,7 +269,7 @@ const Category = () => {
                 }
               </p>
               {!searchQuery && (
-                <Button onClick={() => navigate('/vendor/signup')}>
+                <Button onClick={() => navigate('/vendor/register')}>
                   Become a Vendor
                 </Button>
               )}
