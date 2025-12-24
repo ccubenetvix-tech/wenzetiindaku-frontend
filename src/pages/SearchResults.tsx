@@ -20,6 +20,7 @@ import { apiClient } from "@/utils/api";
 import { PageLoader } from "@/components/PageLoader";
 import { useLoaderTransition } from "@/hooks/useLoaderTransition";
 import { cn } from "@/lib/utils";
+import { predefinedCategories } from "@/data/categories";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -226,16 +227,15 @@ const SearchResults = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">{t('allCategories')}</SelectItem>
-                        <SelectItem value="Technology & Electronics">{t('tech')}</SelectItem>
-                        <SelectItem value="Clothing & Fashion">{t('clothes')}</SelectItem>
-                        <SelectItem value="Home & Garden">{t('homeAndGarden')}</SelectItem>
-                        <SelectItem value="Cosmetics & Beauty">{t('cosmetics')}</SelectItem>
-                        <SelectItem value="Health & Wellness">{t('healthWellness')}</SelectItem>
-                        <SelectItem value="Sports & Outdoors">{t('sportsOutdoors')}</SelectItem>
-                        <SelectItem value="Food & Beverages">{t('food')} & {t('beverages')}</SelectItem>
+                        {predefinedCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {t(cat.name)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
+
 
                   {/* Price Range */}
                   <div className="mb-6">

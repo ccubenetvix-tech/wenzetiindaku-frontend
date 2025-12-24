@@ -1,72 +1,72 @@
 export const predefinedCategories = [
   {
-    id: 'technology_electronics',
+    id: 'Technology & Electronics',
     name: 'electronics',
     description: 'descElectronics',
     icon: ''
   },
   {
-    id: 'clothing_fashion',
+    id: 'Clothing & Fashion',
     name: 'fashionClothing',
     description: 'descFashionClothing',
     icon: ''
   },
   {
-    id: 'home_garden',
+    id: 'Home & Garden',
     name: 'homeGarden',
     description: 'descHomeGarden',
     icon: ''
   },
   {
-    id: 'cosmetics_beauty',
+    id: 'Cosmetics & Beauty',
     name: 'beautyHealth',
     description: 'descBeautyHealth',
     icon: ''
   },
   {
-    id: 'health_wellness',
+    id: 'Health & Wellness',
     name: 'healthWellness',
     description: 'descHealthWellness',
     icon: ''
   },
   {
-    id: 'sports_outdoors',
+    id: 'Sports & Outdoors',
     name: 'sportsOutdoors',
     description: 'descSportsOutdoors',
     icon: ''
   },
   {
-    id: 'books_media',
+    id: 'Books & Media',
     name: 'booksMedia',
     description: 'descBooksMedia',
     icon: ''
   },
   {
-    id: 'toys_games',
+    id: 'Toys & Games',
     name: 'toysGames',
     description: 'descToysGames',
     icon: ''
   },
   {
-    id: 'automotive',
+    id: 'Automotive',
     name: 'automotive',
     description: 'descAutomotive',
     icon: ''
   },
   {
-    id: 'jewelry_accessories',
+    id: 'Jewelry & Accessories',
     name: 'jewelryAccessories',
     description: 'descJewelryAccessories',
     icon: ''
   },
   {
-    id: 'food_beverages',
+    id: 'Food & Beverages',
     name: 'foodBeverages',
     description: 'descFoodBeverages',
     icon: ''
   },
   {
-    id: 'art_collectibles',
+    id: 'Art & Collectibles',
     name: 'artCrafts',
     description: 'descArtCrafts',
     icon: ''

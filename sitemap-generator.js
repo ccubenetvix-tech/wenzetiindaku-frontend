@@ -17,15 +17,20 @@ const staticRoutes = [
 ];
 
 const categories = [
-    'electronics',
-    'fashion',
-    'home-garden',
-    'beauty-health',
-    'toys-hobby',
-    'sports-outdoors',
-    'automotive',
-    'other'
+    'Technology & Electronics',
+    'Clothing & Fashion',
+    'Home & Garden',
+    'Cosmetics & Beauty',
+    'Health & Wellness',
+    'Sports & Outdoors',
+    'Books & Media',
+    'Toys & Games',
+    'Automotive',
+    'Jewelry & Accessories',
+    'Food & Beverages',
+    'Art & Collectibles'
 ];
+
 
 const generateSitemap = async () => {
     console.log('Generating sitemap...');
