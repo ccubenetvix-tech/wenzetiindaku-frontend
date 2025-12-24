@@ -207,6 +207,11 @@ const Store = () => {
         image={store?.banner || "/marketplace.jpeg"}
         url={`/store/${storeId}`}
         type="profile"
+        breadcrumbs={[
+          { name: t('home'), url: '/' },
+          { name: t('stores'), url: '/stores' },
+          { name: store?.name || t('store'), url: `/store/${storeId}` }
+        ]}
       />
 
       <main className="relative flex-1">

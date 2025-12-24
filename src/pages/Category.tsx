@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { 
+import {
   Filter,
   Grid3X3,
   List,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
+import { SEO } from "@/components/SEO";
 import { Footer } from "@/components/Footer";
 import { apiClient } from "@/utils/api";
 import { predefinedCategories } from "@/data/categories";
@@ -23,7 +24,7 @@ const Category = () => {
   const { categoryName } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  
+
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,7 +38,7 @@ const Category = () => {
   const categoryId = categoryName || '';
 
   // Get category info with case-insensitive search as fallback
-  const category = predefinedCategories.find(cat => 
+  const category = predefinedCategories.find(cat =>
     cat.id === categoryId
   );
 
@@ -45,10 +46,10 @@ const Category = () => {
   useEffect(() => {
     const loadProducts = async () => {
       if (!categoryId) return;
-      
+
       try {
         setIsLoading(true);
-        
+
         const response = await apiClient.getAllProducts({
           category: categoryId,
           page: currentPage,
@@ -56,8 +57,8 @@ const Category = () => {
           search: searchQuery || undefined,
           sortBy,
           sortOrder
-        });
-        
+        }) as any;
+
         if (response.success) {
           setProducts(response.data.products || []);
           setTotalPages(response.data.pagination?.totalPages || 1);
@@ -87,20 +88,30 @@ const Category = () => {
   // Filter products based on search
   const filteredProducts = useMemo(() => {
     if (!searchQuery) return products;
-    
+
     return products.filter(product =>
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [products, searchQuery]);
-  
+
   // If no category found and no products, show error; otherwise show products
   const showNotFound = !category && !isLoading && products.length === 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-navy-950">
       <Header />
-      
+
+      <SEO
+        title={displayCategory.name}
+        description={displayCategory.description}
+        url={`/category/${encodeURIComponent(categoryId)}`}
+        breadcrumbs={[
+          { name: t('home'), url: '/' },
+          { name: displayCategory.name, url: `/category/${encodeURIComponent(categoryId)}` }
+        ]}
+      />
+
       <main className="flex-1">
         {/* Header Section */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -190,12 +201,11 @@ const Category = () => {
             </div>
           ) : filteredProducts.length > 0 ? (
             <>
-              <div className={`grid ${viewMode === 'grid' ? 'gap-4' : 'gap-6'} ${
-                viewMode === "grid" 
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-                  : "grid-cols-1"
-              }`}>
-              {filteredProducts.map((product) => (
+              <div className={`grid ${viewMode === 'grid' ? 'gap-4' : 'gap-6'} ${viewMode === "grid"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                : "grid-cols-1"
+                }`}>
+                {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
                     id={product.id}
@@ -210,9 +220,9 @@ const Category = () => {
                     isFeatured={product.is_featured || false}
                     compact={viewMode === 'grid'}
                   />
-              ))}
+                ))}
               </div>
-              
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-8">
@@ -224,7 +234,7 @@ const Category = () => {
                     >
                       Previous
                     </Button>
-                    
+
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                       <Button
                         key={page}
@@ -234,9 +244,9 @@ const Category = () => {
                         {page}
                       </Button>
                     ))}
-                    
-                    <Button 
-                      variant="outline" 
+
+                    <Button
+                      variant="outline"
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                     >
@@ -253,7 +263,7 @@ const Category = () => {
                 No Products Found
               </h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                {searchQuery 
+                {searchQuery
                   ? `No products found for "${searchQuery}" in ${displayCategory.name}`
                   : `No products available in ${displayCategory.name} yet.`
                 }

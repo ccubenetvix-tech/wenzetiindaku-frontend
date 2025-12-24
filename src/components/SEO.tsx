@@ -9,6 +9,7 @@ interface SEOProps {
     url?: string;
     type?: string;
     schema?: any;
+    breadcrumbs?: { name: string; url: string }[];
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -19,6 +20,7 @@ export const SEO: React.FC<SEOProps> = ({
     url,
     type = 'website',
     schema,
+    breadcrumbs,
 }) => {
     const siteName = 'Wenze Tii Ndaku';
     const defaultTitle = 'Wenze Tii Ndaku | African Multi-Vendor Marketplace';
@@ -30,6 +32,17 @@ export const SEO: React.FC<SEOProps> = ({
     const seoDescription = description || defaultDescription;
     const seoImage = image || defaultImage;
     const seoUrl = url ? `${siteUrl}${url}` : siteUrl;
+
+    const breadcrumbSchema = breadcrumbs ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbs.map((crumb, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": crumb.name,
+            "item": `${siteUrl}${crumb.url}`
+        }))
+    } : null;
 
     return (
         <Helmet>
@@ -57,6 +70,11 @@ export const SEO: React.FC<SEOProps> = ({
             {schema && (
                 <script type="application/ld+json">
                     {JSON.stringify(schema)}
+                </script>
+            )}
+            {breadcrumbSchema && (
+                <script type="application/ld+json">
+                    {JSON.stringify(breadcrumbSchema)}
                 </script>
             )}
         </Helmet>

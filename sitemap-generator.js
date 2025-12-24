@@ -16,19 +16,32 @@ const staticRoutes = [
     '/returns',
 ];
 
+const categories = [
+    'electronics',
+    'fashion',
+    'home-garden',
+    'beauty-health',
+    'toys-hobby',
+    'sports-outdoors',
+    'automotive',
+    'other'
+];
+
 const generateSitemap = async () => {
     console.log('Generating sitemap...');
 
-    // In a real scenario, you would fetch products and stores from your API here
-    // For now, we provide the template.
+    const categoryRoutes = categories.map(cat => `/category/${encodeURIComponent(cat)}`);
+
+    // Combine all routes
+    const allRoutes = [...staticRoutes, ...categoryRoutes];
 
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticRoutes
+${allRoutes
             .map(route => `  <url>
     <loc>${BASE_URL}${route}</loc>
     <changefreq>weekly</changefreq>
-    <priority>${route === '/' ? '1.0' : '0.8'}</priority>
+    <priority>${route === '/' ? '1.0' : route.startsWith('/category') ? '0.7' : '0.8'}</priority>
   </url>`)
             .join('\n')}
 </urlset>`;

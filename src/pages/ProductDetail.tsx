@@ -638,6 +638,11 @@ const ProductDetail = () => {
           image={productImages[0]}
           url={`/product/${productId}`}
           type="product"
+          breadcrumbs={[
+            { name: t('home'), url: '/' },
+            { name: t(productCategory || 'category'), url: `/category/${encodeURIComponent(productData.category)}` },
+            { name: productName, url: `/product/${productId}` }
+          ]}
           schema={{
             "@context": "https://schema.org/",
             "@type": "Product",
