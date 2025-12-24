@@ -52,8 +52,8 @@ const Index = () => {
           // Transform vendor data to store format and take first 3 as featured
           const transformedStores = response.data.vendors.slice(0, 3).map((vendor: any) => ({
             id: vendor.id,
-            name: vendor.business_name || vendor.businessName || 'Unknown Store',
-            description: vendor.description || 'No description available',
+            name: vendor.business_name || vendor.businessName || t('unknownStore'),
+            description: vendor.description || t('noDescriptionAvailable'),
             rating: 4.5, // Default rating
             reviewCount: 0, // Default review count
             productCount: 0, // Will be updated when products are loaded
@@ -64,8 +64,8 @@ const Index = () => {
             featured: vendor.featured || false,
             verified: vendor.verified || false,
             followers: 0, // Default followers
-            shipping: "Standard shipping",
-            returnPolicy: "30-day returns",
+            shipping: t('standardShipping'),
+            returnPolicy: t('returnPolicy30Days'),
             specialties: vendor.categories || []
           }));
           setFeaturedStores(transformedStores);
@@ -305,7 +305,7 @@ const Index = () => {
             {isLoadingProducts ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
+                <span className="ml-2 text-gray-600 dark:text-gray-300">{t('loadingProducts')}</span>
               </div>
             ) : featuredProducts.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -320,7 +320,7 @@ const Index = () => {
                         rating: product.rating || 0,
                         reviewCount: product.review_count || 0,
                         image: product.images?.[0] || product.image || "/marketplace.jpeg",
-                        vendor: product.vendor?.business_name || "Unknown Vendor",
+                        vendor: product.vendor?.business_name || t('unknownVendor'),
                         isNew: product.is_new || false,
                         isFeatured: product.is_featured || false
                       }}
@@ -340,7 +340,7 @@ const Index = () => {
                         rating: product.rating || 0,
                         reviewCount: product.review_count || 0,
                         image: product.images?.[0] || product.image || "/marketplace.jpeg",
-                        vendor: product.vendor?.business_name || "Unknown Vendor",
+                        vendor: product.vendor?.business_name || t('unknownVendor'),
                         isNew: product.is_new || false,
                         isFeatured: product.is_featured || false
                       }}
@@ -465,8 +465,8 @@ const Index = () => {
                                 <Star
                                   key={i}
                                   className={`h-3.5 w-3.5 ${i < Math.floor(store.rating)
-                                      ? 'text-orange-400 fill-orange-400'
-                                      : 'text-gray-300 dark:text-gray-600'
+                                    ? 'text-orange-400 fill-orange-400'
+                                    : 'text-gray-300 dark:text-gray-600'
                                     }`}
                                 />
                               ))}
@@ -480,7 +480,7 @@ const Index = () => {
                           <div className="flex items-center gap-1 text-[11px]">
                             <ShoppingBag className="h-3.5 w-3.5 text-gray-400" />
                             <span className="text-gray-600 dark:text-gray-400 font-medium">
-                              {store.productCount || 0} products
+                              {store.productCount || 0} {t('products')}
                             </span>
                           </div>
 
@@ -566,7 +566,7 @@ const Index = () => {
                           <span className="text-[11px] font-semibold text-gray-900 dark:text-white">{store.rating}</span>
                         </div>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                          {store.productCount || 0} products
+                          {store.productCount || 0} {t('products')}
                         </p>
                       </div>
                     </div>

@@ -120,21 +120,21 @@ export function Footer() {
           <div className="flex items-center gap-4">
             <a
               href="#"
-              title="Follow us on Facebook"
+              title={t('followFacebook')}
               className="text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               <Facebook className="h-5 w-5" />
             </a>
             <a
               href="#"
-              title="Follow us on Twitter"
+              title={t('followTwitter')}
               className="text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               <Twitter className="h-5 w-5" />
             </a>
             <a
               href="#"
-              title="Follow us on Instagram"
+              title={t('followInstagram')}
               className="text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               <Instagram className="h-5 w-5" />

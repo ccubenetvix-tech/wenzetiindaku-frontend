@@ -174,7 +174,7 @@ function CustomerReviewsSection() {
         console.error('Error loading reviews:', error);
         const errorMessage = error?.message || error?.error?.message || "Failed to load reviews";
         toast({
-          title: "Error",
+          title: t('error'),
           description: errorMessage,
           variant: "destructive",
         });
@@ -235,10 +235,10 @@ function CustomerReviewsSection() {
             const product = review.product || {};
             const reviewDate = review.created_at
               ? new Date(review.created_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
               : 'Recently';
 
             return (
@@ -262,11 +262,10 @@ function CustomerReviewsSection() {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-4 w-4 ${
-                              i < (review.rating || 0)
+                            className={`h-4 w-4 ${i < (review.rating || 0)
                                 ? 'fill-yellow-400 text-yellow-400'
                                 : 'text-gray-300'
-                            }`}
+                              }`}
                           />
                         ))}
                         <span className="text-sm text-muted-foreground ml-2">{reviewDate}</span>
@@ -321,7 +320,7 @@ const formatDate = (input?: string | null): string => {
 };
 
 const formatStatus = (status?: string | null): string => {
-  if (!status) return "Unknown";
+  if (!status) return t('unknown');
   return status
     .split(/[\s_-]+/)
     .filter(Boolean)
@@ -581,10 +580,10 @@ export default function CustomerDashboard() {
       if (!profileResponse?.success || !profileResponse.data?.customer) {
         throw new Error(
           profileResponse?.error?.message ??
-            t(
-              "customerDashboard.errors.profile",
-              "Failed to load your profile information.",
-            ),
+          t(
+            "customerDashboard.errors.profile",
+            "Failed to load your profile information.",
+          ),
         );
       }
 
@@ -594,10 +593,10 @@ export default function CustomerDashboard() {
       if (!ordersResponse?.success) {
         throw new Error(
           ordersResponse?.error?.message ??
-            t(
-              "customerDashboard.errors.orders",
-              "Failed to load your recent orders.",
-            ),
+          t(
+            "customerDashboard.errors.orders",
+            "Failed to load your recent orders.",
+          ),
         );
       }
 
@@ -613,9 +612,9 @@ export default function CustomerDashboard() {
         err instanceof Error
           ? err.message
           : t(
-              "customerDashboard.errors.generic",
-              "An unexpected error occurred.",
-            );
+            "customerDashboard.errors.generic",
+            "An unexpected error occurred.",
+          );
       setError(message);
       toast({
         title: t(
@@ -698,10 +697,10 @@ export default function CustomerDashboard() {
         if (!response?.success) {
           throw new Error(
             response?.error?.message ??
-              t(
-                "customerDashboard.errors.orders",
-                "Failed to load your recent orders.",
-              ),
+            t(
+              "customerDashboard.errors.orders",
+              "Failed to load your recent orders.",
+            ),
           );
         }
 
@@ -711,9 +710,9 @@ export default function CustomerDashboard() {
           err instanceof Error
             ? err.message
             : t(
-                "customerDashboard.errors.generic",
-                "An unexpected error occurred.",
-              );
+              "customerDashboard.errors.generic",
+              "An unexpected error occurred.",
+            );
         setError(message);
         toast({
           title: t(
@@ -765,9 +764,9 @@ export default function CustomerDashboard() {
           err instanceof Error
             ? err.message
             : t(
-                "customerDashboard.cartErrorDescription",
-                "We couldn't add that product to your cart.",
-              );
+              "customerDashboard.cartErrorDescription",
+              "We couldn't add that product to your cart.",
+            );
         toast({
           title: t(
             "customerDashboard.cartErrorTitle",
@@ -801,9 +800,9 @@ export default function CustomerDashboard() {
           err instanceof Error
             ? err.message
             : t(
-                "customerDashboard.wishlistErrorDescription",
-                "We couldn't update your wishlist.",
-              );
+              "customerDashboard.wishlistErrorDescription",
+              "We couldn't update your wishlist.",
+            );
         toast({
           title: t(
             "customerDashboard.wishlistErrorTitle",
@@ -974,7 +973,7 @@ export default function CustomerDashboard() {
       [address.city, address.state, address.postalCode ?? address.zip].filter(Boolean).join(", ") || null,
       address.country ?? null,
       address.phone || address.phoneNumber || address.contactNumber
-        ? `Phone: ${address.phone || address.phoneNumber || address.contactNumber}`
+        ? `${t('phone')}: ${address.phone || address.phoneNumber || address.contactNumber}`
         : null,
     ]
       .filter(Boolean)
@@ -1063,10 +1062,10 @@ export default function CustomerDashboard() {
     try {
       setCancelLoading(true);
       setCancelReasonDialogOpen(false);
-      
+
       // Use other reason if selected, otherwise use predefined reason
       const finalReason = cancelReason === 'other' ? cancelReasonOther.trim() : cancelReason.trim();
-      
+
       const response = (await apiClient.cancelCustomerOrder(orderDetails.id, finalReason)) as {
         success?: boolean;
         message?: string;
@@ -1124,16 +1123,16 @@ export default function CustomerDashboard() {
       // Get profile to extract signup address
       const profileResponse = (await apiClient.getCustomerProfile()) as CustomerProfileApiResponse;
       const customer = profileResponse?.data?.customer;
-      
+
       const addresses: any[] = [];
-      
+
       // Add profile/signup address as default if it exists
       if (customer?.address) {
         const profileAddressData = normalizeAddressInput(customer.address);
         if (profileAddressData?.street) {
           const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-          const fullName = nameParts || customer.email || "Customer";
-          
+          const fullName = nameParts || customer.email || t('customerDashboard.customerRole', 'Customer');
+
           addresses.push({
             id: "profile-address",
             label: "Home",
@@ -1152,7 +1151,7 @@ export default function CustomerDashboard() {
           });
         }
       }
-      
+
       // Optionally add other saved addresses (but profile address is always first/default)
       const savedAddressesResponse = (await apiClient.getCustomerAddresses()) as {
         success?: boolean;
@@ -1225,9 +1224,9 @@ export default function CustomerDashboard() {
           err instanceof Error
             ? err.message
             : t(
-                "customerDashboard.cartUpdateError",
-                "We couldn't update the quantity right now.",
-              );
+              "customerDashboard.cartUpdateError",
+              "We couldn't update the quantity right now.",
+            );
         toast({
           title: t("customerDashboard.cartErrorTitle", "Cart update failed"),
           description: message,
@@ -1258,9 +1257,9 @@ export default function CustomerDashboard() {
           err instanceof Error
             ? err.message
             : t(
-                "customerDashboard.cartUpdateError",
-                "We couldn't update the quantity right now.",
-              );
+              "customerDashboard.cartUpdateError",
+              "We couldn't update the quantity right now.",
+            );
         toast({
           title: t("customerDashboard.cartErrorTitle", "Cart update failed"),
           description: message,
@@ -1316,7 +1315,7 @@ export default function CustomerDashboard() {
             ? error.message
             : t("customerDashboard.setDefaultError", "Failed to set default address");
         toast({
-          title: t("customerDashboard.setDefaultErrorTitle", "Error"),
+          title: t('error'),
           description: message,
           variant: "destructive",
         });
@@ -1374,7 +1373,7 @@ export default function CustomerDashboard() {
             ? error.message
             : t("customerDashboard.deleteAddressError", "Failed to delete address");
         toast({
-          title: t("customerDashboard.deleteAddressErrorTitle", "Error"),
+          title: t('error'),
           description: message,
           variant: "destructive",
         });
@@ -1746,56 +1745,56 @@ export default function CustomerDashboard() {
                     <TableBody>
                       {ordersLoading && !orders.length
                         ? Array.from({ length: 5 }).map((_, index) => (
-                            <TableRow key={`orders-skeleton-${index}`}>
-                              <TableCell>
-                                <Skeleton className="h-4 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-20" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-5 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-16" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-20" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-8 w-16" />
-                              </TableCell>
-                            </TableRow>
-                          ))
+                          <TableRow key={`orders-skeleton-${index}`}>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-16" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-8 w-16" />
+                            </TableCell>
+                          </TableRow>
+                        ))
                         : filteredOrders.map((order) => (
-                            <TableRow key={order.id}>
-                              <TableCell className="font-medium">
-                                {order.id}
-                              </TableCell>
-                              <TableCell>{formatDate(order.date)}</TableCell>
-                              <TableCell>
-                                <Badge className={getStatusColor(order.status)}>
-                                  {formatStatus(order.status)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>{order.itemsCount}</TableCell>
-                              <TableCell>{formatCurrency(order.total)}</TableCell>
-                              <TableCell>{order.tracking ?? "—"}</TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleOpenOrderDetails(order)}
-                                >
-                                  <Eye className="mr-2 h-3.5 w-3.5" />
-                                  {t("customerDashboard.viewDetails", "View")}
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">
+                              {order.id}
+                            </TableCell>
+                            <TableCell>{formatDate(order.date)}</TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(order.status)}>
+                                {formatStatus(order.status)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{order.itemsCount}</TableCell>
+                            <TableCell>{formatCurrency(order.total)}</TableCell>
+                            <TableCell>{order.tracking ?? "—"}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenOrderDetails(order)}
+                              >
+                                <Eye className="mr-2 h-3.5 w-3.5" />
+                                {t("customerDashboard.viewDetails", "View")}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       {showOrdersEmptyState && (
                         <TableRow>
                           <TableCell
@@ -1853,9 +1852,8 @@ export default function CustomerDashboard() {
                             {buildOrderTimeline(orderDetails.status).map((step) => (
                               <div key={step.value} className="flex items-start gap-3">
                                 <div
-                                  className={`mt-1 ${
-                                    step.completed ? "text-primary" : "text-muted-foreground"
-                                  } ${step.isCurrent ? "scale-110" : ""}`}
+                                  className={`mt-1 ${step.completed ? "text-primary" : "text-muted-foreground"
+                                    } ${step.isCurrent ? "scale-110" : ""}`}
                                 >
                                   {step.completed ? (
                                     <CircleCheck className="h-4 w-4" />
@@ -2318,11 +2316,10 @@ export default function CustomerDashboard() {
                     {dbAddresses.map((address) => (
                       <div
                         key={address.id}
-                        className={`rounded-lg border p-6 flex flex-col justify-between gap-4 transition-all ${
-                          address.is_default
+                        className={`rounded-lg border p-6 flex flex-col justify-between gap-4 transition-all ${address.is_default
                             ? "border-primary shadow-sm bg-primary/5"
                             : "border-border/80"
-                        }`}
+                          }`}
                       >
                         <div className="mb-4 flex items-center justify-between">
                           <div className="flex items-center gap-2">

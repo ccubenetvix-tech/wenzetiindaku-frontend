@@ -1,74 +1,74 @@
 export const predefinedCategories = [
   {
-    id: 'Technology & Electronics',
-    name: 'Electronics',
-    description: 'Electronic devices and gadgets',
+    id: 'technology_electronics',
+    name: 'electronics',
+    description: 'descElectronics',
     icon: ''
   },
   {
-    id: 'Clothing & Fashion',
-    name: 'Fashion & Clothing',
-    description: 'Clothing, shoes, and accessories',
+    id: 'clothing_fashion',
+    name: 'fashionClothing',
+    description: 'descFashionClothing',
     icon: ''
   },
   {
-    id: 'Home & Garden',
-    name: 'Home & Garden',
-    description: 'Home decor, furniture, and garden supplies',
+    id: 'home_garden',
+    name: 'homeGarden',
+    description: 'descHomeGarden',
     icon: ''
   },
   {
-    id: 'Cosmetics & Beauty',
-    name: 'Beauty & Health',
-    description: 'Cosmetics, skincare, and health products',
+    id: 'cosmetics_beauty',
+    name: 'beautyHealth',
+    description: 'descBeautyHealth',
     icon: ''
   },
   {
-    id: 'Health & Wellness',
-    name: 'Health & Wellness',
-    description: 'Health products and wellness items',
+    id: 'health_wellness',
+    name: 'healthWellness',
+    description: 'descHealthWellness',
     icon: ''
   },
   {
-    id: 'Sports & Outdoors',
-    name: 'Sports & Outdoors',
-    description: 'Sports equipment and outdoor gear',
+    id: 'sports_outdoors',
+    name: 'sportsOutdoors',
+    description: 'descSportsOutdoors',
     icon: ''
   },
   {
-    id: 'Books & Media',
-    name: 'Books & Media',
-    description: 'Books, movies, music, and educational materials',
+    id: 'books_media',
+    name: 'booksMedia',
+    description: 'descBooksMedia',
     icon: ''
   },
   {
-    id: 'Toys & Games',
-    name: 'Toys & Games',
-    description: 'Children\'s toys and games',
+    id: 'toys_games',
+    name: 'toysGames',
+    description: 'descToysGames',
     icon: ''
   },
   {
-    id: 'Automotive',
-    name: 'Automotive',
-    description: 'Car parts, accessories, and automotive supplies',
+    id: 'automotive',
+    name: 'automotive',
+    description: 'descAutomotive',
     icon: ''
   },
   {
-    id: 'Jewelry & Accessories',
-    name: 'Jewelry & Accessories',
-    description: 'Jewelry, watches, and fashion accessories',
+    id: 'jewelry_accessories',
+    name: 'jewelryAccessories',
+    description: 'descJewelryAccessories',
     icon: ''
   },
   {
-    id: 'Food & Beverages',
-    name: 'Food & Beverages',
-    description: 'Food items, drinks, and culinary products',
+    id: 'food_beverages',
+    name: 'foodBeverages',
+    description: 'descFoodBeverages',
     icon: ''
   },
   {
-    id: 'Art & Collectibles',
-    name: 'Art & Crafts',
-    description: 'Art supplies, crafts, and handmade items',
+    id: 'art_collectibles',
+    name: 'artCrafts',
+    description: 'descArtCrafts',
     icon: ''
   }
 ];

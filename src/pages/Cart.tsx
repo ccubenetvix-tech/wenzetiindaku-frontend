@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { 
-  ShoppingCart, 
-  Trash2, 
-  Plus, 
-  Minus, 
+import {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
   ArrowRight,
   Shield,
   CreditCard,
@@ -59,8 +59,8 @@ const Cart = () => {
     } catch (error) {
       console.error('Failed to remove item:', error);
       toast({
-        title: "Error",
-        description: "Failed to remove item from cart. Please try again.",
+        title: t('error'),
+        description: t('somethingWentWrong'),
         variant: "destructive"
       });
     } finally {
@@ -71,7 +71,7 @@ const Cart = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           {/* Page Header */}
@@ -79,7 +79,7 @@ const Cart = () => {
             <ShoppingCart className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">{t('cart')}</h1>
             <Badge variant="secondary" className="ml-2">
-              {cartItems.length} items
+              {t('items_plural', { count: cartItems.length })}
             </Badge>
           </div>
 
@@ -91,15 +91,15 @@ const Cart = () => {
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-16">
                     <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-                    <p className="text-muted-foreground">Loading cart...</p>
+                    <p className="text-muted-foreground">{t('loadingCart')}</p>
                   </div>
                 ) : cartItems.length === 0 ? (
                   <div className="text-center py-12 px-6">
                     <ShoppingCart className="h-20 w-20 mx-auto text-muted-foreground mb-4" />
-                    <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
-                    <p className="text-muted-foreground mb-6">Start shopping to add items to your cart</p>
-                    <Button size="lg">
-                      Continue Shopping
+                    <h2 className="text-2xl font-semibold mb-2">{t('cartEmpty')}</h2>
+                    <p className="text-muted-foreground mb-6">{t('startShoppingMsg')}</p>
+                    <Button size="lg" onClick={() => navigate("/")}>
+                      {t('continueShopping')}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
@@ -107,7 +107,7 @@ const Cart = () => {
                   Object.entries(itemsByVendor).map(([vendor, items], vendorIndex) => (
                     <div key={vendor}>
                       {vendorIndex > 0 && <Separator />}
-                      
+
                       {/* Vendor Header */}
                       <div className="p-6 pb-4">
                         <h3 className="font-semibold text-lg text-primary">{vendor}</h3>
@@ -118,14 +118,14 @@ const Cart = () => {
                         {items.map((item, itemIndex) => (
                           <div key={item.id}>
                             {itemIndex > 0 && <Separator className="my-4" />}
-                            
+
                             <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-4">
                               <img
                                 src={item.image}
                                 alt={item.name}
                                 className="h-32 w-full rounded-lg object-cover sm:h-20 sm:w-20"
                               />
-                              
+
                               <div className="flex-1 w-full">
                                 <h4 className="mb-1 text-lg font-medium">{item.name}</h4>
                                 <p className="text-sm text-muted-foreground">{item.vendor}</p>
@@ -180,7 +180,7 @@ const Cart = () => {
 
                       <div className="p-6 pt-4">
                         <div className="text-right">
-                          <span className="text-sm text-muted-foreground">Subtotal for {vendor}: </span>
+                          <span className="text-sm text-muted-foreground">{t('subtotalFor', { vendor })}: </span>
                           <span className="font-semibold">
                             ${items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
                           </span>
@@ -195,35 +195,35 @@ const Cart = () => {
             {/* Order Summary */}
             <div>
               <div className="bg-card rounded-lg shadow-sm p-6 sticky top-8">
-                <h3 className="text-xl font-semibold mb-6">Order Summary</h3>
-                
+                <h3 className="text-xl font-semibold mb-6">{t('orderSummary')}</h3>
+
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                    <p className="text-muted-foreground">Calculating...</p>
+                    <p className="text-muted-foreground">{t('calculating')}</p>
                   </div>
                 ) : (
                   <>
                     <div className="space-y-4 mb-6">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Items</span>
+                        <span className="text-muted-foreground">{t('totalItems')}</span>
                         <span className="font-semibold">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="text-muted-foreground">{t('subtotal')}</span>
                         <span>${subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="text-muted-foreground">{t('shipping')}</span>
                         <span>${shipping.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax</span>
+                        <span className="text-muted-foreground">{t('tax')}</span>
                         <span>${tax.toFixed(2)}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between text-lg font-semibold">
-                        <span>Total</span>
+                        <span>{t('total')}</span>
                         <span className="text-primary">${total.toFixed(2)}</span>
                       </div>
                     </div>
@@ -234,7 +234,7 @@ const Cart = () => {
                       disabled={cartItems.length === 0}
                       onClick={() => navigate("/checkout")}
                     >
-                      Proceed to Checkout
+                      {t('proceedToCheckout')}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
 
@@ -243,7 +243,7 @@ const Cart = () => {
                       className="w-full mb-6"
                       onClick={() => navigate("/")}
                     >
-                      Continue Shopping
+                      {t('continueShopping')}
                     </Button>
                   </>
                 )}
@@ -252,15 +252,15 @@ const Cart = () => {
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-success" />
-                    <span>Secured by SSL encryption</span>
+                    <span>{t('securedBySSL')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4 text-success" />
-                    <span>Multiple payment options</span>
+                    <span>{t('multiplePaymentOptions')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-success" />
-                    <span>Fast & reliable delivery</span>
+                    <span>{t('fastReliableDelivery')}</span>
                   </div>
                 </div>
               </div>

@@ -130,18 +130,18 @@ const Checkout = () => {
   const steps: Array<{ id: CheckoutStep; name: string; description: string }> = [
     {
       id: "address",
-      name: "Shipping",
-      description: "Confirm your shipping details",
+      name: t('checkoutShippingStep'),
+      description: t('checkoutShippingDesc'),
     },
     {
       id: "payment",
-      name: "Payment",
-      description: "Choose how you want to pay",
+      name: t('checkoutPaymentStep'),
+      description: t('checkoutPaymentDesc'),
     },
     {
       id: "review",
-      name: "Review",
-      description: "Final review before placing order",
+      name: t('checkoutReviewStep'),
+      description: t('checkoutReviewDesc'),
     },
   ];
 
@@ -335,11 +335,11 @@ const Checkout = () => {
         const profileAddressData = normalizeAddressInput(customer.address);
         if (profileAddressData?.street) {
           const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-          const fullName = nameParts || customer.email || "Customer";
+          const fullName = nameParts || customer.email || t('customerDashboard.customerRole', 'Customer');
 
           allAddresses.push({
             id: "profile-address",
-            label: "Home",
+            label: t('addressHome'),
             full_name: fullName,
             email: customer.email || "",
             phone: customer.phoneNumber || "",
@@ -476,8 +476,8 @@ const Checkout = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       toast({
-        title: "Please sign in",
-        description: "You need to be logged in as a customer to proceed to checkout.",
+        title: t('signIn'),
+        description: t('authRequiredDescription'),
       });
       navigate("/customer/login", { replace: true, state: { redirectTo: "/checkout" } });
       return;
@@ -485,8 +485,8 @@ const Checkout = () => {
 
     if (cartItems.length === 0 && !isLoading) {
       toast({
-        title: "Your cart is empty",
-        description: "Add some products to your cart before proceeding to checkout.",
+        title: t('cartEmpty'),
+        description: t('startShoppingMsg'),
       });
       navigate("/cart", { replace: true });
       return;
@@ -541,8 +541,8 @@ const Checkout = () => {
 
     if (missingField) {
       toast({
-        title: "Missing information",
-        description: `Please complete the ${missingField.toString()} field before continuing.`,
+        title: t('missingInformation'),
+        description: t('completeField', { field: missingField.toString() }),
         variant: "destructive",
       });
       return;
@@ -575,8 +575,8 @@ const Checkout = () => {
           // Reload addresses to get the new one
           await loadSavedAddresses();
           toast({
-            title: "Address saved",
-            description: "Your address has been saved successfully.",
+            title: t('changesSaved'),
+            description: t('productUpdatesuccess'),
           });
         }
       } catch (error) {
@@ -619,8 +619,8 @@ const Checkout = () => {
 
     if (missingField) {
       toast({
-        title: "Missing information",
-        description: `Please complete the ${missingField.toString()} field before placing your order.`,
+        title: t('missingInformation'),
+        description: t('completeField', { field: missingField.toString() }),
         variant: "destructive",
       });
       setStep("address");
@@ -642,7 +642,7 @@ const Checkout = () => {
       if (!response?.success) {
         throw new Error(
           response?.error?.message ||
-          "Unable to place order. Please try again.",
+          t('somethingWentWrong'),
         );
       }
 
@@ -670,7 +670,7 @@ const Checkout = () => {
           "Something went wrong while placing your order. Please try again.";
       setSubmitError(message);
       toast({
-        title: "Order not placed",
+        title: t('orderNotPlaced'),
         description: message,
         variant: "destructive",
       });
@@ -695,16 +695,16 @@ const Checkout = () => {
           <div className="flex items-center justify-between mb-6 md:mb-10">
             <Button variant="ghost" onClick={() => navigate("/cart")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to cart
+              {t('backToCart')}
             </Button>
 
             <Badge variant="outline" className="hidden md:inline-flex items-center gap-2 text-sm">
               <Truck className="h-3.5 w-3.5" />
-              Fast & secured delivery
+              {t('fastSecuredDelivery')}
             </Badge>
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-semibold mb-6">Checkout</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold mb-6">{t('checkout')}</h1>
 
           {/* Step indicator */}
           <div className="mb-8 border border-border/60 rounded-lg overflow-hidden">
@@ -724,7 +724,7 @@ const Checkout = () => {
                       } ${isCompleted ? "bg-background/70" : ""}`}
                   >
                     <span className="text-xs font-medium uppercase tracking-wide">
-                      Step {steps.findIndex((s) => s.id === item.id) + 1}
+                      {t('step')} {steps.findIndex((s) => s.id === item.id) + 1}
                     </span>
                     <span className="text-sm md:text-base font-semibold flex items-center gap-2">
                       {isCompleted && <CheckCircle className="h-4 w-4 text-primary" />}
@@ -747,9 +747,9 @@ const Checkout = () => {
                     <div className="flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-primary" />
                       <div>
-                        <h2 className="text-lg md:text-xl font-semibold">Shipping address</h2>
+                        <h2 className="text-lg md:text-xl font-semibold">{t('shippingAddress')}</h2>
                         <p className="text-sm text-muted-foreground">
-                          Choose where you would like your order delivered.
+                          {t('chooseDeliveryLocation')}
                         </p>
                       </div>
                     </div>
@@ -757,14 +757,14 @@ const Checkout = () => {
                     {isLoadingAddresses ? (
                       <div className="flex items-center justify-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                        <span className="ml-2 text-sm text-muted-foreground">Loading addresses...</span>
+                        <span className="ml-2 text-sm text-muted-foreground">{t('loadingAddresses')}</span>
                       </div>
                     ) : (
                       <div className="space-y-4">
                         {/* Display saved addresses */}
                         {savedAddresses.length > 0 && (
                           <div className="space-y-3">
-                            <p className="text-sm font-medium text-muted-foreground">Saved Addresses</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('savedAddresses')}</p>
                             {savedAddresses.map((address) => {
                               const isExpanded = expandedAddressId === address.id;
                               const isSelected = selectedAddressId === address.id;
@@ -789,9 +789,9 @@ const Checkout = () => {
                                           </div>
                                           <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
-                                              <p className="font-medium">{address.label || "Home"}</p>
+                                              <p className="font-medium">{address.label || t('addressHome')}</p>
                                               {address.is_default && (
-                                                <Badge variant="secondary" className="text-xs">Default</Badge>
+                                                <Badge variant="secondary" className="text-xs">{t('default')}</Badge>
                                               )}
                                             </div>
 
@@ -812,7 +812,7 @@ const Checkout = () => {
                                               </p>
                                               {address.phone && (
                                                 <p className="text-xs text-muted-foreground mt-1">
-                                                  Phone: {address.phone}
+                                                  {t('phone')}: {address.phone}
                                                 </p>
                                               )}
                                             </div>
@@ -862,12 +862,12 @@ const Checkout = () => {
                                       {isExpanded ? (
                                         <>
                                           <ChevronUp className="h-3 w-3 mr-1" />
-                                          Show Less
+                                          {t('checkoutShowLess')}
                                         </>
                                       ) : (
                                         <>
                                           <ChevronDown className="h-3 w-3 mr-1" />
-                                          Show Details
+                                          {t('checkoutShowDetails')}
                                         </>
                                       )}
                                     </Button>
@@ -889,7 +889,7 @@ const Checkout = () => {
                                         className="text-xs"
                                       >
                                         <Edit className="h-3 w-3 mr-1" />
-                                        Edit
+                                        {t('checkoutEdit')}
                                       </Button>
                                     )}
                                     {address.is_profile_address && (
@@ -904,7 +904,7 @@ const Checkout = () => {
                                         className="text-xs"
                                       >
                                         <Edit className="h-3 w-3 mr-1" />
-                                        Edit in Profile
+                                        {t('editInProfile')}
                                       </Button>
                                     )}
                                   </div>
@@ -928,9 +928,9 @@ const Checkout = () => {
                               <MapPin className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-medium">Add new address</p>
+                              <p className="font-medium">{t('addNewAddress')}</p>
                               <p className="text-xs text-muted-foreground">
-                                Enter a different delivery address for this order.
+                                {t('enterDeliveryAddress')}
                               </p>
                             </div>
                           </div>
@@ -941,7 +941,7 @@ const Checkout = () => {
                           <div className="border border-border/60 rounded-lg p-4 md:p-6 space-y-4">
                             <div className="grid gap-4 md:grid-cols-2">
                               <div>
-                                <Label htmlFor="fullName">Full name</Label>
+                                <Label htmlFor="fullName">{t('firstName')} {t('lastName')}</Label>
                                 <Input
                                   id="fullName"
                                   value={addressForm.fullName}
@@ -951,7 +951,7 @@ const Checkout = () => {
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{t('emailAddress')}</Label>
                                 <Input
                                   id="email"
                                   type="email"
@@ -964,7 +964,7 @@ const Checkout = () => {
                             </div>
 
                             <div>
-                              <Label htmlFor="phone">Phone number</Label>
+                              <Label htmlFor="phone">{t('phone')}</Label>
                               <Input
                                 id="phone"
                                 value={addressForm.phone}
@@ -975,7 +975,7 @@ const Checkout = () => {
                             </div>
 
                             <div>
-                              <Label htmlFor="street1">Street address</Label>
+                              <Label htmlFor="street1">{t('streetAddress')}</Label>
                               <Input
                                 id="street1"
                                 value={addressForm.street1}
@@ -986,7 +986,7 @@ const Checkout = () => {
                             </div>
 
                             <div>
-                              <Label htmlFor="street2">Apartment, suite (optional)</Label>
+                              <Label htmlFor="street2">{t('apartmentOptional')}</Label>
                               <Input
                                 id="street2"
                                 value={addressForm.street2 ?? ""}
@@ -998,7 +998,7 @@ const Checkout = () => {
 
                             <div className="grid gap-4 md:grid-cols-3">
                               <div>
-                                <Label htmlFor="city">City</Label>
+                                <Label htmlFor="city">{t('city')}</Label>
                                 <Input
                                   id="city"
                                   value={addressForm.city}
@@ -1008,7 +1008,7 @@ const Checkout = () => {
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="state">State / Region</Label>
+                                <Label htmlFor="state">{t('state')}</Label>
                                 <Input
                                   id="state"
                                   value={addressForm.state}
@@ -1018,7 +1018,7 @@ const Checkout = () => {
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="postalCode">Postal code</Label>
+                                <Label htmlFor="postalCode">{t('postalCode')}</Label>
                                 <Input
                                   id="postalCode"
                                   value={addressForm.postalCode}
@@ -1030,7 +1030,7 @@ const Checkout = () => {
                             </div>
 
                             <div>
-                              <Label htmlFor="country">Country</Label>
+                              <Label htmlFor="country">{t('country')}</Label>
                               <Input
                                 id="country"
                                 value={addressForm.country}
@@ -1047,7 +1047,7 @@ const Checkout = () => {
                                 onCheckedChange={(checked) => setSaveAddressToProfile(checked === true)}
                               />
                               <Label htmlFor="saveAddress" className="text-sm text-muted-foreground cursor-pointer">
-                                Save this address to my profile
+                                {t('saveThisAddress')}
                               </Label>
                             </div>
                           </div>
@@ -1057,10 +1057,10 @@ const Checkout = () => {
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
                       <Button variant="ghost" onClick={() => navigate("/cart")}>
-                        Modify cart
+                        {t('modifyCart')}
                       </Button>
                       <Button onClick={handleAddressContinue} disabled={isLoadingAddresses}>
-                        Continue to payment
+                        {t('continueToPayment')}
                       </Button>
                     </div>
                   </div>
@@ -1071,9 +1071,9 @@ const Checkout = () => {
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-5 w-5 text-primary" />
                       <div>
-                        <h2 className="text-lg md:text-xl font-semibold">Payment method</h2>
+                        <h2 className="text-lg md:text-xl font-semibold">{t('paymentMethod')}</h2>
                         <p className="text-sm text-muted-foreground">
-                          Choose the payment option that works best for you.
+                          {t('choosePaymentOption')}
                         </p>
                       </div>
                     </div>
@@ -1091,9 +1091,9 @@ const Checkout = () => {
                               <Shield className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-medium">Pay on delivery</p>
+                              <p className="font-medium">{t('cashOnDelivery')}</p>
                               <p className="text-xs text-muted-foreground">
-                                Pay with cash or POS when your order arrives. Ideal if you prefer paying after inspection.
+                                {t('cashOnDeliveryDesc')}
                               </p>
                             </div>
                           </div>
@@ -1119,11 +1119,11 @@ const Checkout = () => {
                               <CreditCard className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-medium">Pay Now</p>
+                              <p className="font-medium">{t('onlinePayment')}</p>
                               <p className="text-xs text-muted-foreground">
                                 {import.meta.env.VITE_ENABLE_STRIPE === 'true'
-                                  ? "Secure online payment with cards and UPI. We will redirect you to Stripe to complete the payment."
-                                  : "Online payments are currently unavailable. Please check back later."}
+                                  ? t('onlinePaymentDesc')
+                                  : t('onlinePaymentsUnavailable')}
                               </p>
                             </div>
                           </div>
@@ -1134,8 +1134,8 @@ const Checkout = () => {
                                 setPaymentMethod("online");
                               } else {
                                 toast({
-                                  title: "Unavailable",
-                                  description: "Online payments are currently disabled.",
+                                  title: t('unavailable'),
+                                  description: t('onlinePaymentsDisabled'),
                                   variant: "destructive",
                                 });
                               }
@@ -1148,9 +1148,9 @@ const Checkout = () => {
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
                       <Button variant="outline" onClick={handleBack}>
-                        Back to address
+                        {t('backToAddress')}
                       </Button>
-                      <Button onClick={() => setStep("review")}>Review order</Button>
+                      <Button onClick={() => setStep("review")}>{t('reviewOrder')}</Button>
                     </div>
                   </div>
                 )}
@@ -1160,11 +1160,11 @@ const Checkout = () => {
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-primary" />
                       <div>
-                        <h2 className="text-lg md:text-xl font-semibold">Review & confirm</h2>
+                        <h2 className="text-lg md:text-xl font-semibold">{t('reviewAndConfirm')}</h2>
                         <p className="text-sm text-muted-foreground">
                           {paymentMethod === "online"
-                            ? "Complete your payment to place the order."
-                            : "Check your details before placing the order."}
+                            ? t('completePaymentToPlaceOrder')
+                            : t('checkDetailsBeforePlacingOrder')}
                         </p>
                       </div>
                     </div>
@@ -1173,13 +1173,13 @@ const Checkout = () => {
                       <div className="border border-border/60 rounded-lg p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="text-sm font-medium text-muted-foreground">Shipping address</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('shippingAddressLabel')}</p>
                             <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                               {formattedShippingAddress}
                             </pre>
                           </div>
                           <Button variant="link" size="sm" onClick={() => setStep("address")}>
-                            Change
+                            {t('checkoutChange')}
                           </Button>
                         </div>
                       </div>
@@ -1187,18 +1187,18 @@ const Checkout = () => {
                       <div className="border border-border/60 rounded-lg p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="text-sm font-medium text-muted-foreground">Payment method</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('paymentMethodLabel')}</p>
                             <p className="mt-2 text-sm font-semibold">
-                              {paymentMethod === "cod" ? "Pay on delivery" : "Stripe (Card / Apple Pay / Google Pay)"}
+                              {paymentMethod === "cod" ? t('cashOnDelivery') : "Stripe (Card / Apple Pay / Google Pay)"}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {paymentMethod === "cod"
-                                ? "Have cash or card ready at delivery. Our partner will contact you prior to arrival."
-                                : "Complete your payment securely below."}
+                                ? t('cashOnDeliveryDesc')
+                                : t('completePaymentToPlaceOrder')}
                             </p>
                           </div>
                           <Button variant="link" size="sm" onClick={() => setStep("payment")}>
-                            Change
+                            {t('checkoutChange')}
                           </Button>
                         </div>
                       </div>
@@ -1209,7 +1209,7 @@ const Checkout = () => {
                           <div className="space-y-4">
                             <div className="text-center">
                               <p className="text-sm text-muted-foreground mb-4">
-                                Click the button below to complete your payment securely via Stripe.
+                                {t('stripePaymentInstruction')}
                               </p>
                             </div>
                             <Button
@@ -1224,14 +1224,14 @@ const Checkout = () => {
                               {isSubmitting ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Processing to Stripe...
+                                  {t('processingToStripe')}
                                 </>
                               ) : (
-                                "Pay with Stripe"
+                                t('payWithStripe')
                               )}
                             </Button>
                             <p className="text-xs text-muted-foreground text-center mt-2">
-                              You will be redirected to Stripe's secure payment page.
+                              {t('stripeRedirectNotice')}
                             </p>
                           </div>
                         </div>
@@ -1241,9 +1241,9 @@ const Checkout = () => {
                     <div className="border border-border/60 rounded-lg">
                       <div className="p-4 border-b border-border/60 flex items-center justify-between">
                         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                          Order items
+                          {t('orderItems')}
                         </h3>
-                        <Badge variant="outline">{cartItems.length} items</Badge>
+                        <Badge variant="outline">{t('items_plural', { count: cartItems.length })}</Badge>
                       </div>
                       <div className="divide-y divide-border/60">
                         {cartItems.map((item) => (
@@ -1257,7 +1257,7 @@ const Checkout = () => {
                               <p className="text-sm font-medium">{item.name}</p>
                               <p className="text-xs text-muted-foreground">{item.vendor}</p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Quantity: <span className="font-semibold text-foreground">{item.quantity}</span>
+                                {t('quantity')}: <span className="font-semibold text-foreground">{item.quantity}</span>
                               </p>
                             </div>
                             <div className="text-sm font-semibold">
@@ -1271,11 +1271,11 @@ const Checkout = () => {
                     {paymentMethod === "cod" && (
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
                         <Button variant="outline" onClick={handleBack}>
-                          Back
+                          {t('back')}
                         </Button>
                         <Button size="lg" className="px-6" onClick={() => handlePlaceOrder()} disabled={isSubmitting}>
                           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Place order
+                          {t('placeOrder')}
                         </Button>
                       </div>
                     )}
@@ -1293,31 +1293,31 @@ const Checkout = () => {
             <aside className="bg-card border border-border/60 rounded-lg shadow-sm h-fit sticky top-6">
               <div className="p-6 space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1">Order summary</h2>
+                  <h2 className="text-lg font-semibold mb-1">{t('orderSummary')}</h2>
                   <p className="text-sm text-muted-foreground">
-                    Review the cost breakdown before completing your order.
+                    {t('reviewDesc')}
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Total Items</span>
+                    <span>{t('totalItems')}</span>
                     <span className="font-semibold text-foreground">
                       {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Subtotal</span>
+                    <span>{t('subtotal')}</span>
                     <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Shipping</span>
+                    <span>{t('shipping')}</span>
                     <span className="font-medium text-foreground">
-                      {shipping > 0 ? `$${shipping.toFixed(2)}` : "Free"}
+                      {shipping > 0 ? `$${shipping.toFixed(2)}` : t('off')}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Tax (10%)</span>
+                    <span>{t('tax')} (10%)</span>
                     <span className="font-medium text-foreground">${tax.toFixed(2)}</span>
                   </div>
                 </div>
@@ -1325,23 +1325,23 @@ const Checkout = () => {
                 <Separator />
 
                 <div className="flex justify-between text-base font-semibold">
-                  <span>Total amount</span>
+                  <span>{t('totalAmount')}</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
 
                 <div className="rounded-md bg-muted/60 p-4 space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Shield className="h-4 w-4 text-success" />
-                    <span>Secure checkout powered by encrypted SSL</span>
+                    <span>{t('securedBySSL')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Truck className="h-4 w-4 text-primary" />
-                    <span>Trusted vendors deliver nationwide in 2-5 days</span>
+                    <span>{t('fastReliableDelivery')}</span>
                   </div>
                 </div>
 
                 <div className="rounded-md border border-dashed border-border/60 p-4 text-xs text-muted-foreground">
-                  Have a promo code? You’ll be able to apply it on the payment step.
+                  {t('promoCodeNotice')}
                 </div>
               </div>
             </aside>

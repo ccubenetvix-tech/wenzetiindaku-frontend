@@ -230,8 +230,8 @@ const SearchResults = () => {
                         <SelectItem value="Clothing & Fashion">{t('clothes')}</SelectItem>
                         <SelectItem value="Home & Garden">{t('homeAndGarden')}</SelectItem>
                         <SelectItem value="Cosmetics & Beauty">{t('cosmetics')}</SelectItem>
-                        <SelectItem value="Health & Wellness">{t('healthAndWellness')}</SelectItem>
-                        <SelectItem value="Sports & Outdoors">{t('sportsAndOutdoors')}</SelectItem>
+                        <SelectItem value="Health & Wellness">{t('healthWellness')}</SelectItem>
+                        <SelectItem value="Sports & Outdoors">{t('sportsOutdoors')}</SelectItem>
                         <SelectItem value="Food & Beverages">{t('food')} & {t('beverages')}</SelectItem>
                       </SelectContent>
                     </Select>
@@ -325,7 +325,7 @@ const SearchResults = () => {
                           rating={product.rating || 0}
                           reviewCount={product.review_count || 0}
                           image={product.images?.[0] || product.image || "/marketplace.jpeg"}
-                          vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                          vendor={product.vendor?.business_name || product.vendor || t('unknownVendor')}
                           isNew={product.is_new || product.isNew || false}
                           isFeatured={product.is_featured || product.isFeatured || false}
                         />
@@ -354,7 +354,7 @@ const SearchResults = () => {
                             rating={product.rating || 0}
                             reviewCount={product.review_count || 0}
                             image={product.images?.[0] || product.image || "/marketplace.jpeg"}
-                            vendor={product.vendor?.business_name || product.vendor || "Unknown Vendor"}
+                            vendor={product.vendor?.business_name || product.vendor || t('unknownVendor')}
                             isNew={product.is_new || product.isNew || false}
                             isFeatured={product.is_featured || product.isFeatured || false}
                           />
