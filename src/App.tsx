@@ -71,90 +71,94 @@ import NotFound from "./pages/NotFound";              // 404 error page
 // This manages server state, caching, and background updates
 const queryClient = new QueryClient();
 
+import { HelmetProvider } from "react-helmet-async";
+
 // Main App component that sets up all providers and routing
 // Uses a nested provider pattern for clean separation of concerns
 const App = () => (
   // Internationalization provider for multi-language support
   <I18nextProvider i18n={i18n}>
-    {/* React Query provider for server state management */}
-    <QueryClientProvider client={queryClient}>
-      {/* Auth context provider for authentication state */}
-      <AuthProvider>
-        {/* Cart and wishlist providers for shopping experience state */}
-        <CartProvider>
-          <WishlistProvider>
-            <ChatProvider>
-            {/* Tooltip provider for enhanced UI interactions */}
-            <TooltipProvider>
-              {/* Toast notification components for user feedback */}
-              <Toaster />
-              <Sonner />
-              {/* Browser router for client-side navigation */}
-              <BrowserRouter>
-                {/* Route definitions for all application pages */}
-                <Routes>
-                  {/* Main marketplace routes */}
-                  <Route path="/" element={<Index />} />                                    {/* Homepage */}
-                  <Route path="/categories" element={<Categories />} />                    {/* Categories listing */}
-                  <Route path="/category/:categoryName" element={<Category />} />          {/* Individual category with dynamic parameter */}
-                  <Route path="/stores" element={<Stores />} />                            {/* Stores listing */}
-                  <Route path="/store/:storeId" element={<Store />} />                     {/* Individual store with dynamic parameter */}
-                  <Route path="/product/:productId" element={<ProductDetail />} />         {/* Product details with dynamic parameter */}
-                  <Route path="/cart" element={<Cart />} />                                {/* Shopping cart */}
-                  <Route path="/checkout" element={<Checkout />} />                        {/* Checkout process */}
-                  <Route path="/checkout/success" element={<OrderSuccess />} />            {/* Order success */}
-                  <Route path="/checkout/failure" element={<OrderFailure />} />            {/* Order failure */}
-                  <Route path="/profile" element={<Profile />} />                          {/* User profile */}
-                  <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
-                  <Route path="/customer/address/add" element={<AddAddress />} />          {/* Add Address */}
-                  <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
-                  <Route path="/search" element={<SearchResults />} />                     {/* Search results */}
-                  
-                  {/* Information and legal pages */}
-                  <Route path="/about" element={<About />} />                              {/* About page */}
-                  <Route path="/contact" element={<Contact />} />                          {/* Contact page */}
-                  <Route path="/privacy" element={<PrivacyPolicy />} />                    {/* Privacy policy */}
-                  <Route path="/terms" element={<TermsOfService />} />                     {/* Terms of service */}
-                  <Route path="/vendor-terms" element={<VendorTerms />} />                 {/* Vendor terms */}
-                  <Route path="/cookies" element={<CookiePolicy />} />                     {/* Cookie policy */}
-                  <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
-                  <Route path="/faqs" element={<FAQs />} />                                {/* FAQ page */}
-                  <Route path="/shipping" element={<ShippingInfo />} />                    {/* Shipping information */}
-                  <Route path="/returns" element={<Returns />} />                          {/* Returns policy */}
-                  
-                  {/* Authentication routes */}
-                  <Route path="/customer/login" element={<CustomerLogin />} />             {/* Customer login */}
-                  <Route path="/customer/signup" element={<CustomerSignup />} />           {/* Customer registration */}
-                  <Route path="/vendor/login" element={<VendorLogin />} />                 {/* Vendor login */}
-                  <Route path="/vendor/register" element={<VendorRegister />} />           {/* Vendor registration */}
-                  <Route path="/admin/login" element={<AdminLogin />} />                   {/* Admin login */}
-                  <Route path="/auth/callback" element={<AuthCallback />} />               {/* OAuth callback */}
-                  <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
-                  <Route path="/logout" element={<LogoutConfirmation />} />                 {/* Logout confirmation */}
-                  
-                  {/* Dashboard routes */}
-                  <Route path="/customer/dashboard" element={<CustomerDashboard />} />     {/* Customer dashboard */}
-                  <Route path="/vendor/dashboard" element={<VendorDashboard />} />         {/* Vendor dashboard */}
-                  <Route path="/chat" element={<Chat />} />                                {/* Chat page */}
-                  {/* Admin dashboard with route protection */}
-                  <Route path="/admin/dashboard" element={
-                    <ProtectedAdminRoute>
-                      <AdminDashboard />
-                    </ProtectedAdminRoute>
-                  } />
-                  
-                  {/* Catch-all route for 404 errors - MUST be last */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                {/* Cookie consent component for GDPR compliance - rendered on all pages */}
-                <CookieConsent />
-              </BrowserRouter>
-            </TooltipProvider>
-            </ChatProvider>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      {/* React Query provider for server state management */}
+      <QueryClientProvider client={queryClient}>
+        {/* Auth context provider for authentication state */}
+        <AuthProvider>
+          {/* Cart and wishlist providers for shopping experience state */}
+          <CartProvider>
+            <WishlistProvider>
+              <ChatProvider>
+                {/* Tooltip provider for enhanced UI interactions */}
+                <TooltipProvider>
+                  {/* Toast notification components for user feedback */}
+                  <Toaster />
+                  <Sonner />
+                  {/* Browser router for client-side navigation */}
+                  <BrowserRouter>
+                    {/* Route definitions for all application pages */}
+                    <Routes>
+                      {/* Main marketplace routes */}
+                      <Route path="/" element={<Index />} />                                    {/* Homepage */}
+                      <Route path="/categories" element={<Categories />} />                    {/* Categories listing */}
+                      <Route path="/category/:categoryName" element={<Category />} />          {/* Individual category with dynamic parameter */}
+                      <Route path="/stores" element={<Stores />} />                            {/* Stores listing */}
+                      <Route path="/store/:storeId" element={<Store />} />                     {/* Individual store with dynamic parameter */}
+                      <Route path="/product/:productId" element={<ProductDetail />} />         {/* Product details with dynamic parameter */}
+                      <Route path="/cart" element={<Cart />} />                                {/* Shopping cart */}
+                      <Route path="/checkout" element={<Checkout />} />                        {/* Checkout process */}
+                      <Route path="/checkout/success" element={<OrderSuccess />} />            {/* Order success */}
+                      <Route path="/checkout/failure" element={<OrderFailure />} />            {/* Order failure */}
+                      <Route path="/profile" element={<Profile />} />                          {/* User profile */}
+                      <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
+                      <Route path="/customer/address/add" element={<AddAddress />} />          {/* Add Address */}
+                      <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
+                      <Route path="/search" element={<SearchResults />} />                     {/* Search results */}
+
+                      {/* Information and legal pages */}
+                      <Route path="/about" element={<About />} />                              {/* About page */}
+                      <Route path="/contact" element={<Contact />} />                          {/* Contact page */}
+                      <Route path="/privacy" element={<PrivacyPolicy />} />                    {/* Privacy policy */}
+                      <Route path="/terms" element={<TermsOfService />} />                     {/* Terms of service */}
+                      <Route path="/vendor-terms" element={<VendorTerms />} />                 {/* Vendor terms */}
+                      <Route path="/cookies" element={<CookiePolicy />} />                     {/* Cookie policy */}
+                      <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
+                      <Route path="/faqs" element={<FAQs />} />                                {/* FAQ page */}
+                      <Route path="/shipping" element={<ShippingInfo />} />                    {/* Shipping information */}
+                      <Route path="/returns" element={<Returns />} />                          {/* Returns policy */}
+
+                      {/* Authentication routes */}
+                      <Route path="/customer/login" element={<CustomerLogin />} />             {/* Customer login */}
+                      <Route path="/customer/signup" element={<CustomerSignup />} />           {/* Customer registration */}
+                      <Route path="/vendor/login" element={<VendorLogin />} />                 {/* Vendor login */}
+                      <Route path="/vendor/register" element={<VendorRegister />} />           {/* Vendor registration */}
+                      <Route path="/admin/login" element={<AdminLogin />} />                   {/* Admin login */}
+                      <Route path="/auth/callback" element={<AuthCallback />} />               {/* OAuth callback */}
+                      <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
+                      <Route path="/logout" element={<LogoutConfirmation />} />                 {/* Logout confirmation */}
+
+                      {/* Dashboard routes */}
+                      <Route path="/customer/dashboard" element={<CustomerDashboard />} />     {/* Customer dashboard */}
+                      <Route path="/vendor/dashboard" element={<VendorDashboard />} />         {/* Vendor dashboard */}
+                      <Route path="/chat" element={<Chat />} />                                {/* Chat page */}
+                      {/* Admin dashboard with route protection */}
+                      <Route path="/admin/dashboard" element={
+                        <ProtectedAdminRoute>
+                          <AdminDashboard />
+                        </ProtectedAdminRoute>
+                      } />
+
+                      {/* Catch-all route for 404 errors - MUST be last */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    {/* Cookie consent component for GDPR compliance - rendered on all pages */}
+                    <CookieConsent />
+                  </BrowserRouter>
+                </TooltipProvider>
+              </ChatProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   </I18nextProvider>
 );
 

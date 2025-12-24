@@ -12,6 +12,7 @@ import { useState, useEffect, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Star, TrendingUp, Users, ShoppingBag, Shield, Truck, Loader2 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 // Import UI components
 import { Button } from "@/components/ui/button";
@@ -138,6 +139,23 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-navy-950">
       <Header />
+
+      <SEO
+        title="Wenze Tii Ndaku | African Multi-Vendor Marketplace"
+        description="Discover Wenze Tii Ndaku, the premier African multi-vendor marketplace. Shop electronics, fashion, beauty, food, and more from trusted vendors."
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Wenze Tii Ndaku",
+          "url": "https://www.wenzetiindaku.com",
+          "logo": "https://www.wenzetiindaku.com/marketplace.jpeg",
+          "sameAs": [
+            "https://www.facebook.com/wenzetiindaku",
+            "https://twitter.com/wenzetiindaku",
+            "https://www.instagram.com/wenzetiindaku"
+          ]
+        }}
+      />
 
       <main className="flex-1">
         {/* Hero Section - Professional E-commerce Style */}

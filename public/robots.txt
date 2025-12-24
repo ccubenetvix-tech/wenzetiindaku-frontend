@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://wenze-tii-ndaku.netlify.app/sitemap.xml
+Sitemap: https://www.wenzetiindaku.com/sitemap.xml

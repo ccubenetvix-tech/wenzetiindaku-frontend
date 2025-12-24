@@ -21,6 +21,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // For accessing URL parameters and navigation
 import { useTranslation } from "react-i18next"; // For internationalization support
+import { SEO } from "@/components/SEO";
 
 // Import Lucide React icons for UI elements
 import {
@@ -199,6 +200,14 @@ const Store = () => {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
+
+      <SEO
+        title={store?.name}
+        description={store?.description || `Shop from ${store?.name} on Wenze Tii Ndaku.`}
+        image={store?.banner || "/marketplace.jpeg"}
+        url={`/store/${storeId}`}
+        type="profile"
+      />
 
       <main className="relative flex-1">
         {showLoader && (

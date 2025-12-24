@@ -46,6 +46,7 @@ import { apiClient } from "@/utils/api";
 import { Loader2 } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
 import { useLoaderTransition } from "@/hooks/useLoaderTransition";
+import { SEO } from "@/components/SEO";
 
 const ProductDetail = () => {
   const MIN_LOADING_DURATION = 400;
@@ -630,6 +631,37 @@ const ProductDetail = () => {
         className={`min-h-screen flex flex-col transition-opacity duration-500 ${contentVisibilityClass}`}
       >
         <Header />
+
+        <SEO
+          title={productName}
+          description={productData.description}
+          image={productImages[0]}
+          url={`/product/${productId}`}
+          type="product"
+          schema={{
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "name": productName,
+            "image": productImages,
+            "description": productData.description,
+            "brand": {
+              "@type": "Brand",
+              "name": productVendorName
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": `https://www.wenzetiindaku.com/product/${productId}`,
+              "priceCurrency": "USD",
+              "price": productPrice,
+              "availability": productStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+            },
+            "aggregateRating": productReviewCount > 0 ? {
+              "@type": "AggregateRating",
+              "ratingValue": productRating,
+              "reviewCount": productReviewCount
+            } : undefined
+          }}
+        />
 
         <main className="flex-1">
           <div className="container mx-auto px-4 py-8">
