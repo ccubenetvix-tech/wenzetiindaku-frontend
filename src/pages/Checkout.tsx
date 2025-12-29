@@ -333,30 +333,31 @@ const Checkout = () => {
       const allAddresses: any[] = [];
 
       // Add profile/signup address as default if it exists
-      if (customer?.address) {
-        const profileAddressData = normalizeAddressInput(customer.address);
-        if (profileAddressData?.street) {
-          const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-          const fullName = nameParts || customer.email || t('customerDashboard.customerRole', 'Customer');
-
-          allAddresses.push({
-            id: "profile-address",
-            label: t('addressHome'),
-            full_name: fullName,
-            email: customer.email || "",
-            phone: customer.phoneNumber || "",
-            street1: profileAddressData.street,
-            street2: profileAddressData.street2 || null,
-            city: profileAddressData.city || "",
-            state: profileAddressData.state || "",
-            postal_code: profileAddressData.postalCode || "",
-            country: profileAddressData.country || "India",
-            is_default: true,
-            is_profile_address: true,
-            created_at: customer.createdAt || new Date().toISOString(),
-          });
-        }
-      }
+      // Profile address removed as per user request to only show manually added addresses
+      // if (customer?.address) {
+      //   const profileAddressData = normalizeAddressInput(customer.address);
+      //   if (profileAddressData?.street) {
+      //     const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
+      //     const fullName = nameParts || customer.email || t('customerDashboard.customerRole', 'Customer');
+      //
+      //     allAddresses.push({
+      //       id: "profile-address",
+      //       label: t('addressHome'),
+      //       full_name: fullName,
+      //       email: customer.email || "",
+      //       phone: customer.phoneNumber || "",
+      //       street1: profileAddressData.street,
+      //       street2: profileAddressData.street2 || null,
+      //       city: profileAddressData.city || "",
+      //       state: profileAddressData.state || "",
+      //       postal_code: profileAddressData.postalCode || "",
+      //       country: profileAddressData.country || "India",
+      //       is_default: true,
+      //       is_profile_address: true,
+      //       created_at: customer.createdAt || new Date().toISOString(),
+      //     });
+      //   }
+      // }
 
       // Add other saved addresses
       if (addressesResponse?.success && addressesResponse.data?.addresses) {
@@ -415,25 +416,8 @@ const Checkout = () => {
           }
         }
       } else {
-        // Select profile address as default (it's always first and marked as default)
-        const profileAddress = allAddresses.find((addr) => addr.id === "profile-address");
-        if (profileAddress) {
-          setSelectedAddressId(profileAddress.id);
-          setAddressForm({
-            fullName: profileAddress.full_name || "",
-            email: profileAddress.email || "",
-            phone: profileAddress.phone || "",
-            street1: profileAddress.street1 || "",
-            street2: profileAddress.street2 || "",
-            city: profileAddress.city || "",
-            state: profileAddress.state || "",
-            postalCode: profileAddress.postal_code || "",
-            country: profileAddress.country || "India",
-            label: profileAddress.label || "Home",
-          });
-          setShowNewAddressForm(false);
-        } else if (allAddresses.length > 0) {
-          // If no profile address, select first available address
+        // Use first saved address or default to new
+        if (allAddresses.length > 0) {
           const firstAddr = allAddresses[0];
           setSelectedAddressId(firstAddr.id);
           setAddressForm({
