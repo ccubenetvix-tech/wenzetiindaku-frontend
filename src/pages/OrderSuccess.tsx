@@ -50,11 +50,24 @@ const OrderSuccess = () => {
     const fn = async () => {
       const query = new URLSearchParams(location.search);
       const sessionId = query.get("session_id");
+      const status = query.get("status");
+      const transactionRefId = query.get("transactionRefId");
+
+      // Check for explicit failure status from Maisha Pay
+      if (status && ['failed', 'cancelled', 'refused', 'error'].includes(status.toLowerCase())) {
+        toast({
+          variant: "destructive",
+          title: "Payment Failed",
+          description: "The payment was refused or cancelled."
+        });
+        navigate("/checkout/failure", { replace: true });
+        return;
+      }
 
       if (sessionId && !state.orders) {
         setIsVerifying(true);
         try {
-          const { data } = await apiClient.verifyPayment(sessionId) as any;
+          const { data } = await apiClient.verifyPayment(sessionId, { status, transactionRefId }) as any;
           if (data?.success && data?.data?.orders) {
             // Determine payment status/method from confirmed order
             const orders = data.data.orders;
@@ -130,7 +143,7 @@ const OrderSuccess = () => {
   }, [shippingAddress]);
 
   const paymentLabel =
-    payment.method === "cod" ? "Pay on Delivery" : "Online Payment (Card / UPI via Stripe)";
+    payment.method === "cod" ? "Pay on Delivery" : "Online Payment (Maisha Pay)";
 
   const timeline = useMemo(() => {
     if (payment.method === "cod") {
@@ -161,7 +174,7 @@ const OrderSuccess = () => {
     return [
       {
         label: "Awaiting payment",
-        description: "Complete the secure Stripe payment to confirm.",
+        description: "Complete the secure Maisha Pay payment to confirm.",
         completed: true, // If we are here, payment is done or we are verifying
       },
       {
@@ -227,7 +240,7 @@ const OrderSuccess = () => {
                             {order.status ? order.status.toUpperCase() : "PENDING"}
                           </span>
                           <span className="text-sm font-medium">
-                            ${(order.total_amount ?? 0).toFixed(2)}
+                            ${parseFloat(order.total_amount).toFixed(2)}
                           </span>
                         </div>
                       </div>

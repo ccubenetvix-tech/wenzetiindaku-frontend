@@ -247,6 +247,7 @@ export class ApiClient {
     paymentMethod: string;
     shippingAddress: Record<string, unknown>;
     saveAddressToProfile?: boolean;
+    currency?: string;
   }) {
     return this.request(`/customer/orders`, {
       method: 'POST',
@@ -254,10 +255,10 @@ export class ApiClient {
     });
   }
 
-  async verifyPayment(sessionId: string) {
+  async verifyPayment(sessionId: string, params: { status?: string | null, transactionRefId?: string | null } = {}) {
     return this.request(`/customer/orders/verify-payment`, {
       method: 'POST',
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify({ sessionId, ...params }),
     });
   }
 

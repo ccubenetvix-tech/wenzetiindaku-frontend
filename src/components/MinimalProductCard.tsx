@@ -214,8 +214,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
             ) : (
               <Heart
                 className={`h-3 w-3 transition-colors duration-200 ${wishlisted
-                    ? 'text-red-500 fill-red-500'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
+                  ? 'text-red-500 fill-red-500'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
                   }`}
               />
             )}
@@ -271,10 +271,10 @@ export const MinimalProductCard = memo(function MinimalProductCard({
               onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
               size="sm"
               className={`w-full h-7 text-xs ${!isAuthenticated
-                  ? 'bg-gray-400 hover:bg-gray-500 text-white'
-                  : user?.role === 'vendor'
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                    : 'bg-navy-600 hover:bg-navy-700 text-white'
+                ? 'bg-gray-400 hover:bg-gray-500 text-white'
+                : user?.role === 'vendor'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  : 'bg-navy-600 hover:bg-navy-700 text-white'
                 }`}
               disabled={isCartLoading}
             >

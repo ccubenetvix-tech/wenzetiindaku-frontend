@@ -71,7 +71,12 @@ interface CreateOrderResponse {
   error?: { message?: string } | null;
   data?: {
     orders?: any[];
-    payment?: { method?: string; status?: string };
+    payment?: {
+      method?: string;
+      status?: string;
+      url?: string;
+      fields?: Record<string, string>;
+    };
     url?: string;
     fields?: Record<string, string>;
     method?: string;
@@ -116,6 +121,8 @@ const Checkout = () => {
   const [addressForm, setAddressForm] = useState<CheckoutAddress>(INITIAL_ADDRESS);
   const [saveAddressToProfile, setSaveAddressToProfile] = useState(false);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [currency, setCurrency] = useState<'USD' | 'CDF'>('USD');
+  const [exchangeRate, setExchangeRate] = useState<number>(2850); // Default to 2850 if fetch fails
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
@@ -125,9 +132,10 @@ const Checkout = () => {
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cartItems]
   );
-  const shipping = useMemo(() => (cartItems.length > 0 ? 5.99 : 0), [cartItems.length]);
-  const tax = useMemo(() => (cartItems.length > 0 ? subtotal * 0.1 : 0), [cartItems.length, subtotal]);
-  const total = useMemo(() => subtotal + shipping + tax, [shipping, subtotal, tax]);
+  // User requested to remove shipping and tax calculations
+  const shipping = 0;
+  const tax = 0;
+  const total = useMemo(() => subtotal, [subtotal]);
 
   const steps: Array<{ id: CheckoutStep; name: string; description: string }> = [
     {
@@ -460,6 +468,18 @@ const Checkout = () => {
   }, [isAuthenticated, user?.email, normalizeAddressInput]);
 
   useEffect(() => {
+    // Fetch live exchange rate
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates && data.rates.CDF) {
+          setExchangeRate(data.rates.CDF);
+        }
+      })
+      .catch(err => console.error('Failed to fetch exchange rate:', err));
+  }, []);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       toast({
         title: t('signIn'),
@@ -618,11 +638,17 @@ const Checkout = () => {
 
     try {
       const shippingAddressPayload = { ...selectedShippingAddress } as Record<string, unknown>;
+      // Determine if the selected address is a new one and if it should be saved
+      const isNewAddress = selectedAddressId === "new";
+      const shouldSaveAddress = isNewAddress && saveAddressToProfile;
+      // For now, assume no profile address distinction needed for saving
+      const isProfileAddress = false; // This logic was commented out previously
 
       const response = (await apiClient.createCustomerOrders({
         paymentMethod,
         shippingAddress: shippingAddressPayload,
-        saveAddressToProfile,
+        saveAddressToProfile: shouldSaveAddress && !isProfileAddress,
+        currency: paymentMethod === 'online' ? currency : 'USD',
       })) as CreateOrderResponse;
 
       if (!response?.success) {
@@ -632,13 +658,13 @@ const Checkout = () => {
         );
       }
 
-      if (response.data?.method === 'post_form' && response.data?.url && response.data?.fields) {
+      if (response.data?.payment?.url && response.data?.payment?.fields) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = response.data.url;
+        form.action = response.data.payment.url;
         form.style.display = 'none';
 
-        Object.entries(response.data.fields).forEach(([key, value]) => {
+        Object.entries(response.data.payment.fields).forEach(([key, value]) => {
           const input = document.createElement('input');
           input.type = 'hidden';
           input.name = key;
@@ -704,7 +730,7 @@ const Checkout = () => {
             </Button>
 
             <Badge variant="outline" className="hidden md:inline-flex items-center gap-2 text-sm">
-              <Truck className="h-3.5 w-3.5" />
+              <Truck className="h-3 w-3" />
               {t('fastSecuredDelivery')}
             </Badge>
           </div>
@@ -1149,6 +1175,41 @@ const Checkout = () => {
                           />
                         </div>
                       </label>
+
+                      {paymentMethod === 'online' && (
+                        <div className="mt-4 pl-4 border-l-2 border-primary/20">
+                          <label className="text-sm font-medium mb-2 block">Select Currency:</label>
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="currency"
+                                value="USD"
+                                checked={currency === 'USD'}
+                                onChange={() => setCurrency('USD')}
+                                className="accent-primary"
+                              />
+                              <span>USD ($)</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="currency"
+                                value="CDF"
+                                checked={currency === 'CDF'}
+                                onChange={() => setCurrency('CDF')}
+                                className="accent-primary"
+                              />
+                              <span>CDF ({(total * exchangeRate).toLocaleString()} FC)</span>
+                            </label>
+                          </div>
+                          {currency === 'CDF' && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              * Exchange Rate: 1 USD = {exchangeRate} CDF
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
@@ -1311,20 +1372,7 @@ const Checkout = () => {
                       {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{t('subtotal')}</span>
-                    <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{t('shipping')}</span>
-                    <span className="font-medium text-foreground">
-                      {shipping > 0 ? `$${shipping.toFixed(2)}` : t('off')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{t('tax')} (10%)</span>
-                    <span className="font-medium text-foreground">${tax.toFixed(2)}</span>
-                  </div>
+                  {/* Shipping and Tax removed as per user request */}
                 </div>
 
                 <Separator />

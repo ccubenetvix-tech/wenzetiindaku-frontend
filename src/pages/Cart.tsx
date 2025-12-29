@@ -37,9 +37,8 @@ const Cart = () => {
   }, {} as Record<string, typeof cartItems>);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = cartItems.length > 0 ? 5.99 : 0;
-  const tax = cartItems.length > 0 ? subtotal * 0.1 : 0;
-  const total = subtotal + shipping + tax;
+  // User requested to remove shipping and tax calculations, total is just product rate
+  const total = subtotal;
 
   // Handle quantity update
   const handleUpdateQuantity = async (cartItemId: string, quantity: number) => {
@@ -130,7 +129,7 @@ const Cart = () => {
                                 <h4 className="mb-1 text-lg font-medium">{item.name}</h4>
                                 <p className="text-sm text-muted-foreground">{item.vendor}</p>
                                 <p className="mt-1 text-lg font-semibold text-primary">
-                                  ${item.price.toFixed(2)}
+                                  ${(parseFloat(item.price.toString()) * item.quantity).toFixed(2)}
                                 </p>
                               </div>
 
@@ -209,22 +208,11 @@ const Cart = () => {
                         <span className="text-muted-foreground">{t('totalItems')}</span>
                         <span className="font-semibold">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">{t('subtotal')}</span>
-                        <span>${subtotal.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">{t('shipping')}</span>
-                        <span>${shipping.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">{t('tax')}</span>
-                        <span>${tax.toFixed(2)}</span>
-                      </div>
+                      {/* Subtotal, Shipping, Tax removed as per user request */}
                       <Separator />
                       <div className="flex justify-between text-lg font-semibold">
                         <span>{t('total')}</span>
-                        <span className="text-primary">${total.toFixed(2)}</span>
+                        <div className="text-xl font-bold">${total.toFixed(2)}</div>
                       </div>
                     </div>
 

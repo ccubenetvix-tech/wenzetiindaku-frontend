@@ -256,10 +256,10 @@ export const ProductCard = memo(function ProductCard({
               <Button
                 size={compact ? 'sm' : 'sm'}
                 className={`w-full rounded-md ${!isAuthenticated
-                    ? 'bg-gray-400 hover:bg-gray-500 text-white'
-                    : user?.role === 'vendor'
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                      : 'bg-navy-600 hover:bg-navy-700 text-white'
+                  ? 'bg-gray-400 hover:bg-gray-500 text-white'
+                  : user?.role === 'vendor'
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                    : 'bg-navy-600 hover:bg-navy-700 text-white'
                   }`}
                 onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
                 disabled={isCartLoading}
@@ -310,8 +310,8 @@ export const ProductCard = memo(function ProductCard({
                 <Star
                   key={i}
                   className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${i < Math.floor(rating)
-                      ? 'text-orange-400 fill-orange-400'
-                      : 'text-gray-300 dark:text-gray-600'
+                    ? 'text-orange-400 fill-orange-400'
+                    : 'text-gray-300 dark:text-gray-600'
                     }`}
                 />
               ))}
@@ -329,7 +329,7 @@ export const ProductCard = memo(function ProductCard({
               </span>
               {originalPrice && (
                 <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-400 line-through`}>
-                  ${originalPrice.toFixed(2)}
+                  €{originalPrice.toFixed(2)}
                 </span>
               )}
             </div>

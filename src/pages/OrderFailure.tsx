@@ -20,10 +20,10 @@ const OrderFailure = () => {
     "We couldn’t place your order due to an unexpected issue. Please try again or choose a different payment method.";
   const paymentMethodLabel =
     state.paymentMethod === "online"
-      ? "Online payment (Stripe)"
+      ? "Online payment (Maisha Pay)"
       : state.paymentMethod === "cod"
-      ? "Pay on Delivery"
-      : undefined;
+        ? "Pay on Delivery"
+        : undefined;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
