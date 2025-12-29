@@ -179,7 +179,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex flex-shrink-0 items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+                className="flex flex-shrink-0 items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20 hover:text-white"
               >
                 <Globe className="h-4 w-4" />
                 <span className="font-medium">{currentLanguage.name}</span>
@@ -468,7 +468,7 @@ export function Header() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-3 text-white hover:bg-navy-700 dark:hover:bg-navy-800 text-sm transition-colors"
+                    className="h-8 px-3 text-white hover:bg-navy-700 hover:text-white dark:hover:bg-navy-800 text-sm transition-colors"
                   >
                     <Globe className="h-4 w-4 mr-2" />
                     {currentLanguage.name}
@@ -479,7 +479,7 @@ export function Header() {
                     <DropdownMenuItem
                       key={language.code}
                       onClick={() => changeLanguage(language.code)}
-                      className={`text-xs ${i18n.language === language.code ? 'bg-accent' : ''}`}
+                      className={`text-xs cursor-pointer hover:bg-gray-100 hover:text-navy-900 dark:hover:bg-navy-800 dark:hover:text-white ${i18n.language === language.code ? 'bg-accent text-white' : ''}`}
                     >
                       {language.name}
                     </DropdownMenuItem>

@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from '../utils/api';
-import { 
+import {
   Store,
-  Package, 
-  DollarSign, 
-  Users, 
+  Package,
+  DollarSign,
+  Users,
   Star,
   Eye,
   Edit,
@@ -266,7 +266,7 @@ function VendorReviewsSection() {
             const product = review.product || {};
             // Use product_id from review if product.id is not available
             const productId = product?.id || review.product_id || null;
-            
+
             // Debug logging
             if (!productId) {
               console.warn('Review missing product ID:', {
@@ -282,10 +282,10 @@ function VendorReviewsSection() {
             const initials = customerName.charAt(0).toUpperCase();
             const reviewDate = review.created_at
               ? new Date(review.created_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
               : 'Recently';
 
             return (
@@ -326,11 +326,10 @@ function VendorReviewsSection() {
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`h-3 w-3 ${
-                                i < (review.rating || 0)
+                              className={`h-3 w-3 ${i < (review.rating || 0)
                                   ? 'fill-yellow-400 text-yellow-400'
                                   : 'text-gray-300'
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -356,17 +355,17 @@ export default function VendorDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  
+
   const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Dashboard data
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [vendor, setVendor] = useState<Vendor | null>(null);
-  
+
   // Products data
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -374,7 +373,7 @@ export default function VendorDashboard() {
   const [productsTotal, setProductsTotal] = useState(0);
   const [productSearch, setProductSearch] = useState('');
   const [productStatusFilter, setProductStatusFilter] = useState('all');
-  
+
   // Orders data
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -385,7 +384,7 @@ export default function VendorDashboard() {
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
-  
+
   // Product form
   const [showProductDialog, setShowProductDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -417,13 +416,13 @@ export default function VendorDashboard() {
   // Fetch dashboard data
   const fetchDashboardData = async () => {
     if (!isAuthenticated || user?.role !== 'vendor') return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const data = await apiClient.getVendorDashboard() as any;
-      
+
       if (data.success) {
         console.log('Dashboard data received:', data.data);
         setStats(data.data.stats);
@@ -454,10 +453,10 @@ export default function VendorDashboard() {
   // Fetch products
   const fetchProducts = async (page = 1, search = '', status = '') => {
     setProductsLoading(true);
-    
+
     try {
       const data = await apiClient.getVendorProducts(page, 10, status, search) as any;
-      
+
       if (data.success) {
         setProducts(data.data.products);
         setProductsTotal(data.data.pagination.total);
@@ -484,17 +483,17 @@ export default function VendorDashboard() {
   // Fetch orders
   const fetchOrders = useCallback(async (page = 1, status = '') => {
     setOrdersLoading(true);
-    
+
     try {
       const data = await apiClient.getVendorOrders(page, 10, status) as any;
-      
+
       if (data.success) {
         const apiOrders = data.data?.orders ?? [];
         const mappedOrders: Order[] = apiOrders.map((order: any) => {
           const customerName = order.customer
             ? `${order.customer.first_name ?? ""} ${order.customer.last_name ?? ""}`.trim() ||
-              order.customer.email ||
-              "Customer"
+            order.customer.email ||
+            "Customer"
             : "Customer";
           const totalAmount = Number.parseFloat(order.total_amount ?? 0);
           const statusValue = (order.status ?? "pending").toString().toLowerCase();
@@ -707,7 +706,7 @@ export default function VendorDashboard() {
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreatingProduct(true);
-    
+
     try {
       let primaryImageBase64: string | undefined;
       let primaryImageName: string | undefined;
@@ -759,7 +758,7 @@ export default function VendorDashboard() {
         title: editingProduct ? "Product Updated" : "Product Created",
         description: data.message,
       });
-      
+
       setShowProductDialog(false);
       setEditingProduct(null);
       setProductForm({
@@ -773,7 +772,7 @@ export default function VendorDashboard() {
       });
       setProductImage(null);
       setProductImagePreview('');
-      
+
       // Refresh products list and dashboard statistics
       const statusFilter = productStatusFilter === 'all' ? '' : productStatusFilter;
       fetchProducts(productsPage, productSearch, statusFilter);
@@ -809,16 +808,16 @@ export default function VendorDashboard() {
 
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
-    
+
     try {
       const data = await apiClient.deleteVendorProduct(productId) as any;
-      
+
       if (data.success) {
         toast({
           title: "Product Deleted",
           description: data.message,
         });
-        
+
         // Refresh products list and dashboard statistics
         const statusFilter = productStatusFilter === 'all' ? '' : productStatusFilter;
         fetchProducts(productsPage, productSearch, statusFilter);
@@ -844,13 +843,13 @@ export default function VendorDashboard() {
     try {
       setUpdatingOrderId(orderId);
       const data = await apiClient.updateVendorOrderStatus(orderId, newStatus) as any;
-      
+
       if (data.success) {
         toast({
           title: "Order Updated",
           description: data.message,
         });
-        
+
         // Refresh orders list and dashboard statistics
         const statusFilter = orderStatusFilter === 'all' ? '' : orderStatusFilter;
         fetchOrders(ordersPage, statusFilter);
@@ -908,7 +907,7 @@ export default function VendorDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Dashboard Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1100,16 +1099,16 @@ export default function VendorDashboard() {
                       ) : (
                         topProducts.map((product) => {
                           // Get product image - support both images array and image single value
-                          const productImage = (product.images && product.images.length > 0) 
-                            ? product.images[0] 
+                          const productImage = (product.images && product.images.length > 0)
+                            ? product.images[0]
                             : product.image || null;
-                          
+
                           return (
                             <div key={product.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                               <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {productImage ? (
-                                  <img 
-                                    src={productImage} 
+                                  <img
+                                    src={productImage}
                                     alt={product.name}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
@@ -1133,8 +1132,8 @@ export default function VendorDashboard() {
                                 <div className="flex items-center justify-end">
                                   <Star className={`h-4 w-4 ${product.rating > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
                                   <span className="text-sm ml-1">
-                                    {typeof product.rating === 'number' && product.rating > 0 
-                                      ? product.rating.toFixed(1) 
+                                    {typeof product.rating === 'number' && product.rating > 0
+                                      ? product.rating.toFixed(1)
                                       : '0.0'}
                                   </span>
                                 </div>
@@ -1155,8 +1154,8 @@ export default function VendorDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="h-20 flex-col"
                       onClick={() => {
                         setEditingProduct(null);
@@ -1198,7 +1197,7 @@ export default function VendorDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     Products
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => {
                         setEditingProduct(null);
@@ -1221,8 +1220,8 @@ export default function VendorDashboard() {
                   <div className="flex items-center space-x-4">
                     <div className="relative flex-1 max-w-sm">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input 
-                        placeholder="Search products..." 
+                      <Input
+                        placeholder="Search products..."
                         className="pl-10"
                         value={productSearch}
                         onChange={(e) => setProductSearch(e.target.value)}
@@ -1296,8 +1295,8 @@ export default function VendorDashboard() {
                                   <div className="flex items-center">
                                     <Star className={`h-4 w-4 mr-1 ${product.rating > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
                                     <span className="text-sm">
-                                      {typeof product.rating === 'number' && product.rating > 0 
-                                        ? product.rating.toFixed(1) 
+                                      {typeof product.rating === 'number' && product.rating > 0
+                                        ? product.rating.toFixed(1)
                                         : '0.0'}
                                     </span>
                                   </div>
@@ -1312,9 +1311,9 @@ export default function VendorDashboard() {
                                     <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
                                       <Edit className="h-4 w-4" />
                                     </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm" 
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
                                       onClick={() => handleDeleteProduct(product.id)}
                                       className="text-red-600 hover:text-red-700"
                                     >
@@ -1429,8 +1428,8 @@ export default function VendorDashboard() {
                                 <TableCell>{order.paymentStatus ?? "—"}</TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-2">
-                                    <Select 
-                                      value={order.status} 
+                                    <Select
+                                      value={order.status}
                                       onValueChange={(value) => {
                                         if (updatingOrderId === order.id) return;
                                         handleUpdateOrderStatus(order.id, value);
@@ -1714,9 +1713,9 @@ export default function VendorDashboard() {
                   </div>
                 ) : null}
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     onClick={() => document.getElementById('product-image-upload')?.click()}
                   >

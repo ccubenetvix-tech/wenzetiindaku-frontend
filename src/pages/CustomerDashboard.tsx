@@ -263,8 +263,8 @@ function CustomerReviewsSection() {
                           <Star
                             key={i}
                             className={`h-4 w-4 ${i < (review.rating || 0)
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
                               }`}
                           />
                         ))}
@@ -2317,8 +2317,8 @@ export default function CustomerDashboard() {
                       <div
                         key={address.id}
                         className={`rounded-lg border p-6 flex flex-col justify-between gap-4 transition-all ${address.is_default
-                            ? "border-primary shadow-sm bg-primary/5"
-                            : "border-border/80"
+                          ? "border-primary shadow-sm bg-primary/5"
+                          : "border-border/80"
                           }`}
                       >
                         <div className="mb-4 flex items-center justify-between">

@@ -255,7 +255,7 @@ const CustomerLogin = () => {
             <div className="space-y-3">
               <Button
                 variant="outline"
-                className="w-full border-muted hover:border-primary hover:bg-primary/5"
+                className="w-full border-muted hover:border-primary hover:bg-gray-100 hover:text-navy-900 dark:hover:bg-gray-800 dark:hover:text-white"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
               >
