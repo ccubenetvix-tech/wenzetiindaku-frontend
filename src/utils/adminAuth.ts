@@ -3,8 +3,8 @@
 
 export const ADMIN_CONFIG = {
   // Backend admin credentials
-  ADMIN_EMAIL: 'wenzetiindaku@gmail.com',
-  ADMIN_EMAILS: ['wenzetiindaku@gmail.com']
+  ADMIN_EMAIL: 'admin@wenzetiindaku.com',
+  ADMIN_EMAILS: ['admin@wenzetiindaku.com']
 } as const;
 
 export interface AdminUser {
@@ -16,8 +16,8 @@ export interface AdminUser {
 
 // Admin user data - matches backend admin structure
 const ADMIN_USERS: Record<string, AdminUser> = {
-  'wenzetiindaku@gmail.com': {
-    email: 'wenzetiindaku@gmail.com',
+  'admin@wenzetiindaku.com': {
+    email: 'admin@wenzetiindaku.com',
     name: 'System Administrator',
     role: 'admin',
     permissions: ['manage_vendors', 'manage_products', 'view_analytics', 'manage_disputes']
@@ -47,7 +47,7 @@ export const authenticateAdmin = (email: string, password?: string): AdminUser |
   if (!isAdminEmail(email)) {
     return null;
   }
-  
+
   // In a real application, you would verify the password here
   // For now, we just return the admin user if the email is valid
   return getAdminUser(email);
@@ -67,15 +67,15 @@ export const getAdminSession = (): AdminUser | null => {
   try {
     const sessionData = localStorage.getItem('admin_session');
     if (!sessionData) return null;
-    
+
     const session = JSON.parse(sessionData);
     const admin = getAdminUser(session.email);
-    
+
     // Verify the session is still valid
     if (admin && isAdminEmail(session.email)) {
       return admin;
     }
-    
+
     // Clear invalid session
     clearAdminSession();
     return null;
@@ -120,7 +120,7 @@ export const isAdminSessionExpired = (): boolean => {
   try {
     const sessionData = localStorage.getItem('admin_session');
     if (!sessionData) return true;
-    
+
     const session = JSON.parse(sessionData);
     return Date.now() > session.expiresAt;
   } catch (error) {
