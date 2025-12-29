@@ -73,6 +73,8 @@ interface CreateOrderResponse {
     orders?: any[];
     payment?: { method?: string; status?: string };
     url?: string;
+    fields?: Record<string, string>;
+    method?: string;
   } | null;
 }
 
@@ -646,6 +648,25 @@ const Checkout = () => {
         );
       }
 
+      if (response.data?.method === 'post_form' && response.data?.url && response.data?.fields) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = response.data.url;
+        form.style.display = 'none';
+
+        Object.entries(response.data.fields).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = String(value);
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+
       if (response.data?.url) {
         window.location.href = response.data.url;
         return;
@@ -1105,7 +1126,7 @@ const Checkout = () => {
                       </label>
 
                       <label
-                        className={`border rounded-lg p-4 transition-all ${import.meta.env.VITE_ENABLE_STRIPE === 'true'
+                        className={`border rounded-lg p-4 transition-all ${import.meta.env.VITE_ENABLE_MAISHAPAY === 'true'
                           ? "cursor-pointer"
                           : "cursor-not-allowed opacity-60"
                           } ${paymentMethod === "online"
@@ -1121,7 +1142,7 @@ const Checkout = () => {
                             <div>
                               <p className="font-medium">{t('onlinePayment')}</p>
                               <p className="text-xs text-muted-foreground">
-                                {import.meta.env.VITE_ENABLE_STRIPE === 'true'
+                                {import.meta.env.VITE_ENABLE_MAISHAPAY === 'true'
                                   ? t('onlinePaymentDesc')
                                   : t('onlinePaymentsUnavailable')}
                               </p>
@@ -1130,7 +1151,7 @@ const Checkout = () => {
                           <Checkbox
                             checked={paymentMethod === "online"}
                             onCheckedChange={() => {
-                              if (import.meta.env.VITE_ENABLE_STRIPE === 'true') {
+                              if (import.meta.env.VITE_ENABLE_MAISHAPAY === 'true') {
                                 setPaymentMethod("online");
                               } else {
                                 toast({
@@ -1140,7 +1161,7 @@ const Checkout = () => {
                                 });
                               }
                             }}
-                            disabled={import.meta.env.VITE_ENABLE_STRIPE !== 'true'}
+                            disabled={import.meta.env.VITE_ENABLE_MAISHAPAY !== 'true'}
                           />
                         </div>
                       </label>
@@ -1189,7 +1210,7 @@ const Checkout = () => {
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">{t('paymentMethodLabel')}</p>
                             <p className="mt-2 text-sm font-semibold">
-                              {paymentMethod === "cod" ? t('cashOnDelivery') : "Stripe (Card / Apple Pay / Google Pay)"}
+                              {paymentMethod === "cod" ? t('cashOnDelivery') : "Maisha Pay (Card / Apple Pay / Google Pay)"}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {paymentMethod === "cod"
@@ -1203,20 +1224,20 @@ const Checkout = () => {
                         </div>
                       </div>
 
-                      {/* Stripe Payment Section */}
+                      {/* Maisha Pay Payment Section */}
                       {paymentMethod === "online" && (
                         <div className="border border-border/60 rounded-lg p-4">
                           <div className="space-y-4">
                             <div className="text-center">
                               <p className="text-sm text-muted-foreground mb-4">
-                                {t('stripePaymentInstruction')}
+                                {t('maishaPayPaymentInstruction')}
                               </p>
                             </div>
                             <Button
                               size="lg"
                               className="w-full bg-[#635BFF] hover:bg-[#635BFF]/90 text-white"
                               onClick={() => {
-                                // TODO: Implement Stripe Checkout
+                                // TODO: Implement Maisha Pay Checkout
                                 handlePlaceOrder();
                               }}
                               disabled={isSubmitting}
@@ -1224,14 +1245,14 @@ const Checkout = () => {
                               {isSubmitting ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  {t('processingToStripe')}
+                                  {t('processingToMaishaPay')}
                                 </>
                               ) : (
-                                t('payWithStripe')
+                                t('payWithMaishaPay')
                               )}
                             </Button>
                             <p className="text-xs text-muted-foreground text-center mt-2">
-                              {t('stripeRedirectNotice')}
+                              {t('maishaPayRedirectNotice')}
                             </p>
                           </div>
                         </div>
