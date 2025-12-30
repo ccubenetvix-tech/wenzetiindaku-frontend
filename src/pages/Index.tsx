@@ -50,26 +50,71 @@ const Index = () => {
       try {
         const response = await apiClient.getAllVendors() as any;
         if (response.success) {
-          // Transform vendor data to store format and take first 3 as featured
-          const transformedStores = response.data.vendors.slice(0, 3).map((vendor: any) => ({
-            id: vendor.id,
-            name: vendor.business_name || vendor.businessName || t('unknownStore'),
-            description: vendor.description || t('noDescriptionAvailable'),
-            rating: 4.5, // Default rating
-            reviewCount: 0, // Default review count
-            productCount: 0, // Will be updated when products are loaded
-            location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            // Use vendor profile photo where available so the same image appears across the site
-            image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
-            categories: vendor.categories || [],
-            featured: vendor.featured || false,
-            verified: vendor.verified || false,
-            followers: 0, // Default followers
-            shipping: t('standardShipping'),
-            returnPolicy: t('returnPolicy30Days'),
-            specialties: vendor.categories || []
+          // Get the first 3 vendors
+          const rawVendors = response.data.vendors.slice(0, 3);
+
+          // Enhanced vendor data with real stats
+          const enhancedVendors = await Promise.all(rawVendors.map(async (vendor: any) => {
+            let productCount = 0;
+            let averageRating = 0;
+            let totalReviews = 0;
+
+            try {
+              // Fetch products to get count and calculate rating
+              // We fetch up to 50 products to calculate a reasonable average rating
+              const productsResponse = await apiClient.getAllProducts({
+                vendor_id: vendor.id, // Note: check precise param name (vendor_id or vendor)
+                limit: 50
+              }) as any;
+
+              if (productsResponse.success && productsResponse.data) {
+                // Get total count from pagination if available
+                productCount = productsResponse.data.pagination?.totalItems || productsResponse.data.pagination?.total || 0;
+
+                // Calculate rating from products
+                const products = productsResponse.data.products || [];
+                // If pagination total is 0 but we have products array (edge case), use array length
+                if (productCount === 0 && products.length > 0) productCount = products.length;
+
+                // Calculate weighted average rating or simple average
+                // Filtering out products with no ratings to be fair, or treat as 0? 
+                // Usually we only count rated products.
+                // IMPORTANT: Filter out products with 0 reviews to avoid backend defaults (often 4.5)
+                const ratedProducts = products.filter((p: any) => p.rating > 0 && (p.review_count > 0 || p.reviewCount > 0));
+                if (ratedProducts.length > 0) {
+                  const sumRatings = ratedProducts.reduce((sum: number, p: any) => sum + (p.rating || 0), 0);
+                  averageRating = sumRatings / ratedProducts.length;
+                  // Make it 1 decimal place
+                  averageRating = Math.round(averageRating * 10) / 10;
+
+                  // Sum up review counts
+                  totalReviews = ratedProducts.reduce((sum: number, p: any) => sum + (p.review_count || p.reviewCount || 0), 0);
+                }
+              }
+            } catch (err) {
+              console.error(`Error loading stats for vendor ${vendor.id}`, err);
+            }
+
+            return {
+              id: vendor.id,
+              name: vendor.business_name || vendor.businessName || t('unknownStore'),
+              description: vendor.description || t('noDescriptionAvailable'),
+              rating: averageRating, // Real rating
+              reviewCount: totalReviews, // Real review count
+              productCount: productCount, // Real product count
+              location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
+              image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
+              categories: vendor.categories || [],
+              featured: vendor.featured || false,
+              verified: vendor.verified || false,
+              followers: 0, // No follower data yet, keep 0
+              shipping: t('standardShipping'),
+              returnPolicy: t('returnPolicy30Days'),
+              specialties: vendor.categories || []
+            };
           }));
-          setFeaturedStores(transformedStores);
+
+          setFeaturedStores(enhancedVendors);
         }
       } catch (error) {
         console.error('Error loading featured stores:', error);
@@ -77,7 +122,7 @@ const Index = () => {
       }
     };
     loadStores();
-  }, []);
+  }, [t]);
 
   // Load featured products from API
   useEffect(() => {
@@ -502,13 +547,15 @@ const Index = () => {
                             </span>
                           </div>
 
-                          {/* Followers Count */}
-                          <div className="flex items-center gap-1 text-[11px]">
-                            <Users className="h-3.5 w-3.5 text-gray-400" />
-                            <span className="text-gray-600 dark:text-gray-400 font-medium">
-                              {store.followers || 0}
-                            </span>
-                          </div>
+                          {/* Followers Count - Only show if > 0 */}
+                          {store.followers > 0 && (
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <Users className="h-3.5 w-3.5 text-gray-400" />
+                              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                {store.followers}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Categories Tags */}

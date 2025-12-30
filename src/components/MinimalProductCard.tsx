@@ -47,6 +47,9 @@ export const MinimalProductCard = memo(function MinimalProductCard({
   const navigate = useNavigate();
   const { id, name, price, originalPrice, rating, reviewCount = 0, image, vendor, isNew = false, isFeatured = false } = product;
 
+  // Force rating to 0 if no reviews overlap (backend default fix)
+  const displayRating = (!reviewCount || reviewCount === 0) ? 0 : rating;
+
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -249,7 +252,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
           <div className="flex items-center gap-1">
             <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {rating.toFixed(1)} ({reviewCount})
+              {displayRating.toFixed(1)} ({reviewCount})
             </span>
           </div>
 

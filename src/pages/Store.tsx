@@ -117,8 +117,8 @@ const Store = () => {
             id: vendor.id,
             name: vendor.business_name || vendor.businessName || 'Unknown Store',
             description: vendor.description || 'No description available',
-            rating: 4.5, // Default rating
-            reviewCount: 0, // Default review count
+            rating: 0, // Initial rating, will be updated
+            reviewCount: 0, // Initial review count, will be updated
             totalProducts: 0, // Will be updated when products are loaded
             joinedDate: new Date(vendor.createdAt).getFullYear().toString(),
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
@@ -149,8 +149,26 @@ const Store = () => {
               isFeatured: product.is_featured || false,
             }));
 
+            // Calculate real store stats from products
+            // IMPORTANT: Filter out products with 0 reviews to avoid backend defaults
+            let averageRating = 0;
+            let totalReviews = 0;
+            const ratedProducts = vendorProducts.filter((p: any) => p.rating > 0 && (p.reviewCount > 0 || p.review_count > 0));
+            if (ratedProducts.length > 0) {
+              const sumRatings = ratedProducts.reduce((sum: number, p: any) => sum + p.rating, 0);
+              averageRating = sumRatings / ratedProducts.length;
+              averageRating = Math.round(averageRating * 10) / 10;
+
+              totalReviews = ratedProducts.reduce((sum: number, p: any) => sum + (p.reviewCount || 0), 0);
+            }
+
             setProducts(vendorProducts);
-            setStore(prev => ({ ...prev, totalProducts: vendorProducts.length }));
+            setStore(prev => ({
+              ...prev,
+              totalProducts: vendorProducts.length,
+              rating: averageRating,
+              reviewCount: totalReviews
+            }));
           }
         } else {
           setError("Store not found");

@@ -46,6 +46,9 @@ export const ProductCard = memo(function ProductCard({
   isFeatured = false,
   compact = false,
 }: ProductCardProps) {
+  // Force rating to 0 if no reviews overlap (backend default fix)
+  const displayRating = (!reviewCount || reviewCount === 0) ? 0 : rating;
+
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
@@ -309,7 +312,7 @@ export const ProductCard = memo(function ProductCard({
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${i < Math.floor(rating)
+                  className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} ${i < Math.floor(displayRating)
                     ? 'text-orange-400 fill-orange-400'
                     : 'text-gray-300 dark:text-gray-600'
                     }`}

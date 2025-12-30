@@ -434,6 +434,7 @@ export class ApiClient {
     search?: string;
     sortBy?: string;
     sortOrder?: string;
+    vendor_id?: string;
   } = {}) {
     const searchParams = new URLSearchParams();
 

@@ -193,19 +193,19 @@ const About = () => {
               <div className="bg-card p-6 rounded-lg shadow-sm text-center">
                 <Mail className="h-8 w-8 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">{t('emailUs')}</h3>
-                <p className="text-muted-foreground">info@wenzendaku.com</p>
+                <p className="text-muted-foreground">wenzetiindaku@outlook.com</p>
               </div>
 
               <div className="bg-card p-6 rounded-lg shadow-sm text-center">
                 <Phone className="h-8 w-8 text-secondary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">{t('callUs')}</h3>
-                <p className="text-muted-foreground">+234 123 456 7890</p>
+                <p className="text-muted-foreground">+32 495 84 68 66</p>
               </div>
 
               <div className="bg-card p-6 rounded-lg shadow-sm text-center">
                 <MapPin className="h-8 w-8 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">{t('visitUs')}</h3>
-                <p className="text-muted-foreground">Lagos, Nigeria</p>
+                <p className="text-muted-foreground">Kinshasa, R.D. CONGO</p>
               </div>
             </div>
 

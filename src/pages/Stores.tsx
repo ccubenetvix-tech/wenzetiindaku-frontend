@@ -81,24 +81,66 @@ export default function Stores() {
 
         if (response.success) {
           // Transform vendor data to store format
-          const transformedStores = response.data.vendors.map((vendor: any) => ({
-            id: vendor.id,
-            name: vendor.business_name || vendor.businessName || 'Unknown Store',
-            description: vendor.description || 'No description available',
-            rating: 4.5, // Default rating
-            reviewCount: 0, // Default review count
-            productCount: 0, // Will be updated when products are loaded
-            location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            // Use vendor profile photo where available, fall back to default
-            image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
-            categories: vendor.categories || [],
-            featured: vendor.featured || false,
-            verified: vendor.verified || false,
-            followers: 0, // Default followers
-            specialties: vendor.categories || []
+          const rawVendors = response.data.vendors;
+
+          // Enhanced vendor data with real stats
+          const enhancedVendors = await Promise.all(rawVendors.map(async (vendor: any) => {
+            let productCount = 0;
+            let averageRating = 0;
+            let totalReviews = 0;
+
+            try {
+              // Fetch products to get count and calculate rating
+              // We fetch up to 20 products to calculate a reasonable average rating
+              const productsResponse = await apiClient.getAllProducts({
+                vendor_id: vendor.id,
+                limit: 20
+              }) as any;
+
+              if (productsResponse.success && productsResponse.data) {
+                // Get total count from pagination if available
+                productCount = productsResponse.data.pagination?.totalItems || productsResponse.data.pagination?.total || 0;
+
+                // Calculate rating from products
+                const products = productsResponse.data.products || [];
+                // If pagination total is 0 but we have products array (edge case), use array length
+                if (productCount === 0 && products.length > 0) productCount = products.length;
+
+                // Calculate weighted average rating or simple average
+                // IMPORTANT: Filter out products with 0 reviews to avoid backend defaults (often 4.5)
+                const ratedProducts = products.filter((p: any) => p.rating > 0 && (p.review_count > 0 || p.reviewCount > 0));
+                if (ratedProducts.length > 0) {
+                  const sumRatings = ratedProducts.reduce((sum: number, p: any) => sum + (p.rating || 0), 0);
+                  averageRating = sumRatings / ratedProducts.length;
+                  averageRating = Math.round(averageRating * 10) / 10;
+
+                  // Sum up review counts
+                  totalReviews = ratedProducts.reduce((sum: number, p: any) => sum + (p.reviewCount || 0), 0);
+                }
+              }
+            } catch (err) {
+              console.error(`Error loading stats for vendor ${vendor.id}`, err);
+            }
+
+            return {
+              id: vendor.id,
+              name: vendor.business_name || vendor.businessName || 'Unknown Store',
+              description: vendor.description || 'No description available',
+              rating: averageRating, // Real rating
+              reviewCount: totalReviews, // Real review count
+              productCount: productCount, // Real product count
+              location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
+              // Use vendor profile photo where available, fall back to default
+              image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
+              categories: vendor.categories || [],
+              featured: vendor.featured || false,
+              verified: vendor.verified || false,
+              followers: 0, // Default followers (will be hidden)
+              specialties: vendor.categories || []
+            };
           }));
 
-          setDynamicStores(transformedStores);
+          setDynamicStores(enhancedVendors);
         }
       } catch (error) {
         console.error('Error loading vendors:', error);
@@ -109,7 +151,7 @@ export default function Stores() {
     };
 
     loadVendors();
-  }, []);
+  }, [t]);
 
   // Filter stores based on search query
   const filteredStores = useMemo(() => {
@@ -223,11 +265,7 @@ export default function Stores() {
 
                           <span className="hidden sm:inline">•</span>
 
-                          <span>{store.productCount} products</span>
-
-                          <span className="hidden sm:inline">•</span>
-
-                          <span>{store.followers.toLocaleString()} {t('followers')}</span>
+                          <span>{store.productCount} {t('products')}</span>
                         </div>
                       </div>
                     </div>

@@ -233,11 +233,15 @@ const ProductDetail = () => {
     };
   }, [productId, navigate, toast]);
 
-  // Load related products
+  // Vendor stats state
+  const [vendorStats, setVendorStats] = useState({ rating: 0, productCount: 0 });
+
+  // Load related products and vendor stats
   useEffect(() => {
-    const loadRelatedProducts = async () => {
+    const loadRelatedAndStats = async () => {
       if (!product) return;
 
+      // Load related products
       try {
         setIsLoadingRelated(true);
         const response: any = await apiClient.getAllProducts({
@@ -256,9 +260,42 @@ const ProductDetail = () => {
       } finally {
         setIsLoadingRelated(false);
       }
+
+      // Load vendor stats
+      if (product.vendor?.id || product.vendor_id) {
+        try {
+          const vendorId = product.vendor?.id || product.vendor_id;
+          const statsResponse = await apiClient.getAllProducts({
+            vendor_id: vendorId,
+            limit: 20 // Fetch sample for rating
+          }) as any;
+
+          if (statsResponse.success && statsResponse.data) {
+            const products = statsResponse.data.products || [];
+            const totalItems = statsResponse.data.pagination?.totalItems || statsResponse.data.pagination?.total || products.length;
+
+            // Calculate rating
+            // IMPORTANT: Filter out products with 0 reviews to avoid backend defaults
+            const ratedProducts = products.filter((p: any) => p.rating > 0 && (p.review_count > 0 || p.reviewCount > 0));
+            let avgRating = 0;
+            if (ratedProducts.length > 0) {
+              const sum = ratedProducts.reduce((acc: number, curr: any) => acc + curr.rating, 0);
+              avgRating = sum / ratedProducts.length;
+              avgRating = Math.round(avgRating * 10) / 10;
+            }
+
+            setVendorStats({
+              rating: avgRating,
+              productCount: totalItems
+            });
+          }
+        } catch (error) {
+          console.error('Error loading vendor stats:', error);
+        }
+      }
     };
 
-    loadRelatedProducts();
+    loadRelatedAndStats();
   }, [product]);
 
   const handleAddToCart = useCallback(async (): Promise<boolean> => {
@@ -805,8 +842,8 @@ const ProductDetail = () => {
                         <span className="font-medium">{productVendorName}</span>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-                          <span>4.5</span>
-                          <span className="ml-1">• {t('productsAvailable')}</span>
+                          <span>{vendorStats.rating}</span>
+                          <span className="ml-1">• {vendorStats.productCount} {t('products')}</span>
                         </div>
                       </div>
                     </div>
