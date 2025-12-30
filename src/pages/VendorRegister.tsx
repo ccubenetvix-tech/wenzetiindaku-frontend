@@ -460,13 +460,13 @@ const VendorRegister = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="state" className="text-sm font-medium text-foreground">
-                        State/Province *
+                        Commune/Localite *
                       </Label>
                       <Input
                         id="state"
                         name="state"
                         type="text"
-                        placeholder="State"
+                        placeholder="Commune/Localite"
                         value={formData.state}
                         onChange={handleInputChange}
                         required

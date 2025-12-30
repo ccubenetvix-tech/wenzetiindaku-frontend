@@ -209,15 +209,7 @@ const About = () => {
               </div>
             </div>
 
-            <div className="text-center">
-              <Button size="lg" className="mr-4">
-                <Mail className="h-4 w-4 mr-2" />
-                {t('contactUs')}
-              </Button>
-              <Button variant="outline" size="lg">
-                {t('learnMore')}
-              </Button>
-            </div>
+
           </div>
         </section>
       </main>
