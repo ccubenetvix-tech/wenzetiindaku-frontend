@@ -36,8 +36,11 @@ import {
   Award,
   Activity,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  X,
+  UploadCloud
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -327,8 +330,8 @@ function VendorReviewsSection() {
                             <Star
                               key={i}
                               className={`h-3 w-3 ${i < (review.rating || 0)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
                                 }`}
                             />
                           ))}
@@ -397,8 +400,8 @@ export default function VendorDashboard() {
     images: [] as string[],
     status: 'active'
   });
-  const [productImage, setProductImage] = useState<File | null>(null);
-  const [productImagePreview, setProductImagePreview] = useState<string>('');
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
 
   // Check authentication and redirect if needed
@@ -691,16 +694,37 @@ export default function VendorDashboard() {
 
   // Handle product image upload
   const handleProductImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setProductImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProductImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const fileList = Array.from(files);
+      setNewImages(prev => [...prev, ...fileList]);
+
+      // Generate previews
+      fileList.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            setNewImagePreviews(prev => [...prev, e.target!.result as string]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
+
+  const handleRemoveNewImage = (index: number) => {
+    setNewImages(prev => prev.filter((_, i) => i !== index));
+    setNewImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingImage = (imageToRemove: string) => {
+    setProductForm(prev => ({
+      ...prev,
+      images: prev.images.filter(img => img !== imageToRemove)
+    }));
+  };
+
+  // Product form handlers
 
   // Product form handlers
   const handleProductSubmit = async (e: React.FormEvent) => {
@@ -708,38 +732,29 @@ export default function VendorDashboard() {
     setIsCreatingProduct(true);
 
     try {
-      let primaryImageBase64: string | undefined;
-      let primaryImageName: string | undefined;
-
-      if (productImage) {
-        try {
-          primaryImageBase64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => resolve(event.target?.result as string);
-            reader.onerror = () => reject(new Error('Failed to read image file'));
-            reader.readAsDataURL(productImage);
-          });
-          primaryImageName = productImage.name;
-        } catch (readError) {
-          console.error('Product image encoding error:', readError);
-          toast({
-            title: "Image Error",
-            description: "We couldn't process the product image. Please try a different file.",
-            variant: "destructive",
-          });
-          setIsCreatingProduct(false);
-          return;
-        }
-      }
-
       const payload: any = {
         ...productForm,
       };
 
-      if (primaryImageBase64 && primaryImageName) {
-        payload.primaryImage = primaryImageBase64;
-        payload.primaryImageName = primaryImageName;
+      // Process new images
+      const processedNewImages: { base64: string; name: string }[] = [];
+      if (newImages.length > 0) {
+        for (const file of newImages) {
+          try {
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (event) => resolve(event.target?.result as string);
+              reader.onerror = () => reject(new Error('Failed to read image file'));
+              reader.readAsDataURL(file);
+            });
+            processedNewImages.push({ base64, name: file.name });
+          } catch (err) {
+            console.error('Error processing image:', file.name, err);
+          }
+        }
       }
+
+      payload.newImages = processedNewImages;
 
       const data: any = editingProduct
         ? await apiClient.updateVendorProduct(editingProduct.id, payload)
@@ -768,10 +783,12 @@ export default function VendorDashboard() {
         stock: '',
         category: '',
         images: [],
+        sizes: [],
+        colors: [],
         status: 'active'
       });
-      setProductImage(null);
-      setProductImagePreview('');
+      setNewImages([]);
+      setNewImagePreviews([]);
 
       // Refresh products list and dashboard statistics
       const statusFilter = productStatusFilter === 'all' ? '' : productStatusFilter;
@@ -797,12 +814,11 @@ export default function VendorDashboard() {
       price: product.price.toString(),
       stock: product.stock.toString(),
       category: product.category || '',
-      images: product.images || [],
+      images: product.images || (product.image ? [product.image] : []),
       status: product.status || 'active'
     });
-    if (product.images && product.images.length > 0) {
-      setProductImagePreview(product.images[0]);
-    }
+    setNewImages([]);
+    setNewImagePreviews([]);
     setShowProductDialog(true);
   };
 
@@ -1166,8 +1182,12 @@ export default function VendorDashboard() {
                           stock: '',
                           category: '',
                           images: [],
+                          sizes: [],
+                          colors: [],
                           status: 'active'
                         });
+                        setNewImages([]);
+                        setNewImagePreviews([]);
                         setShowProductDialog(true);
                       }}
                     >
@@ -1208,8 +1228,12 @@ export default function VendorDashboard() {
                           stock: '',
                           category: '',
                           images: [],
+                          sizes: [],
+                          colors: [],
                           status: 'active'
                         });
+                        setNewImages([]);
+                        setNewImagePreviews([]);
                         setShowProductDialog(true);
                       }}
                     >
@@ -1615,7 +1639,7 @@ export default function VendorDashboard() {
 
       {/* Product Dialog */}
       <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             <DialogDescription>
@@ -1700,49 +1724,70 @@ export default function VendorDashboard() {
                 </Select>
               </div>
             </div>
+
+
             <div>
-              <Label htmlFor="product_image">Product Image</Label>
-              <div className="space-y-2">
-                {productImagePreview || (productForm.images && productForm.images.length > 0) ? (
-                  <div className="relative w-32 h-32">
-                    <img
-                      src={productImagePreview || (productForm.images?.[0])}
-                      alt="Product preview"
-                      className="w-32 h-32 object-cover rounded-lg border"
-                    />
-                  </div>
-                ) : null}
-                <div className="flex items-center space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+              <Label htmlFor="product_image">Product Images</Label>
+              <div className="space-y-4">
+                {/* Image Previews Grid */}
+                <div className="grid grid-cols-4 gap-4">
+                  {/* Existing Images */}
+                  {productForm.images.map((url, index) => (
+                    <div key={`existing-${index}`} className="relative group aspect-square">
+                      <img
+                        src={url}
+                        alt={`Existing ${index}`}
+                        className="w-full h-full object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingImage(url)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {/* New Image Previews */}
+                  {newImagePreviews.map((preview, index) => (
+                    <div key={`new-${index}`} className="relative group aspect-square">
+                      <img
+                        src={preview}
+                        alt={`New ${index}`}
+                        className="w-full h-full object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {/* Upload Button */}
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     onClick={() => document.getElementById('product-image-upload')?.click()}
                   >
-                    <Upload className="h-4 w-4 mr-2" />
-                    {productImagePreview || (productForm.images && productForm.images.length > 0) ? 'Change Image' : 'Upload Image'}
-                  </Button>
+                    <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
+                    <span className="text-xs text-gray-500">Upload</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
                   <input
                     id="product-image-upload"
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleProductImageUpload}
                     className="hidden"
                   />
-                  {productImagePreview && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setProductImage(null);
-                        setProductImagePreview('');
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  )}
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  You can upload multiple images. The first image will be the primary one.
+                </p>
               </div>
             </div>
             <DialogFooter>

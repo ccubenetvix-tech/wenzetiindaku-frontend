@@ -344,6 +344,9 @@ const getStatusColor = (status?: string | null): string => {
     case "cancelled":
     case "canceled":
     case "refunded":
+    case "failed":
+    case "declined":
+    case "payment_failed":
       return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
     default:
       return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
@@ -743,6 +746,15 @@ export default function CustomerDashboard() {
   const handleAddToCart = useCallback(
     async (item: WishlistItem) => {
       try {
+        // Validation: Check if product has variants (size/color)
+        const hasVariants = (item.sizes && item.sizes.length > 0) || (item.colors && item.colors.length > 0);
+
+        if (hasVariants) {
+          // If product has variants, redirect to product page to select options
+          navigate(`/product/${item.productId}`);
+          return;
+        }
+
         setCartProcessingId(item.productId);
         await addToCart({
           productId: item.productId,
@@ -992,7 +1004,7 @@ export default function CustomerDashboard() {
         return t("customerDashboard.paymentMethodCod", "Pay on Delivery");
       }
       if (normalized === "online") {
-        return t("customerDashboard.paymentMethodOnline", "Online (Stripe)");
+        return t("customerDashboard.paymentMethodOnline", "Online (MaishaPay)");
       }
       return method;
     },

@@ -328,6 +328,7 @@ const SearchResults = () => {
                           vendor={product.vendor?.business_name || product.vendor || t('unknownVendor')}
                           isNew={product.is_new || product.isNew || false}
                           isFeatured={product.is_featured || product.isFeatured || false}
+
                         />
                       ))}
                     </div>
@@ -357,6 +358,7 @@ const SearchResults = () => {
                             vendor={product.vendor?.business_name || product.vendor || t('unknownVendor')}
                             isNew={product.is_new || product.isNew || false}
                             isFeatured={product.is_featured || product.isFeatured || false}
+
                           />
                         ))}
                       </div>

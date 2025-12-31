@@ -154,6 +154,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       return;
     }
 
+
+
     try {
       setIsCartLoading(true);
       await addToCart({

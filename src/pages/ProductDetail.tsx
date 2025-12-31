@@ -58,9 +58,6 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
-
   // Editing states
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState("");
@@ -168,6 +165,9 @@ const ProductDetail = () => {
       setIsWishlistLoading(false);
     }
   }, [isAuthenticated, navigate, product, toast, toggleWishlist, user?.role]);
+
+  // Reset variant selection when product changes
+
 
   // Load product data
   useEffect(() => {
@@ -642,15 +642,11 @@ const ProductDetail = () => {
       ? parseFloat(productData.price)
       : productData.price || 0;
   const productShipping = productData.shipping || {};
-  const productSizes = Array.isArray(productData.sizes) ? productData.sizes : [];
-  const productColors = Array.isArray(productData.colors) ? productData.colors : [];
   const productFeatures = Array.isArray(productData.features) ? productData.features : [];
   const productSpecifications =
     productData.specifications && typeof productData.specifications === "object"
       ? productData.specifications
       : {};
-  const showSizeSelector = productSizes.length > 0;
-  const showColorSelector = productColors.length > 0;
   const canNavigateToCategory = Boolean(productData.category);
 
   return (
@@ -736,22 +732,7 @@ const ProductDetail = () => {
                     alt={productName}
                     className="w-full mx-auto max-h-72 md:max-h-96 lg:max-h-[360px] object-contain bg-gray-50 rounded-lg cursor-zoom-in"
                   />
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-white/80 hover:bg-white shadow-sm"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-white/80 hover:bg-white shadow-sm"
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                  </div>
+
                   {/* Discount Badge */}
                   {productOriginalPrice && (
                     <div className="absolute top-4 left-4">
@@ -857,51 +838,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* Size Selection */}
-                {showSizeSelector && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{t('size')}:</span>
-                      <span className="text-sm text-muted-foreground">{selectedSize || t('selectSize')}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      {productSizes.map((size) => (
-                        <Button
-                          key={size}
-                          variant={selectedSize === size ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedSize(size)}
-                          className="min-w-[60px]"
-                        >
-                          {size}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
-                {/* Color Selection */}
-                {showColorSelector && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{t('color')}:</span>
-                      <span className="text-sm text-muted-foreground">{selectedColor || t('selectColor')}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      {productColors.map((color) => (
-                        <Button
-                          key={color}
-                          variant={selectedColor === color ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedColor(color)}
-                          className="min-w-[80px]"
-                        >
-                          {color}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Stock Status */}
                 <div className="flex items-center gap-2">
@@ -944,7 +881,7 @@ const ProductDetail = () => {
                           : 'bg-primary hover:bg-primary/90'
                         }`}
                       size="lg"
-                      disabled={productStock === 0 || (!selectedSize && showSizeSelector) || user?.role === 'vendor' || isAddToCartLoading}
+                      disabled={productStock === 0 || user?.role === 'vendor' || isAddToCartLoading}
                       onClick={handleAddToCart}
                     >
                       {isAddToCartLoading ? (
@@ -1533,6 +1470,8 @@ const ProductDetail = () => {
                       vendor={relatedProduct.vendor?.business_name || "Unknown Vendor"}
                       isNew={relatedProduct.is_new || false}
                       isFeatured={relatedProduct.is_featured || false}
+                      sizes={relatedProduct.sizes}
+                      colors={relatedProduct.colors}
                     />
                   ))}
                 </div>
@@ -1561,6 +1500,8 @@ const ProductDetail = () => {
                       vendor={recentProduct.vendor?.business_name || "Unknown Vendor"}
                       isNew={recentProduct.is_new || false}
                       isFeatured={recentProduct.is_featured || false}
+                      sizes={recentProduct.sizes}
+                      colors={recentProduct.colors}
                     />
                   ))}
                 </div>

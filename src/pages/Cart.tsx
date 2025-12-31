@@ -128,6 +128,7 @@ const Cart = () => {
                               <div className="flex-1 w-full">
                                 <h4 className="mb-1 text-lg font-medium">{item.name}</h4>
                                 <p className="text-sm text-muted-foreground">{item.vendor}</p>
+
                                 <p className="mt-1 text-lg font-semibold text-primary">
                                   ${(parseFloat(item.price.toString()) * item.quantity).toFixed(2)}
                                 </p>

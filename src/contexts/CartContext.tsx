@@ -100,7 +100,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         vendor: item.product.vendor?.business_name || 'Unknown Vendor',
         quantity: item.quantity,
       }));
-    
+
     console.log('Transformed items:', transformed);
     return transformed;
   };
@@ -118,9 +118,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       console.log('Fetching cart from database...');
-      const response = await apiClient.getCart();
+      const response = await apiClient.getCart() as any;
       console.log('Cart API response:', response);
-      
+
       if (response.success && response.data?.cartItems) {
         console.log('Cart items from DB:', response.data.cartItems);
         const transformedItems = transformCartItems(response.data.cartItems);
@@ -161,19 +161,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       // First, check if item already exists in database
       const existingItem = items.find(item => item.productId === product.productId);
-      
+
       if (existingItem) {
+        console.log('Found existing item, incrementing quantity:', existingItem);
         // Update quantity in database
         await apiClient.updateCartItem(existingItem.id, existingItem.quantity + 1);
         // Optimistically update local state
         setItems(prevItems =>
           prevItems.map(item =>
-            item.productId === product.productId
+            item.id === existingItem.id
               ? { ...item, quantity: item.quantity + 1 }
               : item
           )
         );
       } else {
+        console.log('Adding new item:', product);
         // Add new item to database
         await apiClient.addToCart(product.productId, 1);
         // Refresh cart from database to get the new item with proper ID

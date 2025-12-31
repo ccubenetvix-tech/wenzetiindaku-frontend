@@ -219,6 +219,7 @@ const Category = () => {
                     isNew={product.is_new || false}
                     isFeatured={product.is_featured || false}
                     compact={viewMode === 'grid'}
+
                   />
                 ))}
               </div>

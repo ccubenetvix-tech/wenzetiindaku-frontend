@@ -1255,7 +1255,7 @@ const Checkout = () => {
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">{t('paymentMethodLabel')}</p>
                             <p className="mt-2 text-sm font-semibold">
-                              {paymentMethod === "cod" ? t('cashOnDelivery') : "Maisha Pay (Card / Apple Pay / Google Pay)"}
+                              {paymentMethod === "cod" ? t('cashOnDelivery') : "Maisha Pay (Card / Mobile Money)"}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {paymentMethod === "cod"
@@ -1322,6 +1322,7 @@ const Checkout = () => {
                             <div className="flex-1">
                               <p className="text-sm font-medium">{item.name}</p>
                               <p className="text-xs text-muted-foreground">{item.vendor}</p>
+
                               <p className="text-xs text-muted-foreground mt-1">
                                 {t('quantity')}: <span className="font-semibold text-foreground">{item.quantity}</span>
                               </p>

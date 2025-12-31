@@ -385,7 +385,8 @@ const Index = () => {
                         image: product.images?.[0] || product.image || "/marketplace.jpeg",
                         vendor: product.vendor?.business_name || t('unknownVendor'),
                         isNew: product.is_new || false,
-                        isFeatured: product.is_featured || false
+                        isFeatured: product.is_featured || false,
+
                       }}
                       onWishlistToggle={() => { }}
                       onAddToCart={() => { }}
@@ -405,7 +406,8 @@ const Index = () => {
                         image: product.images?.[0] || product.image || "/marketplace.jpeg",
                         vendor: product.vendor?.business_name || t('unknownVendor'),
                         isNew: product.is_new || false,
-                        isFeatured: product.is_featured || false
+                        isFeatured: product.is_featured || false,
+
                       }}
                       onWishlistToggle={() => { }}
                       onAddToCart={() => { }}

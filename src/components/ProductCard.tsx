@@ -153,6 +153,8 @@ export const ProductCard = memo(function ProductCard({
       return;
     }
 
+
+
     try {
       setIsCartLoading(true);
       await addToCart({

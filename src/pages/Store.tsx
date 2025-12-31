@@ -147,6 +147,7 @@ const Store = () => {
               vendor: storeData.name,
               isNew: product.is_new || false,
               isFeatured: product.is_featured || false,
+
             }));
 
             // Calculate real store stats from products
