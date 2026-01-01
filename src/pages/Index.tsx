@@ -482,20 +482,28 @@ const Index = () => {
                         {/* Subtle dark overlay for text contrast */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
-                        {/* Store Avatar with Badge - keep initial letter in circle */}
+                        {/* Store Avatar with Profile Pic */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                           <div className="relative">
                             <div className="w-16 h-16 bg-white dark:bg-navy-900 rounded-full p-1.5 shadow-xl ring-2 ring-white/30">
-                              <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
-                                <span className="text-xl font-bold text-white">
-                                  {store.name[0]}
-                                </span>
+                              <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                {store.image ? (
+                                  <img
+                                    src={store.image}
+                                    alt={store.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-xl font-bold text-gray-400">
+                                    {store.name[0]}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
                             {/* Verified Badge */}
                             {store.verified && (
-                              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-4 border-white dark:border-navy-900 shadow-lg">
+                              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-4 border-white dark:border-navy-900 shadow-lg z-10">
                                 <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
@@ -602,18 +610,27 @@ const Index = () => {
                           />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
-                        {/* Store Avatar */}
+
+                        {/* Store Avatar with Profile Pic */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                           <div className="relative">
                             <div className="w-12 h-12 bg-white dark:bg-navy-900 rounded-full p-1 shadow-lg ring-2 ring-white/30">
-                              <div className="w-full h-full bg-gradient-to-r from-navy-600 to-orange-500 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-bold text-white">
-                                  {store.name[0]}
-                                </span>
+                              <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                {store.image ? (
+                                  <img
+                                    src={store.image}
+                                    alt={store.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-sm font-bold text-gray-400">
+                                    {store.name[0]}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             {store.verified && (
-                              <div className="absolute -bottom-0 -right-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white dark:border-navy-900 shadow-md">
+                              <div className="absolute -bottom-0 -right-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white dark:border-navy-900 shadow-md z-10">
                                 <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
