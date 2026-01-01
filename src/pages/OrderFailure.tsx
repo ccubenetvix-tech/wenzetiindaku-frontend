@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,9 @@ import { XCircle, ArrowLeft, RefreshCw } from "lucide-react";
 
 const OrderFailure = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const reason = searchParams.get("reason") || "Payment was not completed";
+  const reason = (location.state as any)?.reason || searchParams.get("reason") || "Payment was not completed";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

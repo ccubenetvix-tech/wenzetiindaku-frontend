@@ -67,10 +67,10 @@ const OrderSuccess = () => {
       if (sessionId && !state.orders) {
         setIsVerifying(true);
         try {
-          const { data } = await apiClient.verifyPayment(sessionId, { status, transactionRefId }) as any;
-          if (data?.success && data?.data?.orders) {
+          const response = await apiClient.verifyPayment(sessionId, { status, transactionRefId }) as any;
+          if (response?.success && response?.data?.orders) {
             // Determine payment status/method from confirmed order
-            const orders = data.data.orders;
+            const orders = response.data.orders;
             setState({
               orders: orders,
               payment: { method: "online", status: "paid" },
@@ -102,18 +102,6 @@ const OrderSuccess = () => {
   const orders = state.orders ?? [];
   const payment = state.payment ?? { method: "cod", status: "pending" };
   const shippingAddress = state.shippingAddress ?? {};
-
-  // Show loading during verification
-  if (isVerifying) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
-          <p className="text-muted-foreground">Verifying secure payment...</p>
-        </div>
-      </div>
-    );
-  }
 
   const formattedAddress = useMemo(() => {
     if (!shippingAddress || typeof shippingAddress !== "object") return null;
@@ -195,6 +183,18 @@ const OrderSuccess = () => {
     ];
   }, [payment.method]);
 
+  // Show loading during verification - MOVED AFTER HOOKS to prevent React Error #300
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
+          <p className="text-muted-foreground">Verifying secure payment...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -240,7 +240,7 @@ const OrderSuccess = () => {
                             {order.status ? order.status.toUpperCase() : "PENDING"}
                           </span>
                           <span className="text-sm font-medium">
-                            ${parseFloat(order.total_amount).toFixed(2)}
+                            ${Number(order.total_amount).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -251,33 +251,7 @@ const OrderSuccess = () => {
                           {order.vendor?.business_name ?? order.vendor_id ?? "Assigned after confirmation"}
                         </span>
                       </p>
-                      <div className="flex justify-end mt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Prepare data for invoice
-                            const invoiceData = {
-                              orderId: order.id,
-                              createdAt: new Date().toISOString(), // Use actual date if available
-                              customer: {
-                                name: typeof shippingAddress?.fullName === 'string' ? shippingAddress.fullName : 'Customer',
-                                email: typeof shippingAddress?.email === 'string' ? shippingAddress.email : '',
-                                phone: typeof shippingAddress?.phone === 'string' ? shippingAddress.phone : undefined,
-                                address: shippingAddress
-                              },
-                              items: [], // You might need to pass items via state if not available here
-                              totalAmount: order.total_amount || 0,
-                              paymentMethod: payment.method || 'cod',
-                              status: order.status || 'pending'
-                            };
-                            import("@/utils/invoice").then(mod => mod.generateInvoicePDF(invoiceData));
-                          }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                          Download Invoice
-                        </Button>
-                      </div>
+
                     </div>
                   ))}
                 </div>

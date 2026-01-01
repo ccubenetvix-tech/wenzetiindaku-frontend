@@ -295,7 +295,7 @@ const CustomerLogin = () => {
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
               <h3 className="text-sm font-medium text-foreground mb-2">{t('needSupport')}</h3>
               <div className="text-xs text-muted-foreground">
-                <p>Email: wenzetiindaku@outlook.com</p>
+                <p>Email: tech-wenzetiindaku@outlook.com</p>
                 <p>Phone: +32 495 84 68 66</p>
                 <p>Location: Kinshasa, R.D. CONGO</p>
                 <p>Hours: Mon-Fri 9AM-6PM WAT</p>
