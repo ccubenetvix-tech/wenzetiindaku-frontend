@@ -258,14 +258,7 @@ const Index = () => {
         {/* Trust Indicators - Professional */}
         <section className="bg-gray-50 dark:bg-navy-950 py-8">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Truck className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('freeShipping')}</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('onOrdersOver')}</p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center mx-auto mb-2">
                   <Shield className="h-5 w-5 text-white" />
@@ -687,58 +680,10 @@ const Index = () => {
                   {t('platformExcellence')}
                 </span>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-                {t('trustedByMillions')}
-              </h2>
               <p className="text-white/70 max-w-2xl mx-auto text-lg">
                 {t('joinGrowingCommunity')}
               </p>
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {/* Happy Customers */}
-              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/50 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-7 w-7 text-white" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">50K+</div>
-                <div className="text-white/70 text-sm font-medium">{t('happyCustomers')}</div>
-              </div>
-
-              {/* Active Sellers */}
-              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-navy-400 to-navy-600 rounded-xl flex items-center justify-center shadow-lg shadow-navy-500/50 group-hover:scale-110 transition-transform duration-300">
-                    <ShoppingBag className="h-7 w-7 text-white" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">10K+</div>
-                <div className="text-white/70 text-sm font-medium">{t('activeSellers')}</div>
-              </div>
-
-              {/* Products Sold */}
-              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/50 group-hover:scale-110 transition-transform duration-300">
-                    <TrendingUp className="h-7 w-7 text-white" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">1M+</div>
-                <div className="text-white/70 text-sm font-medium">{t('productsSold')}</div>
-              </div>
-
-              {/* Average Rating */}
-              <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/50 group-hover:scale-110 transition-transform duration-300">
-                    <Star className="h-7 w-7 text-white fill-white" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent mb-2">4.8<span className="text-2xl">★</span></div>
-                <div className="text-white/70 text-sm font-medium">{t('averageRating')}</div>
-              </div>
             </div>
           </div>
         </section>

@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-16 bg-gradient-to-r from-primary to-secondary">
@@ -53,7 +53,7 @@ const PrivacyPolicy = () => {
                 <Eye className="h-6 w-6 text-secondary mr-3" />
                 <h2 className="text-2xl font-bold">Information We Collect</h2>
               </div>
-              
+
               <div className="space-y-6">
                 <div className="bg-card p-6 rounded-lg">
                   <h3 className="text-lg font-semibold mb-3 text-primary">Personal Information</h3>
@@ -95,7 +95,7 @@ const PrivacyPolicy = () => {
                 <UserCheck className="h-6 w-6 text-primary mr-3" />
                 <h2 className="text-2xl font-bold">How We Use Your Information</h2>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-card p-6 rounded-lg">
                   <h3 className="text-lg font-semibold mb-3 text-secondary">Service Provision</h3>
@@ -145,12 +145,12 @@ const PrivacyPolicy = () => {
                 <Lock className="h-6 w-6 text-secondary mr-3" />
                 <h2 className="text-2xl font-bold">Information Sharing</h2>
               </div>
-              
+
               <div className="bg-card p-6 rounded-lg mb-4">
                 <p className="text-muted-foreground mb-4">
                   We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described below:
                 </p>
-                
+
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-primary mb-2">Vendors</h4>
@@ -158,14 +158,14 @@ const PrivacyPolicy = () => {
                       We share necessary information with vendors to fulfill your orders, including your name, shipping address, and order details.
                     </p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-secondary mb-2">Service Providers</h4>
                     <p className="text-muted-foreground">
                       We work with trusted third-party service providers for payment processing, shipping, and analytics. They only access information needed to perform their services.
                     </p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-primary mb-2">Legal Requirements</h4>
                     <p className="text-muted-foreground">
@@ -182,12 +182,12 @@ const PrivacyPolicy = () => {
                 <Shield className="h-6 w-6 text-primary mr-3" />
                 <h2 className="text-2xl font-bold">Data Security</h2>
               </div>
-              
+
               <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg">
                 <p className="text-muted-foreground mb-4">
                   We implement industry-standard security measures to protect your personal information:
                 </p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-start">
                     <Lock className="h-5 w-5 text-primary mr-3 mt-0.5" />
@@ -196,7 +196,7 @@ const PrivacyPolicy = () => {
                       <p className="text-sm text-muted-foreground">SSL/TLS encryption for data transmission</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <Shield className="h-5 w-5 text-secondary mr-3 mt-0.5" />
                     <div>
@@ -204,7 +204,7 @@ const PrivacyPolicy = () => {
                       <p className="text-sm text-muted-foreground">Encrypted databases and secure servers</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <UserCheck className="h-5 w-5 text-primary mr-3 mt-0.5" />
                     <div>
@@ -212,7 +212,7 @@ const PrivacyPolicy = () => {
                       <p className="text-sm text-muted-foreground">Limited access to authorized personnel only</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <Eye className="h-5 w-5 text-secondary mr-3 mt-0.5" />
                     <div>
@@ -230,12 +230,12 @@ const PrivacyPolicy = () => {
                 <UserCheck className="h-6 w-6 text-secondary mr-3" />
                 <h2 className="text-2xl font-bold">Your Rights</h2>
               </div>
-              
+
               <div className="bg-card p-6 rounded-lg">
                 <p className="text-muted-foreground mb-4">
                   You have the following rights regarding your personal information:
                 </p>
-                
+
                 <div className="space-y-3">
                   <div className="flex items-start">
                     <div className="w-2 h-2 bg-primary rounded-full mr-3 mt-2"></div>
@@ -277,12 +277,12 @@ const PrivacyPolicy = () => {
                 <AlertTriangle className="h-6 w-6 text-primary mr-3" />
                 <h2 className="text-2xl font-bold">Contact Us</h2>
               </div>
-              
+
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-muted-foreground mb-4">
                   If you have questions about this Privacy Policy or wish to exercise your rights, please contact us:
                 </p>
-                
+
                 <div className="space-y-2">
                   <p><strong>Email:</strong> privacy@wenzendaku.com</p>
                   <p><strong>Phone:</strong> +234 123 456 7890</p>

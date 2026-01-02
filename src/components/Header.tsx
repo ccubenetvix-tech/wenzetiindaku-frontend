@@ -488,7 +488,12 @@ export function Header() {
               </DropdownMenu>
 
               {/* Help & Support */}
-              <span className="text-white/70 text-sm font-medium">{t('helpSupport')}</span>
+              <button
+                onClick={() => navigate('/contact')}
+                className="text-white/70 text-sm font-medium hover:text-white transition-colors"
+              >
+                {t('helpSupport')}
+              </button>
             </div>
           </div>
         </div>
