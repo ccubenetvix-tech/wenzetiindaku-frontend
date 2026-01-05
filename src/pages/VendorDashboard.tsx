@@ -40,7 +40,9 @@ import {
   X,
   UploadCloud
 } from "lucide-react";
+import { calculateIncludedVAT } from "@/utils/priceUtils";
 import { Checkbox } from "@/components/ui/checkbox";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +74,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { predefinedCategories } from "@/data/categories";
 import { Footer } from "@/components/Footer";
+import { calculateTotalWithVAT, formatPrice } from "@/utils/priceUtils";
 
 interface DashboardStats {
   totalSales: number;
@@ -1570,29 +1573,45 @@ export default function VendorDashboard() {
                         </h4>
                         <div className="mt-3 space-y-3">
                           {orderDetails.orderItems && orderDetails.orderItems.length > 0 ? (
-                            orderDetails.orderItems.map((item, index) => {
-                              const quantity = Number(item.quantity ?? 0);
-                              const unitPrice = Number(item.price ?? 0);
-                              const lineTotal = unitPrice * quantity;
-                              return (
-                                <div
-                                  key={item.id ?? `${orderDetails.id}-${index}`}
-                                  className="flex items-center justify-between rounded-md border px-3 py-2"
-                                >
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      {item.product?.name ?? "Product"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Qty: {Number.isFinite(quantity) ? quantity : 0}
+                            <>
+                              {orderDetails.orderItems.map((item, index) => {
+                                const quantity = Number(item.quantity ?? 0);
+                                const unitPrice = Number(item.price ?? 0);
+                                const lineTotal = unitPrice * quantity;
+                                return (
+                                  <div
+                                    key={item.id ?? `${orderDetails.id}-${index}`}
+                                    className="flex items-center justify-between rounded-md border px-3 py-2"
+                                  >
+                                    <div>
+                                      <p className="text-sm font-medium">
+                                        {item.product?.name ?? "Product"}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Qty: {Number.isFinite(quantity) ? quantity : 0}
+                                      </p>
+                                    </div>
+                                    <p className="text-sm font-semibold">
+                                      {formatMoney(Number.isFinite(lineTotal) ? lineTotal : 0)}
                                     </p>
                                   </div>
-                                  <p className="text-sm font-semibold">
-                                    {formatMoney(Number.isFinite(lineTotal) ? lineTotal : 0)}
-                                  </p>
+                                );
+                              })}
+                              <div className="pt-2 space-y-1">
+                                <div className="flex justify-between text-sm text-muted-foreground">
+                                  <span>Subtotal (Excl. VAT)</span>
+                                  <span>{formatMoney(orderDetails.total - calculateIncludedVAT(orderDetails.total))}</span>
                                 </div>
-                              );
-                            })
+                                <div className="flex justify-between text-sm text-muted-foreground">
+                                  <span>VAT (16%)</span>
+                                  <span>{formatMoney(calculateIncludedVAT(orderDetails.total))}</span>
+                                </div>
+                                <div className="flex justify-between text-base font-bold border-t pt-1">
+                                  <span>Total (Incl. VAT)</span>
+                                  <span>{formatMoney(orderDetails.total)}</span>
+                                </div>
+                              </div>
+                            </>
                           ) : (
                             <p className="text-sm text-muted-foreground">
                               No line items available for this order.
@@ -1699,6 +1718,11 @@ export default function VendorDashboard() {
                   onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
                   required
                 />
+                {productForm.price && !isNaN(Number(productForm.price)) && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Inc. 16% VAT: <span className="font-medium text-primary">{formatPrice(calculateTotalWithVAT(Number(productForm.price)))}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="stock">Stock *</Label>

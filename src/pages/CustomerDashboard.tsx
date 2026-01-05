@@ -50,6 +50,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist, WishlistItem } from "@/contexts/WishlistContext";
 import { apiClient } from "@/utils/api";
+import { calculateIncludedVAT } from "@/utils/priceUtils";
+
 import type { CartItem as CartEntry } from "@/contexts/CartContext";
 
 const ORDERS_PAGE_SIZE = 10;
@@ -1916,30 +1918,46 @@ export default function CustomerDashboard() {
                           </h4>
                           <div className="mt-3 space-y-3">
                             {orderDetails.products.length > 0 ? (
-                              orderDetails.products.map((item) => {
-                                const quantity = toNumber(item.quantity ?? 0);
-                                const unitPrice = toNumber(item.price ?? 0);
-                                const lineTotal = unitPrice * quantity;
-                                return (
-                                  <div
-                                    key={item.id ?? item.product?.id ?? `${orderDetails.id}-${item.product?.name}`}
-                                    className="flex items-center justify-between rounded-md border px-3 py-2"
-                                  >
-                                    <div>
-                                      <p className="text-sm font-medium">
-                                        {item.product?.name ??
-                                          t("customerDashboard.unnamedProduct", "Product")}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {t("customerDashboard.quantityLabel", "Quantity")}: {quantity}
+                              <>
+                                {orderDetails.products.map((item) => {
+                                  const quantity = toNumber(item.quantity ?? 0);
+                                  const unitPrice = toNumber(item.price ?? 0);
+                                  const lineTotal = unitPrice * quantity;
+                                  return (
+                                    <div
+                                      key={item.id ?? item.product?.id ?? `${orderDetails.id}-${item.product?.name}`}
+                                      className="flex items-center justify-between rounded-md border px-3 py-2"
+                                    >
+                                      <div>
+                                        <p className="text-sm font-medium">
+                                          {item.product?.name ??
+                                            t("customerDashboard.unnamedProduct", "Product")}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {t("customerDashboard.quantityLabel", "Quantity")}: {quantity}
+                                        </p>
+                                      </div>
+                                      <p className="text-sm font-semibold">
+                                        {formatCurrency(lineTotal)}
                                       </p>
                                     </div>
-                                    <p className="text-sm font-semibold">
-                                      {formatCurrency(lineTotal)}
-                                    </p>
+                                  );
+                                })}
+                                <div className="pt-2 space-y-1">
+                                  <div className="flex justify-between text-sm text-muted-foreground">
+                                    <span>{t("customerDashboard.subtotalExclVAT", "Subtotal (Excl. VAT)")}</span>
+                                    <span>{formatCurrency(orderDetails.total - calculateIncludedVAT(orderDetails.total))}</span>
                                   </div>
-                                );
-                              })
+                                  <div className="flex justify-between text-sm text-muted-foreground">
+                                    <span>{t("customerDashboard.vatLabel", "VAT (16%)")}</span>
+                                    <span>{formatCurrency(calculateIncludedVAT(orderDetails.total))}</span>
+                                  </div>
+                                  <div className="flex justify-between text-base font-bold border-t pt-1">
+                                    <span>{t("customerDashboard.totalInclVAT", "Total (Incl. VAT)")}</span>
+                                    <span>{formatCurrency(orderDetails.total)}</span>
+                                  </div>
+                                </div>
+                              </>
                             ) : (
                               <p className="text-sm text-muted-foreground">
                                 {t(

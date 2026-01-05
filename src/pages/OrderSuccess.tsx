@@ -14,6 +14,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { calculateVAT, calculateIncludedVAT } from "@/utils/priceUtils";
 
 interface SuccessLocationState {
   orders?: Array<{
@@ -250,6 +251,9 @@ const OrderSuccess = () => {
                         <span className="font-medium text-foreground">
                           {order.vendor?.business_name ?? order.vendor_id ?? "Assigned after confirmation"}
                         </span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Incl. ${calculateIncludedVAT(Number(order.total_amount)).toFixed(2)} VAT (16%)
                       </p>
 
                     </div>

@@ -32,6 +32,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
+import { calculateVAT, calculateTotalWithVAT } from "@/utils/priceUtils";
 
 
 type CheckoutStep = "address" | "payment" | "review";
@@ -132,7 +133,8 @@ const Checkout = () => {
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cartItems]
   );
-  const total = useMemo(() => subtotal, [subtotal]);
+  const vatAmount = useMemo(() => calculateVAT(subtotal), [subtotal]);
+  const total = useMemo(() => calculateTotalWithVAT(subtotal), [subtotal]);
 
   const steps: Array<{ id: CheckoutStep; name: string; description: string }> = [
     {
@@ -1364,10 +1366,32 @@ const Checkout = () => {
                 </div>
 
                 <div className="space-y-4">
+                  <div className="border-b border-border/60 pb-3 space-y-2">
+                    {cartItems.map((item) => (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <div className="flex-1 pr-4">
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Qty: {item.quantity} × ${item.price.toFixed(2)}
+                          </p>
+                        </div>
+                        <span className="font-semibold">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>{t('totalItems')}</span>
                     <span className="font-semibold text-foreground">
                       {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>{t('vat', 'VAT (16%)')}</span>
+                    <span className="font-semibold text-foreground">
+                      ${vatAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>

@@ -297,7 +297,7 @@ const resources = {
       maishaPayRedirectNotice: "You will be redirected to Maisha Pay's secure payment page.",
       orderItems: "Order items",
       totalAmount: "Total amount",
-      promoCodeNotice: "Have a promo code? You’ll be able to apply it on the payment step.",
+      promoCodeNotice: "Thank you for choosing Wenze Tii Ndaku",
       enterDeliveryAddress: "Enter a different delivery address for this order.",
       checkoutShowLess: "Show Less",
       checkoutShowDetails: "Show Details",
