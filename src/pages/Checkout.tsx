@@ -132,9 +132,6 @@ const Checkout = () => {
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cartItems]
   );
-  // User requested to remove shipping and tax calculations
-  const shipping = 0;
-  const tax = 0;
   const total = useMemo(() => subtotal, [subtotal]);
 
   const steps: Array<{ id: CheckoutStep; name: string; description: string }> = [
@@ -399,7 +396,7 @@ const Checkout = () => {
             city: newestAddress.city || "",
             state: newestAddress.state || "",
             postalCode: newestAddress.postal_code || "",
-            country: newestAddress.country || "India",
+            country: newestAddress.country || "DR Congo",
             label: newestAddress.label || "Home",
           });
           setShowNewAddressForm(false);
@@ -417,7 +414,7 @@ const Checkout = () => {
               city: profileAddr.city || "",
               state: profileAddr.state || "",
               postalCode: profileAddr.postal_code || "",
-              country: profileAddr.country || "India",
+              country: profileAddr.country || "DR Congo",
               label: profileAddr.label || "Home",
             });
             setShowNewAddressForm(false);
@@ -437,7 +434,7 @@ const Checkout = () => {
             city: firstAddr.city || "",
             state: firstAddr.state || "",
             postalCode: firstAddr.postal_code || "",
-            country: firstAddr.country || "India",
+            country: firstAddr.country || "DR Congo",
             label: firstAddr.label || "Home",
           });
           setShowNewAddressForm(false);
@@ -524,7 +521,7 @@ const Checkout = () => {
         city: address.city || "",
         state: address.state || "",
         postalCode: address.postal_code || "",
-        country: address.country || "India",
+        country: address.country || "DR Congo",
         label: address.label || "Home",
       });
       setShowNewAddressForm(false);
@@ -608,10 +605,10 @@ const Checkout = () => {
     selectedShippingAddress.fullName,
     selectedShippingAddress.street1,
     selectedShippingAddress.street2,
-    [selectedShippingAddress.city, selectedShippingAddress.state, selectedShippingAddress.postalCode]
-      .filter(Boolean)
-      .join(", "),
-    selectedShippingAddress.country,
+    selectedShippingAddress.city ? `City: ${selectedShippingAddress.city}` : "",
+    selectedShippingAddress.state ? `Province: ${selectedShippingAddress.state}` : "",
+    selectedShippingAddress.country ? `Country: ${selectedShippingAddress.country}` : "",
+    selectedShippingAddress.phone ? `Tel: ${selectedShippingAddress.phone}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -1373,7 +1370,6 @@ const Checkout = () => {
                       {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   </div>
-                  {/* Shipping and Tax removed as per user request */}
                 </div>
 
                 <Separator />

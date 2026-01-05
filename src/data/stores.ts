@@ -24,7 +24,7 @@ export const stores: Store[] = [
     rating: 4.9,
     reviewCount: 156,
     productCount: 234,
-    location: "Lagos, Nigeria",
+    location: "Kinshasa, DR Congo",
     image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop&crop=center",
     categories: ["Cosmetics", "Skincare", "Hair Care"],
     featured: true,
@@ -164,8 +164,8 @@ export const getFeaturedStores = (): Store[] => {
 };
 
 export const getStoresByCategory = (category: string): Store[] => {
-  return stores.filter(store => 
-    store.categories.some(cat => 
+  return stores.filter(store =>
+    store.categories.some(cat =>
       cat.toLowerCase().includes(category.toLowerCase())
     )
   );

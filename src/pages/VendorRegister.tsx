@@ -371,7 +371,7 @@ const VendorRegister = () => {
                           id="businessPhone"
                           name="businessPhone"
                           type="tel"
-                          placeholder="+234 123 456 7890"
+                          placeholder="+32 495 84 68 66"
                           value={formData.businessPhone}
                           onChange={handleInputChange}
                           required

@@ -25,11 +25,11 @@ const LocationContext = createContext<LocationContextType | undefined>(undefined
 const defaultLocations: Location[] = [
   {
     id: '1',
-    name: 'Lagos, Nigeria',
-    city: 'Lagos',
-    state: 'Lagos State',
-    country: 'Nigeria',
-    postalCode: '100001'
+    name: 'Kinshasa, DR Congo',
+    city: 'Kinshasa',
+    state: 'Kinshasa',
+    country: 'DR Congo',
+    postalCode: '0000'
   },
   {
     id: '2',

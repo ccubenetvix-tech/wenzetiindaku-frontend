@@ -340,14 +340,6 @@ export const ProductCard = memo(function ProductCard({
             </div>
           </div>
 
-          {/* Free Shipping Badge */}
-          {price > 50 && (
-            <div className={`flex items-center ${compact ? 'text-[10px]' : 'text-xs'} text-green-6 00 dark:text-green-400`}>
-              <span className={`bg-green-100 dark:bg-green-900/30 ${compact ? 'px-1.5 py-0.5' : 'px-2 py-1'} rounded ${compact ? 'text-[10px]' : 'text-xs'} font-medium`}>
-                {t('freeShipping')}
-              </span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

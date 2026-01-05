@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { 
-  User, 
-  MapPin, 
-  CreditCard, 
-  Clock, 
-  Heart, 
+import {
+  User,
+  MapPin,
+  CreditCard,
+  Clock,
+  Heart,
   Globe,
   Edit,
   Save,
@@ -47,8 +47,7 @@ const Profile = () => {
     { code: 'fr', name: 'Français' },
     { code: 'af', name: 'Afrikaans' },
     { code: 'sw', name: 'Kiswahili' },
-    { code: 'zu', name: 'isiZulu' },
-    { code: 'yo', name: 'Yorùbá' }
+    { code: 'zu', name: 'isiZulu' }
   ];
 
   const orderHistory = [
@@ -61,7 +60,7 @@ const Profile = () => {
       trackingNumber: "TRK123456789"
     },
     {
-      id: "ORD-002", 
+      id: "ORD-002",
       date: "2024-01-10",
       status: "In Transit",
       total: 24.99,
@@ -91,7 +90,7 @@ const Profile = () => {
     },
     {
       id: "2",
-      name: "Traditional African Print Dress", 
+      name: "Traditional African Print Dress",
       price: 45.00,
       rating: 4.9,
       reviewCount: 156,
@@ -117,7 +116,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           {/* Profile Header */}
@@ -166,8 +165,8 @@ const Profile = () => {
                     <User className="h-5 w-5 mr-2 text-primary" />
                     Personal Information
                   </h2>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setIsEditing(!isEditing)}
                   >
                     {isEditing ? (
@@ -187,34 +186,34 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName" 
-                      defaultValue="John" 
+                    <Input
+                      id="firstName"
+                      defaultValue="John"
                       disabled={!isEditing}
                     />
                   </div>
                   <div>
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName" 
-                      defaultValue="Doe" 
+                    <Input
+                      id="lastName"
+                      defaultValue="Doe"
                       disabled={!isEditing}
                     />
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      defaultValue="john.doe@example.com" 
+                    <Input
+                      id="email"
+                      type="email"
+                      defaultValue="john.doe@example.com"
                       disabled={!isEditing}
                     />
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input 
-                      id="phone" 
-                      defaultValue="+234 123 456 7890" 
+                    <Input
+                      id="phone"
+                      defaultValue="+32 495 84 68 66"
                       disabled={!isEditing}
                     />
                   </div>
@@ -265,9 +264,8 @@ const Profile = () => {
                       <Badge variant="secondary">Default</Badge>
                     </div>
                     <p className="text-muted-foreground">
-                      123 Main Street<br />
-                      Lagos, Lagos State 100001<br />
-                      Nigeria
+                      Kinshasa, Kinshasa 0000<br />
+                      DR Congo
                     </p>
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm">
@@ -336,7 +334,7 @@ const Profile = () => {
                           {order.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
                           <p>{order.items} item(s) • Total: ${order.total}</p>
@@ -388,7 +386,7 @@ const Profile = () => {
               <Settings className="h-5 w-5 mr-2 text-primary" />
               Account Actions
             </h2>
-            
+
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />

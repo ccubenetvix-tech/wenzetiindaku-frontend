@@ -37,7 +37,6 @@ const Cart = () => {
   }, {} as Record<string, typeof cartItems>);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // User requested to remove shipping and tax calculations, total is just product rate
   const total = subtotal;
 
   // Handle quantity update

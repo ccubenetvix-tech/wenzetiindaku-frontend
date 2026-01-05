@@ -284,9 +284,9 @@ const PrivacyPolicy = () => {
                 </p>
 
                 <div className="space-y-2">
-                  <p><strong>Email:</strong> privacy@wenzendaku.com</p>
-                  <p><strong>Phone:</strong> +234 123 456 7890</p>
-                  <p><strong>Address:</strong> 123 Business District, Lagos, Nigeria</p>
+                  <p><strong>Email:</strong> wenzetiindaku@outlook.com</p>
+                  <p><strong>Phone:</strong> +32 495 84 68 66</p>
+                  <p><strong>Address:</strong> Kinshasa, R.D. CONGO</p>
                 </div>
               </div>
             </section>

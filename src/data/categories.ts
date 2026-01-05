@@ -1,19 +1,19 @@
 export const predefinedCategories = [
   {
     id: 'Technology & Electronics',
-    name: 'electronics',
+    name: 'Technology & Electronics',
     description: 'descElectronics',
     icon: ''
   },
   {
     id: 'Clothing & Fashion',
-    name: 'fashionClothing',
+    name: 'Clothing & Fashion',
     description: 'descFashionClothing',
     icon: ''
   },
   {
     id: 'Home & Garden',
-    name: 'homeGarden',
+    name: 'Home & Garden',
     description: 'descHomeGarden',
     icon: ''
   },

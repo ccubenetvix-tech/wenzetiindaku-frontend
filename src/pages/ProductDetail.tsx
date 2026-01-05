@@ -6,7 +6,6 @@ import {
   Heart,
   Star,
   ShoppingCart,
-  Truck,
   Shield,
   ZoomIn,
   Store as StoreIcon,
@@ -62,8 +61,7 @@ const ProductDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
-  const [editedSpecifications, setEditedSpecifications] = useState<any>({});
-  const [editedShipping, setEditedShipping] = useState<any>({});
+
 
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -377,12 +375,7 @@ const ProductDetail = () => {
       case 'description':
         setEditedDescription(product.description);
         break;
-      case 'specifications':
-        setEditedSpecifications(product.specifications);
-        break;
-      case 'shipping':
-        setEditedShipping(product.shipping);
-        break;
+
     }
   };
 
@@ -641,12 +634,9 @@ const ProductDetail = () => {
     typeof productData.price === "string"
       ? parseFloat(productData.price)
       : productData.price || 0;
-  const productShipping = productData.shipping || {};
+
   const productFeatures = Array.isArray(productData.features) ? productData.features : [];
-  const productSpecifications =
-    productData.specifications && typeof productData.specifications === "object"
-      ? productData.specifications
-      : {};
+
   const canNavigateToCategory = Boolean(productData.category);
 
   return (
@@ -917,22 +907,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* Shipping Information */}
-                <Card className="bg-gray-50 dark:bg-gray-900">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium">{t('shippingInformation')}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <div>• {t('freeShippingThreshold')}</div>
-                        <div>• {t('estimatedDelivery')}: {productShipping.estimatedDays || t('defaultDeliveryDays')}</div>
-                        <div>• {(productShipping.returnPolicy || 30)} {t('returnPolicyLabel')}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+
 
                 {/* Trust Badges */}
                 <div className="grid grid-cols-1 gap-3 text-sm">
@@ -940,13 +915,9 @@ const ProductDetail = () => {
                     <Shield className="h-4 w-4 text-green-600" />
                     <span className="text-green-800 dark:text-green-200">{t('securePayment')}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <Truck className="h-4 w-4 text-blue-600" />
-                    <span className="text-blue-800 dark:text-blue-200">{t('fastDelivery')}</span>
-                  </div>
                   <div className="flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                     <CheckCircle className="h-4 w-4 text-purple-600" />
-                    <span className="text-purple-800 dark:text-purple-200">{t('qualityGuaranteed')}</span>
+                    <span className="text-purple-800 dark:text-purple-200">{t('Quality Guaranteed')}</span>
                   </div>
                 </div>
               </div>
@@ -955,11 +926,9 @@ const ProductDetail = () => {
             {/* Product Details Tabs */}
             <div className="mb-12">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-4">
+                <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-2">
                   <TabsTrigger value="description" className="min-w-[140px] sm:min-w-0">{t('description')}</TabsTrigger>
-                  <TabsTrigger value="specifications" className="min-w-[140px] sm:min-w-0">{t('specifications')}</TabsTrigger>
                   <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">{t('reviews')} ({productReviewCount})</TabsTrigger>
-                  <TabsTrigger value="shipping" className="min-w-[140px] sm:min-w-0">{t('shippingReturns')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="description" className="mt-6">
@@ -1030,65 +999,7 @@ const ProductDetail = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="specifications" className="mt-6">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>{t('productSpecifications')}</CardTitle>
-                        {isVendor && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditStart('specifications')}
-                            disabled={isEditing}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            {t('editSpecifications')}
-                          </Button>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {isEditing && editMode === 'specifications' ? (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {Object.entries(editedSpecifications).map(([key, value]) => (
-                              <div key={key} className="space-y-2">
-                                <Label htmlFor={key}>{key}</Label>
-                                <Input
-                                  id={key}
-                                  value={value as string}
-                                  onChange={(e) => setEditedSpecifications({
-                                    ...editedSpecifications,
-                                    [key]: e.target.value
-                                  })}
-                                  placeholder={`Enter ${key.toLowerCase()}...`}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <Button onClick={handleEditSave} size="sm">
-                              Save Changes
-                            </Button>
-                            <Button onClick={handleEditCancel} variant="outline" size="sm">
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(editedSpecifications && Object.keys(editedSpecifications).length > 0 ? editedSpecifications : productSpecifications).map(([key, value]) => (
-                            <div key={key} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
-                              <span className="font-medium text-gray-600 dark:text-gray-400">{key}:</span>
-                              <span className="text-gray-900 dark:text-gray-100">{String(value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+
 
                 <TabsContent value="reviews" className="mt-6">
                   <div className="space-y-6">
@@ -1295,146 +1206,7 @@ const ProductDetail = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="shipping" className="mt-6">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold">{t('shippingReturnsInfo')}</h3>
-                      {isVendor && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditStart('shipping')}
-                          disabled={isEditing}
-                        >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          {t('editShippingInfo')}
-                        </Button>
-                      )}
-                    </div>
 
-                    {isEditing && editMode === 'shipping' ? (
-                      <Card>
-                        <CardContent className="p-6 space-y-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                              <h4 className="font-semibold">{t('shippingInformation')}</h4>
-                              <div>
-                                <Label htmlFor="estimatedDays">{t('estimatedDelivery')}</Label>
-                                <Input
-                                  id="estimatedDays"
-                                  value={editedShipping.estimatedDays || productShipping.estimatedDays || ""}
-                                  onChange={(e) => setEditedShipping({
-                                    ...editedShipping,
-                                    estimatedDays: e.target.value
-                                  })}
-                                  placeholder="e.g., 2-3 days"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="freeShippingThreshold">{t('freeShippingThresholdLabel')}</Label>
-                                <Input
-                                  id="freeShippingThreshold"
-                                  value={editedShipping.freeShippingThreshold || productShipping.freeShippingThreshold || "$25"}
-                                  onChange={(e) => setEditedShipping({
-                                    ...editedShipping,
-                                    freeShippingThreshold: e.target.value
-                                  })}
-                                  placeholder="e.g., $25"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h4 className="font-semibold">{t('returnsExchanges')}</h4>
-                              <div>
-                                <Label htmlFor="returnPolicy">{t('returnPolicyLabelDays')}</Label>
-                                <Input
-                                  id="returnPolicy"
-                                  value={editedShipping.returnPolicy || productShipping.returnPolicy || "30"}
-                                  onChange={(e) => setEditedShipping({
-                                    ...editedShipping,
-                                    returnPolicy: e.target.value
-                                  })}
-                                  placeholder="e.g., 30"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="returnConditions">{t('returnConditionsLabel')}</Label>
-                                <Textarea
-                                  id="returnConditions"
-                                  value={editedShipping.returnConditions || productShipping.returnConditions || "Items must be in original condition"}
-                                  onChange={(e) => setEditedShipping({
-                                    ...editedShipping,
-                                    returnConditions: e.target.value
-                                  })}
-                                  placeholder={t('returnConditionsPlaceholder')}
-                                  className="min-h-[80px]"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2">
-                            <Button onClick={handleEditSave} size="sm">
-                              Save Changes
-                            </Button>
-                            <Button onClick={handleEditCancel} variant="outline" size="sm">
-                              Cancel
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <Truck className="h-5 w-5" />
-                              {t('shippingInformation')}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span>{t('freeShippingThresholdText', { threshold: (editedShipping.freeShippingThreshold || productShipping.freeShippingThreshold) || "$25" })}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-blue-600" />
-                              <span>{t('estimatedDeliveryText', { days: (editedShipping.estimatedDays || productShipping.estimatedDays || "3-5 days") })}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-purple-600" />
-                              <span>{t('availableInternationalShipping')}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <RefreshCw className="h-5 w-5" />
-                              {t('returnsExchanges')}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span>{t('returnPolicyText', { days: (editedShipping.returnPolicy || productShipping.returnPolicy || 30) })}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Shield className="h-4 w-4 text-blue-600" />
-                              <span>{t('moneyBackGuarantee')}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Award className="h-4 w-4 text-purple-600" />
-                              <span>{t('qualitySatisfactionGuarantee')}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
               </Tabs>
             </div>
 

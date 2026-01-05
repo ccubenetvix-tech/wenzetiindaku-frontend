@@ -77,13 +77,13 @@ const AddAddress = () => {
             data?: { addresses?: any[] };
           }>,
         ]);
-        
+
         const customer = profileResponse?.data?.customer;
         if (customer) {
           const nameParts = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
           const fallbackName = nameParts || (user?.email ?? "Customer");
           const phone = customer.phoneNumber || null;
-          
+
           setFormData((prev) => ({
             ...prev,
             fullName: fallbackName,
@@ -103,7 +103,7 @@ const AddAddress = () => {
           const addressData = locationState.addressData;
           setIsEditing(true);
           setEditAddressId(locationState.editAddressId);
-          
+
           // Pre-fill form with address data
           setFormData({
             fullName: addressData.full_name || "",
@@ -201,12 +201,12 @@ const AddAddress = () => {
         city: formData.city.trim(),
         state: formData.state.trim(),
         postalCode: formData.pincode.trim(), // Pincode
-        country: "India", // Default country
+        country: "DR Congo", // Default country
         label: formData.addressType, // Address Type (Home/Work/Other)
       };
 
       console.log("Submitting address data:", addressData);
-      
+
       let response;
       if (isEditing && editAddressId) {
         // Update existing address
@@ -224,13 +224,13 @@ const AddAddress = () => {
         };
         const existingAddresses = addressesResponse?.data?.addresses || [];
         const isFirstAddress = existingAddresses.length === 0;
-        
+
         // Add isDefault for new addresses
         const newAddressData = {
           ...addressData,
           isDefault: isFirstAddress,
         };
-        
+
         response = (await apiClient.createCustomerAddress(newAddressData)) as {
           success?: boolean;
           message?: string;
@@ -258,7 +258,7 @@ const AddAddress = () => {
     } catch (error) {
       console.error("Failed to add address:", error);
       let message = "Something went wrong while adding your address. Please try again.";
-      
+
       if (error instanceof Error) {
         message = error.message;
         // If it's a JSON string error, try to parse it
@@ -273,7 +273,7 @@ const AddAddress = () => {
           }
         }
       }
-      
+
       toast({
         title: "Failed to add address",
         description: message,
@@ -341,7 +341,7 @@ const AddAddress = () => {
                           id="phone"
                           value={formData.phone}
                           onChange={(e) => updateField("phone", e.target.value)}
-                          placeholder="+260 700 000 000"
+                          placeholder="+243 xxx xxx xxx"
                           required
                           autoComplete="tel"
                         />
@@ -352,7 +352,7 @@ const AddAddress = () => {
                           id="altPhone"
                           value={formData.altPhone}
                           onChange={(e) => updateField("altPhone", e.target.value)}
-                          placeholder="+260 700 000 001"
+                          placeholder="+243 xxx xxx xxx"
                           autoComplete="tel"
                         />
                       </div>
@@ -395,7 +395,7 @@ const AddAddress = () => {
                           id="city"
                           value={formData.city}
                           onChange={(e) => updateField("city", e.target.value)}
-                          placeholder="Lusaka"
+                          placeholder="Kinshasa"
                           required
                           autoComplete="address-level2"
                         />
@@ -408,7 +408,7 @@ const AddAddress = () => {
                           id="state"
                           value={formData.state}
                           onChange={(e) => updateField("state", e.target.value)}
-                          placeholder="Lusaka Province"
+                          placeholder="Kinshasa"
                           required
                           autoComplete="address-level1"
                         />
@@ -421,7 +421,7 @@ const AddAddress = () => {
                           id="pincode"
                           value={formData.pincode}
                           onChange={(e) => updateField("pincode", e.target.value)}
-                          placeholder="10101"
+                          placeholder="0000"
                           required
                           autoComplete="postal-code"
                           maxLength={10}
