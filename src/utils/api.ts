@@ -486,7 +486,7 @@ export class ApiClient {
     });
   }
 
-  async getVendors(page = 1, limit = 10, status?: string, search?: string): Promise<ApiResponse> {
+  async getVendors(page = 1, limit: number | string = 10, status?: string, search?: string): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -512,7 +512,7 @@ export class ApiClient {
     });
   }
 
-  async getAdminProducts(page = 1, limit = 10, search = '', status = '', vendorId = ''): Promise<ApiResponse> {
+  async getAdminProducts(page = 1, limit: number | string = 10, search = '', status = '', vendorId = ''): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -546,7 +546,7 @@ export class ApiClient {
     });
   }
 
-  async getAdminCustomers(page = 1, limit = 10, search = ''): Promise<ApiResponse> {
+  async getAdminCustomers(page = 1, limit: number | string = 10, search = ''): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -617,7 +617,7 @@ export class ApiClient {
   }
 
   // Admin Order Management Methods
-  async getAdminOrders(page = 1, limit = 20, status = '', search = '', dateFrom = '', dateTo = ''): Promise<ApiResponse> {
+  async getAdminOrders(page = 1, limit: number | string = 20, status = '', search = '', dateFrom = '', dateTo = ''): Promise<ApiResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),

@@ -319,7 +319,7 @@ const AdminDashboard = () => {
     setVendorsLoading(true);
     try {
       const statusFilter = vendorsStatusFilter === 'all' ? '' : vendorsStatusFilter;
-      const response = await apiClient.getVendors(vendorsPage, 10, statusFilter, vendorsSearch);
+      const response = await apiClient.getVendors(vendorsPage, 'all', statusFilter, vendorsSearch);
       if (response.success) {
         setVendors(response.data.vendors);
       }
@@ -341,7 +341,7 @@ const AdminDashboard = () => {
     try {
       const statusFilter = productsStatusFilter === 'all' ? '' : productsStatusFilter;
       const vendorFilter = productsVendorFilter === 'all' ? '' : productsVendorFilter;
-      const response = await apiClient.getAdminProducts(productsPage, 10, productsSearch, statusFilter, vendorFilter);
+      const response = await apiClient.getAdminProducts(productsPage, 'all', productsSearch, statusFilter, vendorFilter);
       if (response.success) {
         setProducts(response.data.products);
       }
@@ -361,7 +361,7 @@ const AdminDashboard = () => {
   const fetchCustomers = async () => {
     setCustomersLoading(true);
     try {
-      const response = await apiClient.getAdminCustomers(customersPage, 10, customersSearch);
+      const response = await apiClient.getAdminCustomers(customersPage, 'all', customersSearch);
       if (response.success) {
         setCustomers(response.data.customers);
       }
@@ -384,7 +384,7 @@ const AdminDashboard = () => {
       const statusFilter = ordersStatusFilter === 'all' ? '' : ordersStatusFilter;
       const response = await apiClient.getAdminOrders(
         ordersPage,
-        20,
+        'all',
         statusFilter,
         ordersSearch,
         ordersDateFrom,
