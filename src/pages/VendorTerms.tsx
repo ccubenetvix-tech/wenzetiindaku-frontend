@@ -3,7 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Store, Shield, DollarSign, Users, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Store, Shield } from 'lucide-react';
 
 const VendorTerms = () => {
   return (
@@ -17,8 +17,8 @@ const VendorTerms = () => {
               <Store className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Vendor Terms of Service</h1>
-              <p className="text-gray-600 dark:text-gray-400">Terms and conditions for vendors on WENZE TII NDAKU</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contrat de Vendeur</h1>
+              <p className="text-gray-600 dark:text-gray-400">Conditions générales pour les vendeurs sur WENZE TII NDAKU</p>
             </div>
           </div>
           <Badge variant="outline" className="text-sm">
@@ -27,227 +27,75 @@ const VendorTerms = () => {
         </div>
 
         <div className="space-y-6">
-          {/* Introduction */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <span>Introduction</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
-                Welcome to WENZE TII NDAKU, Africa's premier marketplace platform. These Vendor Terms of Service
-                ("Terms") govern your use of our platform as a vendor. By registering as a vendor and using our
-                services, you agree to be bound by these terms.
-              </p>
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Important:</strong> Please read these terms carefully. If you do not agree with any part
-                  of these terms, you should not use our platform as a vendor.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Eligibility */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="h-5 w-5 text-blue-600" />
-                <span>Vendor Eligibility</span>
+                <span>Contrat de Vendeur</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">To become a vendor, you must:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li className="flex items-start space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Be at least 18 years old</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Have a valid business registration or be a sole proprietor</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Provide accurate business information</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Have a valid bank account for payments</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Comply with all applicable laws and regulations</span>
-                  </li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Setup */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-purple-600" />
-                <span>Account Setup and Verification</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Account Requirements:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Complete vendor registration with accurate business information</li>
-                  <li>• Provide valid business registration documents</li>
-                  <li>• Submit required identification documents</li>
-                  <li>• Complete tax information and compliance forms</li>
-                  <li>• Set up payment and banking information</li>
-                </ul>
-              </div>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <AlertTriangle className="h-4 w-4 inline mr-1" />
-                  <strong>Note:</strong> Account verification may take 3-5 business days. You will be notified
-                  once your account is approved.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fees and Payments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5 text-green-600" />
-                <span>Fees and Payments</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Commission Structure:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Platform commission: 5-15% per transaction (varies by category)</li>
-                  <li>• Payment processing fees: 2.9% + $0.30 per transaction</li>
-                  <li>• Monthly subscription fee: $29.99 (optional premium features)</li>
-                  <li>• Listing fees: Free for first 50 products, $0.50 per additional product</li>
-                </ul>
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Payment Terms:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Payments are processed weekly (every Friday)</li>
-                  <li>• Minimum payout threshold: $50</li>
-                  <li>• Payment methods: Bank transfer, PayPal, Mobile Money</li>
-                  <li>• Refunds are processed within 5-7 business days</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Product Guidelines */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Store className="h-5 w-5 text-orange-600" />
-                <span>Product Guidelines</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Allowed Products:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Electronics and gadgets</li>
-                  <li>• Clothing and accessories</li>
-                  <li>• Home and garden items</li>
-                  <li>• Beauty and personal care</li>
-                  <li>• Books and media</li>
-                  <li>• Sports and outdoor equipment</li>
-                  <li>• Food and beverages (with proper licenses)</li>
-                </ul>
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Prohibited Items:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Illegal drugs and substances</li>
-                  <li>• Weapons and ammunition</li>
-                  <li>• Counterfeit or replica items</li>
-                  <li>• Adult content and services</li>
-                  <li>• Hazardous materials</li>
-                  <li>• Items that violate intellectual property rights</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Responsibilities */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Shield className="h-5 w-5 text-red-600" />
-                <span>Vendor Responsibilities</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">You are responsible for:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Accurate product descriptions and images</li>
-                  <li>• Maintaining adequate inventory levels</li>
-                  <li>• Processing orders within 24-48 hours</li>
-                  <li>• Providing excellent customer service</li>
-                  <li>• Handling returns and refunds according to our policy</li>
-                  <li>• Complying with all applicable laws and regulations</li>
-                  <li>• Protecting customer data and privacy</li>
-                  <li>• Regular account maintenance and updates</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Termination */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
-                <span>Account Termination</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">We may terminate your account for:</h4>
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>• Violation of these terms</li>
-                  <li>• Fraudulent activities</li>
-                  <li>• Poor customer service ratings</li>
-                  <li>• Non-compliance with platform policies</li>
-                  <li>• Legal violations</li>
-                </ul>
-              </div>
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                <p className="text-sm text-red-800 dark:text-red-200">
-                  <AlertTriangle className="h-4 w-4 inline mr-1" />
-                  <strong>Warning:</strong> Account termination may result in loss of access to your vendor
-                  dashboard and pending payments may be held for up to 90 days.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <p className="text-gray-700 dark:text-gray-300">
-                If you have any questions about these Vendor Terms of Service, please contact us:
+                Ce Contrat de Vendeur (« Accord ») est conclu entre WENZE TII NDAKU (la « Plateforme »)
+                et le vendeur enregistré (« Vendeur »). En s'enregistrant et en opérant sur la Plateforme,
+                le vendeur accepte d'être légalement lié par ce Contrat.
               </p>
-              <div className="space-y-2 text-gray-700 dark:text-gray-300">
-                <p><strong>Email:</strong> wenzetiindaku@outlook.com</p>
-                <p><strong>Phone:</strong> +32 495 84 68 66</p>
-                <p><strong>Address:</strong> Kinshasa, R.D. CONGO</p>
+
+              <div className="space-y-4">
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">1. Champ d'application de l'accord.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Cet accord régit les conditions sous lesquelles le vendeur est autorisé à inscrire et vendre des produits sur la plateforme WENZE TII NDAKU.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">2. Obligations du vendeur.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Le vendeur s'engage à exposer uniquement des produits légaux, authentiques et de qualité, et à se conformer à toutes les lois et réglementations applicables.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">3. Produits et comportements interdits.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Tout produit ou activité liée à la drogue, au crime, au terrorisme, à la pédophilie, à la traite des êtres humains, aux armes ou à d'autres activités illégales est strictement interdit et soumis à une résiliation immédiate et des poursuites.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">4. Défauts de produit et remboursements.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Le vendeur assume l'entière responsabilité des produits défectueux, endommagés ou non conformes et s'engage à rembourser intégralement les acheteurs.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">5. Cotisations, adhésion et commission.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Le vendeur accepte de payer une cotisation mensuelle de 10 USD et une commission de 10 % sur le volume total des ventes mensuelles réalisées sur la plateforme.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">6. Paiements des revenus.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Les revenus du vendeur doivent être versés une fois à la fin de chaque mois civil, après déduction des frais et commissions applicables.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">7. Suspension et résiliation.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">La Plateforme se réserve le droit de suspendre ou de résilier immédiatement le compte vendeur en cas de comportement suspect ou inacceptable.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">8. Propriété intellectuelle.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Le vendeur conserve la propriété du contenu produit mais accorde à la plateforme un droit non exclusif d'utiliser ce contenu.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">9. Limitation de responsabilité.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">La plateforme agit uniquement en tant que marché intermédiaire et n'est pas responsable des fautes commises par le vendeur.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">10. Droit et jurisdiction.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">Le présent Accord est régi par les lois commerciales applicables relevant de la compétence légale de la Plateforme.</p>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">11. Acceptation.</h3>
+                  <p className="text-gray-700 dark:text-gray-300">En s'inscrivant sur la Plateforme, le vendeur confirme l'acceptation complète de cet Accord</p>
+                </section>
               </div>
             </CardContent>
           </Card>
