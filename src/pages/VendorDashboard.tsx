@@ -40,7 +40,7 @@ import {
   X,
   UploadCloud
 } from "lucide-react";
-import { calculateIncludedVAT } from "@/utils/priceUtils";
+import { calculateIncludedVAT, calculateTotalWithVAT, formatPrice, extractBasePrice } from "@/utils/priceUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { predefinedCategories } from "@/data/categories";
 import { Footer } from "@/components/Footer";
-import { calculateTotalWithVAT, formatPrice } from "@/utils/priceUtils";
+
 
 interface DashboardStats {
   totalSales: number;
@@ -814,7 +814,8 @@ export default function VendorDashboard() {
     setProductForm({
       name: product.name,
       description: product.description || '',
-      price: product.price.toString(),
+      // Extract base price for the form since stored price is tax-inclusive
+      price: extractBasePrice(product.price).toFixed(2),
       stock: product.stock.toString(),
       category: product.category || '',
       images: product.images || (product.image ? [product.image] : []),

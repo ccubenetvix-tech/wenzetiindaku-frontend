@@ -14,7 +14,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { calculateVAT, calculateIncludedVAT } from "@/utils/priceUtils";
+import { calculateVAT, calculateIncludedVAT, extractBasePrice } from "@/utils/priceUtils";
 
 interface SuccessLocationState {
   orders?: Array<{
@@ -246,15 +246,29 @@ const OrderSuccess = () => {
                         </div>
                       </div>
                       <Separator className="my-3" />
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mb-3">
                         Vendor:{" "}
                         <span className="font-medium text-foreground">
                           {order.vendor?.business_name ?? order.vendor_id ?? "Assigned after confirmation"}
                         </span>
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        Incl. ${calculateIncludedVAT(Number(order.total_amount)).toFixed(2)} VAT (16%)
-                      </p>
+
+                      {/* Price Breakdown */}
+                      <div className="bg-muted/30 rounded-md p-3 text-sm space-y-1.5">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Price</span>
+                          <span>${extractBasePrice(Number(order.total_amount)).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">VAT (16%)</span>
+                          <span>${calculateIncludedVAT(Number(order.total_amount)).toFixed(2)}</span>
+                        </div>
+                        <Separator className="my-1.5" />
+                        <div className="flex justify-between font-medium">
+                          <span>Total</span>
+                          <span>${Number(order.total_amount).toFixed(2)}</span>
+                        </div>
+                      </div>
 
                     </div>
                   ))}

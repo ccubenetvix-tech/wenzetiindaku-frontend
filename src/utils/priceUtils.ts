@@ -20,6 +20,16 @@ export const calculateIncludedVAT = (total: number): number => {
 };
 
 /**
+ * Extracts the base price from a total price that includes VAT
+ * @param total The total price including VAT
+ * @returns The base price
+ */
+export const extractBasePrice = (total: number): number => {
+    const vatPercentage = Number(import.meta.env.VITE_VAT_PERCENTAGE) || 16;
+    return total / (1 + (vatPercentage / 100));
+};
+
+/**
  * Calculates the total price including VAT
  * @param price The base price
  * @returns The total price including VAT
