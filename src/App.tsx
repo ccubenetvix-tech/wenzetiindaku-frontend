@@ -48,7 +48,6 @@ import TermsOfService from "./pages/TermsOfService";  // Terms of service page
 import VendorTerms from "./pages/VendorTerms";        // Vendor terms page
 import CookiePolicy from "./pages/CookiePolicy";      // Cookie policy page
 import HelpCenter from "./pages/HelpCenter";          // Help and support center
-import FAQs from "./pages/FAQs";                      // Frequently asked questions
 import ShippingInfo from "./pages/ShippingInfo";      // Shipping information
 import Returns from "./pages/Returns";                // Returns and refunds policy
 
@@ -121,7 +120,6 @@ const App = () => (
                       <Route path="/vendor-terms" element={<VendorTerms />} />                 {/* Vendor terms */}
                       <Route path="/cookies" element={<CookiePolicy />} />                     {/* Cookie policy */}
                       <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
-                      <Route path="/faqs" element={<FAQs />} />                                {/* FAQ page */}
                       <Route path="/shipping" element={<ShippingInfo />} />                    {/* Shipping information */}
                       <Route path="/returns" element={<Returns />} />                          {/* Returns policy */}
 

@@ -1414,6 +1414,9 @@ const Checkout = () => {
                   </div>
                 </div>
 
+                <div className="mb-4 text-xs font-bold text-red-600">
+                  {t('deliveryFeeNotice')}
+                </div>
                 <div className="rounded-md border border-dashed border-border/60 p-4 text-xs text-muted-foreground">
                   {t('promoCodeNotice')}
                 </div>

@@ -8,41 +8,13 @@ import {
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
 const Contact = () => {
   const { t } = useTranslation();
 
-  const faqs = [
-    {
-      question: "How do I create a vendor account?",
-      answer: "You can create a vendor account by clicking on 'Become a Vendor' in the header menu. Fill out the registration form and wait for approval from our team."
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer: "We accept credit/debit cards (Visa, Mastercard), mobile money payments, and bank transfers depending on your location."
-    },
-    {
-      question: "How long does shipping take?",
-      answer: "Shipping times vary by location and vendor. Typically, local deliveries take 1-3 business days, while international shipping can take 5-14 business days."
-    },
-    {
-      question: "Can I return a product if I'm not satisfied?",
-      answer: "Yes, we have a return policy. You can return products within 14 days of delivery if they're in original condition. Please check with individual vendors for their specific return policies."
-    },
-    {
-      question: "How do I track my order?",
-      answer: "Once your order is shipped, you'll receive a tracking number via email and SMS. You can also track your orders from your profile page."
-    },
-    {
-      question: "Is my personal information secure?",
-      answer: "Yes, we use industry-standard encryption and security measures to protect your personal and payment information. We never share your data with third parties without your consent."
-    }
-  ];
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -118,33 +90,7 @@ const Contact = () => {
             </div>
           </div>
 
-          {/* FAQ Section */}
-          <div className="mt-16">
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center mb-4">
-                <HelpCircle className="h-8 w-8 text-primary mr-3" />
-                <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
-              </div>
-              <p className="text-xl text-muted-foreground">
-                Quick answers to common questions
-              </p>
-            </div>
 
-            <div className="max-w-4xl mx-auto">
-              <Accordion type="single" collapsible className="w-full">
-                {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          </div>
         </div>
       </main>
 

@@ -35,7 +35,6 @@ export function Footer() {
       title: t('support'),                    // Customer support section
       links: [
         { name: t('helpCenter'), href: '/help' },       // Help center
-        { name: t('faqs'), href: '/faqs' },             // FAQ page
         { name: t('shippingInfo'), href: '/shipping' }, // Shipping information
         { name: t('returns'), href: '/returns' },       // Returns policy
       ]
