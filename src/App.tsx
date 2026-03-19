@@ -57,6 +57,8 @@ import CustomerSignup from "./pages/CustomerSignup";  // Customer registration p
 import VendorLogin from "./pages/VendorLogin";        // Vendor login page
 import VendorRegister from "./pages/VendorRegister";  // Vendor registration page
 import VendorDashboard from "./pages/VendorDashboard"; // Vendor management dashboard
+import ForgotPassword from "./pages/ForgotPassword";    // Customer password reset page
+import VendorForgotPassword from "./pages/VendorForgotPassword"; // Vendor password reset page
 import AdminLogin from "./pages/AdminLogin";          // Admin login page
 import AdminDashboard from "./pages/AdminDashboard";  // Admin dashboard
 import AuthCallback from "./pages/AuthCallback";      // OAuth callback page
@@ -128,6 +130,8 @@ const App = () => (
                       <Route path="/customer/signup" element={<CustomerSignup />} />           {/* Customer registration */}
                       <Route path="/vendor/login" element={<VendorLogin />} />                 {/* Vendor login */}
                       <Route path="/vendor/register" element={<VendorRegister />} />           {/* Vendor registration */}
+                      <Route path="/forgot-password" element={<ForgotPassword />} />         {/* Customer forgot password */}
+                      <Route path="/vendor/forgot-password" element={<VendorForgotPassword />} /> {/* Vendor forgot password */}
                       <Route path="/admin/login" element={<AdminLogin />} />                   {/* Admin login */}
                       <Route path="/auth/callback" element={<AuthCallback />} />               {/* OAuth callback */}
                       <Route path="/update-profile" element={<UpdateProfile />} />             {/* Profile update */}
