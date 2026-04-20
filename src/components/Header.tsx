@@ -32,10 +32,6 @@ import { useChat } from "@/contexts/ChatContext";
 const languages = [
   { code: 'en', name: 'English' },      // English - primary language
   { code: 'fr', name: 'Français' },     // French - widely spoken in Africa
-  { code: 'af', name: 'Afrikaans' },    // Afrikaans - South Africa
-  { code: 'sw', name: 'Kiswahili' },    // Swahili - East Africa
-  { code: 'zu', name: 'isiZulu' },      // Zulu - South Africa
-  { code: 'yo', name: 'Yorùbá' }        // Yoruba - West Africa
 ];
 
 /**
