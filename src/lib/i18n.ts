@@ -298,7 +298,7 @@ const resources = {
       orderItems: "Order items",
       totalAmount: "Total amount",
       promoCodeNotice: "Thank you for choosing Wenze Tii Ndaku",
-      deliveryFeeNotice: "Delivery fees are to be paid directly to logistic personnel and in full, on delivery according to the Zone pricing A, B or C",
+      deliveryFeeNotice: "Les frais de livraison sont à payer directement au personnel de logistique. Fixés selon les zones A, B, C, et D»",
       enterDeliveryAddress: "Enter a different delivery address for this order.",
       checkoutShowLess: "Show Less",
       checkoutShowDetails: "Show Details",

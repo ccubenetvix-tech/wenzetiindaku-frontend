@@ -131,7 +131,7 @@ export default function Stores() {
               productCount: productCount, // Real product count
               location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
               // Use vendor profile photo where available, fall back to default
-              image: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
+              image: vendor.profile_photo || vendor.profilePhoto || "",
               categories: vendor.categories || [],
               featured: vendor.featured || false,
               verified: vendor.verified || false,

@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // Import React Router for client-side routing and navigation
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ScrollToTop from "@/components/ScrollToTop";
 // Import i18next for internationalization support
 import { I18nextProvider } from "react-i18next";
 // Import auth context provider for authentication state management
@@ -50,6 +51,7 @@ import CookiePolicy from "./pages/CookiePolicy";      // Cookie policy page
 import HelpCenter from "./pages/HelpCenter";          // Help and support center
 import ShippingInfo from "./pages/ShippingInfo";      // Shipping information
 import Returns from "./pages/Returns";                // Returns and refunds policy
+import Faq from "./pages/Faq";                      // Frequently Asked Questions page
 
 // Authentication and dashboard pages
 import CustomerLogin from "./pages/CustomerLogin";    // Customer login page
@@ -95,6 +97,7 @@ const App = () => (
                   <Sonner />
                   {/* Browser router for client-side navigation */}
                   <BrowserRouter>
+                    <ScrollToTop />
                     {/* Route definitions for all application pages */}
                     <Routes>
                       {/* Main marketplace routes */}
@@ -124,6 +127,7 @@ const App = () => (
                       <Route path="/help" element={<HelpCenter />} />                          {/* Help center */}
                       <Route path="/shipping" element={<ShippingInfo />} />                    {/* Shipping information */}
                       <Route path="/returns" element={<Returns />} />                          {/* Returns policy */}
+                      <Route path="/faq" element={<Faq />} />                                  {/* Frequently Asked Questions */}
 
                       {/* Authentication routes */}
                       <Route path="/customer/login" element={<CustomerLogin />} />             {/* Customer login */}

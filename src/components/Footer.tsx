@@ -37,6 +37,7 @@ export function Footer() {
         { name: t('helpCenter'), href: '/help' },       // Help center
         { name: t('shippingInfo'), href: '/shipping' }, // Shipping information
         { name: t('returns'), href: '/returns' },       // Returns policy
+        { name: 'FAQ', href: '/faq' },                  // FAQ page
       ]
     },
     {

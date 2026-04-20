@@ -32,7 +32,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
-import { calculateIncludedVAT } from "@/utils/priceUtils";
+import { calculateIncludedVAT, calculateVAT } from "@/utils/priceUtils";
 
 
 type CheckoutStep = "address" | "payment" | "review";
@@ -128,12 +128,13 @@ const Checkout = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [expandedAddressId, setExpandedAddressId] = useState<string | null>(null);
+  
 
   const subtotal = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cartItems]
   );
-  const vatAmount = useMemo(() => calculateIncludedVAT(subtotal), [subtotal]);
+  const vatAmount = useMemo(() => calculateVAT(subtotal), [subtotal]);
   const total = useMemo(() => subtotal, [subtotal]);
 
   const steps: Array<{ id: CheckoutStep; name: string; description: string }> = [

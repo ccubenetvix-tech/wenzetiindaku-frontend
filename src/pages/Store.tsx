@@ -122,8 +122,8 @@ const Store = () => {
             totalProducts: 0, // Will be updated when products are loaded
             joinedDate: new Date(vendor.createdAt).getFullYear().toString(),
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            banner: vendor.profile_photo || vendor.profilePhoto || "/marketplace.jpeg",
-            profilePhoto: vendor.profile_photo || vendor.profilePhoto || null
+            banner: vendor.profile_photo || vendor.profilePhoto || "",
+            profilePhoto: vendor.profile_photo || vendor.profilePhoto || ""
           };
 
           setStore(storeData);
@@ -143,7 +143,7 @@ const Store = () => {
               originalPrice: product.original_price,
               rating: product.rating || 0,
               reviewCount: product.review_count || 0,
-              image: product.images?.[0] || product.image || "/marketplace.jpeg",
+              image: product.images?.[0] || product.image || "",
               vendor: storeData.name,
               isNew: product.is_new || false,
               isFeatured: product.is_featured || false,
