@@ -305,7 +305,7 @@ const CustomerSignup = () => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Must be at least 8 characters long
+                    Must be at least 8 characters long and contain a special character.
                   </p>
                 </div>
 
