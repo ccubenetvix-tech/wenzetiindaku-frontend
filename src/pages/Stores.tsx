@@ -236,7 +236,7 @@ export default function Stores() {
                             loading="lazy"
                           />
                         ) : (
-                          <Store className="h-10 w-10 text-navy-600 dark:text-navy-400" />
+                          <img src="/store.jpeg" className="w-full h-full object-cover object-center" alt="Store" />
                         )}
                       </div>
 

@@ -29,7 +29,6 @@ import {
   Star,          // Star icon for ratings and featured products
   MapPin,        // Map pin icon for location
   MessageCircle, // Message icon for messaging functionality
-  Store as StoreIcon, // Store icon (renamed to avoid conflict)
   Loader2        // Loading spinner icon
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -122,7 +121,7 @@ const Store = () => {
             totalProducts: 0, // Will be updated when products are loaded
             joinedDate: new Date(vendor.createdAt).getFullYear().toString(),
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            banner: vendor.profile_photo || vendor.profilePhoto || "",
+            banner: vendor.profile_photo || vendor.profilePhoto || "/store.jpeg",
             profilePhoto: vendor.profile_photo || vendor.profilePhoto || ""
           };
 
@@ -223,7 +222,7 @@ const Store = () => {
       <SEO
         title={store?.name}
         description={store?.description || `Shop from ${store?.name} on Wenze Tii Ndaku.`}
-        image={store?.banner || "/marketplace.jpeg"}
+        image={store?.banner || "/store.jpeg"}
         url={`/store/${storeId}`}
         type="profile"
         breadcrumbs={[
@@ -254,7 +253,7 @@ const Store = () => {
             <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 overflow-hidden bg-black/5">
               {/* Store banner image - use object-contain so full photo is visible */}
               <img
-                src={store.banner || "/marketplace.jpeg"}
+                src={store.banner || "/store.jpeg"}
                 alt={store.name}
                 className="absolute inset-0 w-full h-full object-contain object-center"
                 loading="lazy"
