@@ -157,7 +157,7 @@ const AddAddress = () => {
     }
 
     // Validate phone number format (basic validation)
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    const phoneRegex = /^[\d\s\-+()]+$/;
     if (!phoneRegex.test(formData.phone)) {
       toast({
         title: "Invalid phone number",
