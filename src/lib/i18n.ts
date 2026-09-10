@@ -112,7 +112,7 @@ const resources = {
       topStores: "Top Stores",
       discoverAmazingStores: "Discover amazing stores",
       trustedByMillions: "Trusted by Millions",
-      joinGrowingCommunity: "Join our growing community of satisfied customers and sellers",
+      joinGrowingCommunity: "Join our Growing Community of satisfied customers and sellers",
       happyCustomers: "Happy Customers",
       activeSellers: "Active Sellers",
       productsSold: "Products Sold",
