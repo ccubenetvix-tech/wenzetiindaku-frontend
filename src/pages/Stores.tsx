@@ -175,7 +175,7 @@ export default function Stores() {
         {showLoader && (
           <PageLoader
             variant="store"
-            title="Exploring stores"
+            title={t('pages.stores.exploringStores')}
             subtitle="Discovering places near you"
             fadingOut={isFadingOut}
           />
@@ -236,7 +236,7 @@ export default function Stores() {
                             loading="lazy"
                           />
                         ) : (
-                          <img src="/store.jpeg" className="w-full h-full object-cover object-center" alt="Store" />
+                          <img src="/store.jpeg" className="w-full h-full object-cover object-center" alt={t('pages.stores.store')} />
                         )}
                       </div>
 
@@ -247,7 +247,7 @@ export default function Stores() {
                           </h3>
                           {store.featured && (
                             <span className="status-featured text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                              Featured
+                              {t('pages.stores.featured')}
                             </span>
                           )}
                         </div>
@@ -314,7 +314,7 @@ export default function Stores() {
                 {!isLoading && filteredStores.length === 0 && (
                   <div className="col-span-full text-center py-12">
                     <p className="text-muted-foreground text-lg">
-                      {t('noStoresFound')}{searchQuery ? ` for "${searchQuery}"` : ""}
+                      {t('noStoresFound')}{searchQuery ? t('pages.stores.forSearchquery', { searchQuery }) : ""}
                     </p>
                     {searchQuery && (
                       <Button

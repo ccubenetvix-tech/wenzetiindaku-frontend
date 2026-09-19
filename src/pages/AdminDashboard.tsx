@@ -50,7 +50,9 @@ import { apiClient } from '../utils/api';
 import VendorRevenueModal from '../components/admin/VendorRevenueModal';
 import CustomerHistoryModal from '../components/admin/CustomerHistoryModal';
 import CustomerReviewsModal from '../components/admin/CustomerReviewsModal';
+import i18n from "@/lib/i18n";
 
+import { formatDate, formatDateTime, formatMoney, formatStatus, formatTime } from "@/lib/format";
 interface Vendor {
   id: string;
   business_name: string;
@@ -128,6 +130,7 @@ interface DashboardStats {
 interface Order {
   id: string;
   orderId: string;
+  orderNumber?: string | null;
   customer: {
     id: string;
     name: string;
@@ -144,6 +147,7 @@ interface Order {
   status: string;
   paymentMethod: string;
   paymentStatus: string;
+  paymentPendingReason?: string | null;
   shippingAddress?: any;
   cancellationReason?: string;
   items: Array<{
@@ -161,13 +165,11 @@ interface Order {
 }
 
 const formatDateSafe = (dateString: string | null | undefined, includeTime = false) => {
-  if (!dateString) return 'N/A';
+  if (!dateString) return i18n.t('notAvailable');
   try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Invalid Date';
-    return includeTime ? date.toLocaleString() : date.toLocaleDateString();
+    return includeTime ? formatDateTime(dateString) : formatDate(dateString);
   } catch (error) {
-    return 'Error';
+    return i18n.t('notAvailable');
   }
 };
 
@@ -281,8 +283,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch dashboard data",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToFetchDashboardData'),
         variant: "destructive",
       });
     }
@@ -326,8 +328,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching vendors:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch vendors",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToFetchVendors'),
         variant: "destructive",
       });
     } finally {
@@ -348,8 +350,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching products:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch products",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToFetchProducts'),
         variant: "destructive",
       });
     } finally {
@@ -368,8 +370,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching customers:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch customers",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToFetchCustomers'),
         variant: "destructive",
       });
     } finally {
@@ -397,8 +399,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch orders",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToFetchOrders'),
         variant: "destructive",
       });
     } finally {
@@ -426,8 +428,8 @@ const AdminDashboard = () => {
       const response = await apiClient.approveVendor(vendorId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Vendor approved successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.vendorApprovedSuccessfully'),
         });
         fetchVendors();
         fetchDashboardData();
@@ -436,8 +438,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error approving vendor:', error);
       toast({
-        title: "Error",
-        description: "Failed to approve vendor",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToApproveVendor'),
         variant: "destructive",
       });
     } finally {
@@ -451,8 +453,8 @@ const AdminDashboard = () => {
       const response = await apiClient.rejectVendor(vendorId, rejectionReason);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Vendor rejected successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.vendorRejectedSuccessfully'),
         });
         fetchVendors();
         fetchDashboardData();
@@ -462,8 +464,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error rejecting vendor:', error);
       toast({
-        title: "Error",
-        description: "Failed to reject vendor",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToRejectVendor'),
         variant: "destructive",
       });
     } finally {
@@ -478,8 +480,8 @@ const AdminDashboard = () => {
       const response = await apiClient.updateVendor(selectedVendor.id, vendorForm);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Vendor updated successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.vendorUpdatedSuccessfully'),
         });
         fetchVendors();
         setIsVendorEditModalOpen(false);
@@ -489,8 +491,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error updating vendor:', error);
       toast({
-        title: "Error",
-        description: "Failed to update vendor",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToUpdateVendor'),
         variant: "destructive",
       });
     }
@@ -502,8 +504,8 @@ const AdminDashboard = () => {
       const response = await apiClient.deleteVendor(vendorId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Vendor deleted successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.vendorDeletedSuccessfully'),
         });
         fetchVendors();
         fetchDashboardData();
@@ -513,8 +515,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error deleting vendor:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete vendor",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToDeleteVendor'),
         variant: "destructive",
       });
     } finally {
@@ -530,8 +532,8 @@ const AdminDashboard = () => {
       const response = await apiClient.updateAdminProduct(selectedProduct.id, productForm);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Product updated successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.productUpdatedSuccessfully'),
         });
         fetchProducts();
         setIsProductEditModalOpen(false);
@@ -541,8 +543,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error updating product:', error);
       toast({
-        title: "Error",
-        description: "Failed to update product",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToUpdateProduct'),
         variant: "destructive",
       });
     }
@@ -553,8 +555,8 @@ const AdminDashboard = () => {
       const response = await apiClient.deleteAdminProduct(productId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Product deleted successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.productDeletedSuccessfully'),
         });
         fetchProducts();
         fetchDashboardData();
@@ -564,8 +566,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error deleting product:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete product",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToDeleteProduct'),
         variant: "destructive",
       });
     }
@@ -576,8 +578,8 @@ const AdminDashboard = () => {
       const response = await apiClient.redMarkProduct(productId, redMarkReason);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Product red-marked successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.productRedMarkedSuccessfully'),
         });
         fetchProducts();
         fetchDashboardData();
@@ -588,8 +590,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error red-marking product:', error);
       toast({
-        title: "Error",
-        description: "Failed to red-mark product",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToRedMarkProduct'),
         variant: "destructive",
       });
     }
@@ -601,8 +603,8 @@ const AdminDashboard = () => {
       const response = await apiClient.deleteAdminCustomer(customerId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Customer deleted successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.customerDeletedSuccessfully'),
         });
         fetchCustomers();
         fetchDashboardData();
@@ -612,8 +614,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error deleting customer:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete customer",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToDeleteCustomer'),
         variant: "destructive",
       });
     }
@@ -632,8 +634,8 @@ const AdminDashboard = () => {
       );
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Order status updated successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.orderStatusUpdatedSuccessfully'),
         });
         fetchOrders();
         fetchDashboardData();
@@ -645,8 +647,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error updating order status:', error);
       toast({
-        title: "Error",
-        description: "Failed to update order status",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToUpdateOrderStatus'),
         variant: "destructive",
       });
     } finally {
@@ -665,8 +667,8 @@ const AdminDashboard = () => {
       );
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Payment status updated successfully",
+          title: i18n.t('pages.adminDashboard.success'),
+          description: i18n.t('pages.adminDashboard.paymentStatusUpdatedSuccessfully'),
         });
         fetchOrders();
         setIsOrderPaymentModalOpen(false);
@@ -676,8 +678,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error updating payment status:', error);
       toast({
-        title: "Error",
-        description: "Failed to update payment status",
+        title: i18n.t('pages.adminDashboard.error'),
+        description: i18n.t('pages.adminDashboard.failedToUpdatePaymentStatus'),
         variant: "destructive",
       });
     } finally {
@@ -710,12 +712,6 @@ const AdminDashboard = () => {
     return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   // Logout function
   const handleLogout = () => {
@@ -736,8 +732,8 @@ const AdminDashboard = () => {
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">WENZE TII NDAKU Management</p>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('pages.adminDashboard.adminDashboard')}</h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('pages.adminDashboard.wenzeTiiNdakuManagement')}</p>
                 </div>
               </div>
             </div>
@@ -751,7 +747,7 @@ const AdminDashboard = () => {
                 className="flex items-center space-x-2"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span className="hidden sm:inline">Refresh</span>
+                <span className="hidden sm:inline">{t('pages.adminDashboard.refresh')}</span>
               </Button>
               <Button
                 onClick={handleLogout}
@@ -760,7 +756,7 @@ const AdminDashboard = () => {
                 className="flex items-center space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden sm:inline">{t('pages.adminDashboard.logout')}</span>
               </Button>
             </div>
           </div>
@@ -778,35 +774,35 @@ const AdminDashboard = () => {
                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Overview
+                {t('pages.adminDashboard.overview')}
               </TabsTrigger>
               <TabsTrigger
                 value="orders"
                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
-                Orders
+                {t('pages.adminDashboard.orders')}
               </TabsTrigger>
               <TabsTrigger
                 value="vendors"
                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
               >
                 <Store className="h-4 w-4 mr-2" />
-                Vendors
+                {t('pages.adminDashboard.vendors')}
               </TabsTrigger>
               <TabsTrigger
                 value="products"
                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-navy-600 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-orange-50 hover:to-navy-50"
               >
                 <Package className="h-4 w-4 mr-2" />
-                Products
+                {t('pages.adminDashboard.products')}
               </TabsTrigger>
               <TabsTrigger
                 value="customers"
                 className="min-w-[150px] sm:min-w-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md py-2.5 font-medium hover:bg-gradient-to-r hover:from-navy-50 hover:to-orange-50"
               >
                 <Users className="h-4 w-4 mr-2" />
-                Customers
+                {t('pages.adminDashboard.customers')}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -819,7 +815,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-navy-600 dark:text-navy-400">Total Vendors</p>
+                      <p className="text-sm font-medium text-navy-600 dark:text-navy-400">{t('pages.adminDashboard.totalVendors')}</p>
                       {isStatsLoading ? (
                         <div className="mt-2 space-y-2">
                           <Skeleton className="h-8 w-20" />
@@ -829,7 +825,7 @@ const AdminDashboard = () => {
                         <>
                           <p className="text-3xl font-bold text-navy-900 dark:text-navy-100">{stats?.totalVendors ?? 0}</p>
                           <p className="text-xs text-navy-600 dark:text-navy-400 mt-1">
-                            {stats?.pendingVendors ?? 0} pending approval
+                            {t('pages.adminDashboard.pendingvendorsPendingApproval', { pendingVendors: stats?.pendingVendors ?? 0 })}
                           </p>
                         </>
                       )}
@@ -845,7 +841,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Products</p>
+                      <p className="text-sm font-medium text-orange-600 dark:text-orange-400">{t('pages.adminDashboard.totalProducts')}</p>
                       {isStatsLoading ? (
                         <div className="mt-2 space-y-2">
                           <Skeleton className="h-8 w-20" />
@@ -855,7 +851,7 @@ const AdminDashboard = () => {
                         <>
                           <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats?.totalProducts ?? 0}</p>
                           <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                            {stats?.flaggedProducts ?? 0} flagged
+                            {t('pages.adminDashboard.flaggedCount', { count: stats?.flaggedProducts ?? 0 })}
                           </p>
                         </>
                       )}
@@ -871,7 +867,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-navy-600 dark:text-navy-400">Total Customers</p>
+                      <p className="text-sm font-medium text-navy-600 dark:text-navy-400">{t('pages.adminDashboard.totalCustomers')}</p>
                       {isStatsLoading ? (
                         <div className="mt-2 space-y-2">
                           <Skeleton className="h-8 w-20" />
@@ -881,7 +877,7 @@ const AdminDashboard = () => {
                         <>
                           <p className="text-3xl font-bold text-navy-900 dark:text-navy-100">{stats?.totalCustomers ?? 0}</p>
                           <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                            Active users
+                            {t('pages.adminDashboard.activeUsers')}
                           </p>
                         </>
                       )}
@@ -897,7 +893,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Sales</p>
+                      <p className="text-sm font-medium text-orange-600 dark:text-orange-400">{t('pages.adminDashboard.totalSales')}</p>
                       {isStatsLoading ? (
                         <div className="mt-2 space-y-2">
                           <Skeleton className="h-8 w-24" />
@@ -906,10 +902,10 @@ const AdminDashboard = () => {
                       ) : (
                         <>
                           <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">
-                            ${stats ? stats.totalSales.toLocaleString() : 0}
+                            {formatMoney(stats?.totalSales ?? 0)}
                           </p>
                           <p className="text-xs text-navy-600 dark:text-navy-400 mt-1">
-                            {stats?.totalOrders ?? 0} orders
+                            {t('pages.adminDashboard.orderCount', { count: stats?.totalOrders ?? 0 })}
                           </p>
                         </>
                       )}
@@ -929,9 +925,9 @@ const AdminDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2 text-navy-600" />
-                    Quick Actions
+                    {t('pages.adminDashboard.quickActions')}
                   </CardTitle>
-                  <CardDescription>Frequently used admin actions</CardDescription>
+                  <CardDescription>{t('pages.adminDashboard.frequentlyUsedAdminActions')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
@@ -941,7 +937,7 @@ const AdminDashboard = () => {
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <Store className="h-6 w-6 text-navy-600" />
-                      <span className="text-sm font-medium">Manage Vendors</span>
+                      <span className="text-sm font-medium">{t('pages.adminDashboard.manageVendors')}</span>
                     </Button>
                     <Button
                       onClick={() => setActiveTab('products')}
@@ -949,7 +945,7 @@ const AdminDashboard = () => {
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <Package className="h-6 w-6 text-navy-600" />
-                      <span className="text-sm font-medium">Review Products</span>
+                      <span className="text-sm font-medium">{t('pages.adminDashboard.reviewProducts')}</span>
                     </Button>
                     <Button
                       onClick={() => setActiveTab('orders')}
@@ -957,7 +953,7 @@ const AdminDashboard = () => {
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <ShoppingCart className="h-6 w-6 text-navy-600" />
-                      <span className="text-sm font-medium">Manage Orders</span>
+                      <span className="text-sm font-medium">{t('pages.adminDashboard.manageOrders')}</span>
                     </Button>
                     <Button
                       onClick={() => setActiveTab('customers')}
@@ -965,7 +961,7 @@ const AdminDashboard = () => {
                       className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-navy-50 hover:border-navy-300 dark:hover:bg-navy-900/50"
                     >
                       <Users className="h-6 w-6 text-navy-600" />
-                      <span className="text-sm font-medium">View Customers</span>
+                      <span className="text-sm font-medium">{t('pages.adminDashboard.viewCustomers')}</span>
                     </Button>
 
                   </div>
@@ -977,17 +973,17 @@ const AdminDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Shield className="h-5 w-5 mr-2 text-navy-600" />
-                    System Status
+                    {t('pages.adminDashboard.systemStatus')}
                   </CardTitle>
-                  <CardDescription>Platform health and alerts</CardDescription>
+                  <CardDescription>{t('pages.adminDashboard.platformHealthAndAlerts')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-sm font-medium text-green-900 dark:text-green-100">Platform Status</span>
+                      <span className="text-sm font-medium text-green-900 dark:text-green-100">{t('pages.adminDashboard.platformStatus')}</span>
                     </div>
-                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Online</Badge>
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{t('pages.adminDashboard.online')}</Badge>
                   </div>
 
                   {isStatsLoading ? (
@@ -1001,7 +997,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                           <div className="flex items-center space-x-3">
                             <Clock className="h-5 w-5 text-yellow-600" />
-                            <span className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Pending Approvals</span>
+                            <span className="text-sm font-medium text-yellow-900 dark:text-yellow-100">{t('pages.adminDashboard.pendingApprovals')}</span>
                           </div>
                           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{stats?.pendingVendors ?? 0}</Badge>
                         </div>
@@ -1011,7 +1007,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                           <div className="flex items-center space-x-3">
                             <AlertTriangle className="h-5 w-5 text-red-600" />
-                            <span className="text-sm font-medium text-red-900 dark:text-red-100">Flagged Products</span>
+                            <span className="text-sm font-medium text-red-900 dark:text-red-100">{t('pages.adminDashboard.flaggedProducts')}</span>
                           </div>
                           <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{stats?.flaggedProducts ?? 0}</Badge>
                         </div>
@@ -1022,13 +1018,13 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center space-x-3">
                       <Calendar className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Last Updated</span>
+                      <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{t('pages.adminDashboard.lastUpdated')}</span>
                     </div>
                     {isStatsLoading && !lastUpdated ? (
                       <Skeleton className="h-4 w-24" />
                     ) : (
                       <span className="text-sm text-blue-600 dark:text-blue-400">
-                        {lastUpdated ? lastUpdated.toLocaleTimeString() : '—'}
+                        {lastUpdated ? formatTime(lastUpdated) : '—'}
                       </span>
                     )}
                   </div>
@@ -1047,19 +1043,19 @@ const AdminDashboard = () => {
                       <Store className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-navy-900 dark:text-navy-100">Vendor Management</CardTitle>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">{t('pages.adminDashboard.vendorManagement')}</CardTitle>
                       <CardDescription className="text-orange-600 dark:text-orange-400">
-                        Manage vendor accounts, approvals, and business profiles
+                        {t('pages.adminDashboard.manageVendorAccountsApprovalsAndBusiness')}
                       </CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-navy-100 text-navy-800">
-                      {vendors.length} vendors
+                      {t('pages.adminDashboard.countVendors', { count: vendors.length })}
                     </Badge>
                     <Button onClick={fetchVendors} variant="outline" size="sm" className="border-orange-300 hover:bg-orange-50">
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
+                      {t('pages.adminDashboard.refresh')}
                     </Button>
                   </div>
                 </div>
@@ -1070,7 +1066,7 @@ const AdminDashboard = () => {
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
-                      placeholder="Search by business name, email, or location..."
+                      placeholder={t('pages.adminDashboard.searchByBusinessNameEmailOr')}
                       value={vendorsSearch}
                       onChange={(e) => setVendorsSearch(e.target.value)}
                       className="pl-10 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700"
@@ -1079,13 +1075,13 @@ const AdminDashboard = () => {
                   <Select value={vendorsStatusFilter} onValueChange={setVendorsStatusFilter}>
                     <SelectTrigger className="w-48 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700">
                       <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by status" />
+                      <SelectValue placeholder={t('pages.adminDashboard.filterByStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending Approval</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="all">{t('pages.adminDashboard.allStatus')}</SelectItem>
+                      <SelectItem value="pending">{t('pages.adminDashboard.pendingApproval')}</SelectItem>
+                      <SelectItem value="approved">{t('pages.adminDashboard.approved')}</SelectItem>
+                      <SelectItem value="rejected">{t('pages.adminDashboard.rejected')}</SelectItem>
                     </SelectContent>
                   </Select>
                   {(vendorsSearch || vendorsStatusFilter !== 'all') && (
@@ -1095,7 +1091,7 @@ const AdminDashboard = () => {
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Clear All
+                      {t('pages.adminDashboard.clearAll')}
                     </Button>
                   )}
                 </div>
@@ -1106,11 +1102,11 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50 dark:bg-navy-800/50 border-b border-gray-200 dark:border-navy-700">
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Business Details</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Contact</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Registration</TableHead>
-                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">Actions</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.businessDetails')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.contact')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.status')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.registration')}</TableHead>
+                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1119,7 +1115,7 @@ const AdminDashboard = () => {
                             <TableCell colSpan={5} className="text-center py-12">
                               <div className="flex flex-col items-center justify-center space-y-3">
                                 <div className="w-8 h-8 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-gray-500 dark:text-gray-400">Loading vendors...</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t('pages.adminDashboard.loadingVendors')}</span>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1129,8 +1125,8 @@ const AdminDashboard = () => {
                               <div className="flex flex-col items-center justify-center space-y-3">
                                 <Store className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                                 <div className="text-center">
-                                  <p className="text-gray-500 dark:text-gray-400 font-medium">No vendors found</p>
-                                  <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filter criteria</p>
+                                  <p className="text-gray-500 dark:text-gray-400 font-medium">{t('pages.adminDashboard.noVendorsFound')}</p>
+                                  <p className="text-sm text-gray-400 dark:text-gray-500">{t('pages.adminDashboard.tryAdjustingYourSearchOrFilter')}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -1178,33 +1174,33 @@ const AdminDashboard = () => {
                                     {vendor.approved ? (
                                       <>
                                         <CheckCircle className="h-3 w-3 mr-1" />
-                                        Approved
+                                        {t('pages.adminDashboard.approved')}
                                       </>
                                     ) : vendor.rejected_at ? (
                                       <>
                                         <XCircle className="h-3 w-3 mr-1" />
-                                        Rejected
+                                        {t('pages.adminDashboard.rejected')}
                                       </>
                                     ) : (
                                       <>
                                         <Clock className="h-3 w-3 mr-1" />
-                                        Pending
+                                        {t('pages.adminDashboard.pending')}
                                       </>
                                     )}
                                   </Badge>
                                   {vendor.verified && (
                                     <Badge variant="secondary" className="w-fit text-xs bg-blue-100 text-blue-800">
-                                      Verified
+                                      {t('pages.adminDashboard.verified')}
                                     </Badge>
                                   )}
                                 </div>
                               </TableCell>
                               <TableCell className="py-4">
                                 <div className="text-sm text-gray-900 dark:text-gray-100">
-                                  {new Date(vendor.created_at).toLocaleDateString()}
+                                  {formatDate(vendor.created_at)}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(vendor.created_at).toLocaleTimeString()}
+                                  {formatTime(vendor.created_at)}
                                 </div>
                               </TableCell>
                               <TableCell className="text-right py-4">
@@ -1304,19 +1300,19 @@ const AdminDashboard = () => {
                       <ShoppingCart className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-navy-900 dark:text-navy-100">Order Management</CardTitle>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">{t('pages.adminDashboard.orderManagement')}</CardTitle>
                       <CardDescription className="text-orange-600 dark:text-orange-400">
-                        View, manage, and track all marketplace orders
+                        {t('pages.adminDashboard.viewManageAndTrackAllMarketplace')}
                       </CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                      {orders.length} orders
+                      {t('pages.adminDashboard.countOrders', { count: orders.length })}
                     </Badge>
                     <Button onClick={fetchOrders} variant="outline" size="sm" className="border-orange-300 hover:bg-orange-50">
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
+                      {t('pages.adminDashboard.refresh')}
                     </Button>
                   </div>
                 </div>
@@ -1327,7 +1323,7 @@ const AdminDashboard = () => {
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
-                      placeholder="Search by Order ID, Customer, Vendor..."
+                      placeholder={t('pages.adminDashboard.searchByOrderIdCustomerVendor')}
                       value={ordersSearch}
                       onChange={(e) => setOrdersSearch(e.target.value)}
                       className="pl-10 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700"
@@ -1336,30 +1332,30 @@ const AdminDashboard = () => {
                   <Select value={ordersStatusFilter} onValueChange={setOrdersStatusFilter}>
                     <SelectTrigger className="w-48 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700">
                       <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by status" />
+                      <SelectValue placeholder={t('pages.adminDashboard.filterByStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="shipped">Shipped</SelectItem>
-                      <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="all">{t('pages.adminDashboard.allStatus')}</SelectItem>
+                      <SelectItem value="pending">{t('pages.adminDashboard.pending')}</SelectItem>
+                      <SelectItem value="confirmed">{t('pages.adminDashboard.confirmed')}</SelectItem>
+                      <SelectItem value="processing">{t('pages.adminDashboard.processing')}</SelectItem>
+                      <SelectItem value="shipped">{t('pages.adminDashboard.shipped')}</SelectItem>
+                      <SelectItem value="out_for_delivery">{t('pages.adminDashboard.outForDelivery')}</SelectItem>
+                      <SelectItem value="delivered">{t('pages.adminDashboard.delivered')}</SelectItem>
+                      <SelectItem value="completed">{t('pages.adminDashboard.completed')}</SelectItem>
+                      <SelectItem value="cancelled">{t('pages.adminDashboard.cancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Input
                     type="date"
-                    placeholder="From Date"
+                    placeholder={t('pages.adminDashboard.fromDate')}
                     value={ordersDateFrom}
                     onChange={(e) => setOrdersDateFrom(e.target.value)}
                     className="w-48 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700"
                   />
                   <Input
                     type="date"
-                    placeholder="To Date"
+                    placeholder={t('pages.adminDashboard.toDate')}
                     value={ordersDateTo}
                     onChange={(e) => setOrdersDateTo(e.target.value)}
                     className="w-48 bg-white dark:bg-navy-800 border-gray-300 dark:border-navy-700"
@@ -1371,7 +1367,7 @@ const AdminDashboard = () => {
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Clear All
+                      {t('pages.adminDashboard.clearAll')}
                     </Button>
                   )}
                 </div>
@@ -1382,16 +1378,16 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50 dark:bg-navy-800/50 border-b border-gray-200 dark:border-navy-700">
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Order ID</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Customer</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Vendor</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Items</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Total</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Payment</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Date</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Invoice</TableHead>
-                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">Actions</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.orderId')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.customer')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.vendor')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.items')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.total')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.status')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.payment')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.date')}</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.invoice')}</TableHead>
+                          <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1400,7 +1396,7 @@ const AdminDashboard = () => {
                             <TableCell colSpan={9} className="text-center py-12">
                               <div className="flex flex-col items-center justify-center space-y-3">
                                 <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-gray-500 dark:text-gray-400">Loading orders...</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t('pages.adminDashboard.loadingOrders')}</span>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1410,8 +1406,8 @@ const AdminDashboard = () => {
                               <div className="flex flex-col items-center justify-center space-y-3">
                                 <ShoppingCart className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                                 <div className="text-center">
-                                  <p className="text-gray-500 dark:text-gray-400 font-medium">No orders found</p>
-                                  <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filter criteria</p>
+                                  <p className="text-gray-500 dark:text-gray-400 font-medium">{t('pages.adminDashboard.noOrdersFound')}</p>
+                                  <p className="text-sm text-gray-400 dark:text-gray-500">{t('pages.adminDashboard.tryAdjustingYourSearchOrFilter')}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -1420,7 +1416,7 @@ const AdminDashboard = () => {
                           orders.map((order) => (
                             <TableRow key={order.id} className="hover:bg-gray-50 dark:hover:bg-navy-800/30 transition-colors">
                               <TableCell className="font-medium text-navy-600 dark:text-navy-400">
-                                #{order.orderId.substring(0, 8)}
+                                {order.orderNumber ?? `#${order.orderId.substring(0, 8)}`}
                               </TableCell>
                               <TableCell>
                                 <div>
@@ -1437,7 +1433,7 @@ const AdminDashboard = () => {
                               <TableCell>
                                 <div className="flex items-center space-x-2">
                                   <Package className="h-4 w-4 text-gray-400" />
-                                  <span className="text-sm">{order.itemsCount} item{order.itemsCount !== 1 ? 's' : ''}</span>
+                                  <span className="text-sm">{t('itemCount', { count: order.itemsCount })}</span>
                                 </div>
                               </TableCell>
                               <TableCell className="font-medium text-green-600 dark:text-green-400">
@@ -1445,21 +1441,21 @@ const AdminDashboard = () => {
                               </TableCell>
                               <TableCell>
                                 <Badge className={getStatusColor(order.status)}>
-                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+                                  {formatStatus(order.status)}
                                 </Badge>
                               </TableCell>
                               <TableCell>
                                 <Badge className={getPaymentStatusColor(order.paymentStatus)}>
-                                  {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1).replace('_', ' ')}
+                                  {formatStatus(order.paymentStatus)}
                                 </Badge>
                               </TableCell>
                               <TableCell>
                                 <div className="text-sm text-gray-900 dark:text-gray-100">
-                                  {new Date(order.createdAt).toLocaleDateString()}
+                                  {formatDate(order.createdAt)}
                                 </div>
 
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(order.createdAt).toLocaleTimeString()}
+                                  {formatTime(order.createdAt)}
                                 </div>
                               </TableCell>
                               <TableCell>
@@ -1469,6 +1465,7 @@ const AdminDashboard = () => {
                                   onClick={() => {
                                     const invoiceData = {
                                       orderId: order.orderId,
+                                      orderNumber: order.orderNumber,
                                       createdAt: order.createdAt,
                                       customer: {
                                         name: order.customer.name,
@@ -1488,7 +1485,7 @@ const AdminDashboard = () => {
                                     };
                                     import("@/utils/invoice").then(mod => mod.generateInvoicePDF(invoiceData));
                                   }}
-                                  title="Download Invoice"
+                                  title={t('pages.adminDashboard.downloadInvoice')}
                                 >
                                   <FileText className="h-4 w-4 text-blue-600" />
                                 </Button>
@@ -1544,7 +1541,7 @@ const AdminDashboard = () => {
                 {!ordersLoading && orders.length > 0 && (
                   <div className="flex items-center justify-between mt-6">
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Page {ordersPage} of {ordersTotalPages}
+                      {t('pages.adminDashboard.pageOrderspageOfOrderstotalpages', { ordersPage, ordersTotalPages })}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -1553,7 +1550,7 @@ const AdminDashboard = () => {
                         onClick={() => setOrdersPage(prev => Math.max(1, prev - 1))}
                         disabled={ordersPage === 1}
                       >
-                        Previous
+                        {t('pages.adminDashboard.previous')}
                       </Button>
                       <Button
                         variant="outline"
@@ -1561,7 +1558,7 @@ const AdminDashboard = () => {
                         onClick={() => setOrdersPage(prev => Math.min(ordersTotalPages, prev + 1))}
                         disabled={ordersPage >= ordersTotalPages}
                       >
-                        Next
+                        {t('pages.adminDashboard.next')}
                       </Button>
                     </div>
                   </div>
@@ -1580,15 +1577,15 @@ const AdminDashboard = () => {
                       <Package className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-navy-900 dark:text-navy-100">Product Management</CardTitle>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">{t('pages.adminDashboard.productManagement')}</CardTitle>
                       <CardDescription className="text-orange-600 dark:text-orange-400">
-                        Manage all products across vendors
+                        {t('pages.adminDashboard.manageAllProductsAcrossVendors')}
                       </CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-navy-100 text-navy-800">
-                      {products.length} products
+                      {t('pages.adminDashboard.countProducts', { count: products.length })}
                     </Badge>
                     <Button
                       onClick={fetchProducts}
@@ -1597,7 +1594,7 @@ const AdminDashboard = () => {
                       className="border-orange-300 hover:bg-orange-50"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
+                      {t('pages.adminDashboard.refresh')}
                     </Button>
                   </div>
                 </div>
@@ -1606,7 +1603,7 @@ const AdminDashboard = () => {
                 <div className="flex space-x-4 mb-6">
                   <div className="flex-1">
                     <Input
-                      placeholder="Search products..."
+                      placeholder={t('pages.adminDashboard.searchProducts')}
                       value={productsSearch}
                       onChange={(e) => setProductsSearch(e.target.value)}
                       className="max-w-sm"
@@ -1614,13 +1611,13 @@ const AdminDashboard = () => {
                   </div>
                   <Select value={productsStatusFilter} onValueChange={setProductsStatusFilter}>
                     <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by status" />
+                      <SelectValue placeholder={t('pages.adminDashboard.filterByStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="flagged">Flagged</SelectItem>
+                      <SelectItem value="all">{t('pages.adminDashboard.allStatus')}</SelectItem>
+                      <SelectItem value="active">{t('pages.adminDashboard.active')}</SelectItem>
+                      <SelectItem value="inactive">{t('pages.adminDashboard.inactive')}</SelectItem>
+                      <SelectItem value="flagged">{t('pages.adminDashboard.flagged')}</SelectItem>
                     </SelectContent>
                   </Select>
                   {(productsSearch || productsStatusFilter !== 'all' || productsVendorFilter !== 'all') && (
@@ -1630,7 +1627,7 @@ const AdminDashboard = () => {
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Clear All
+                      {t('pages.adminDashboard.clearAll')}
                     </Button>
                   )}
                 </div>
@@ -1640,12 +1637,12 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Product Name</TableHead>
-                          <TableHead>Vendor</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead>Stock</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+                          <TableHead>{t('pages.adminDashboard.productName')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.vendor')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.price')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.stock')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.status')}</TableHead>
+                          <TableHead className="text-right">{t('pages.adminDashboard.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1654,14 +1651,14 @@ const AdminDashboard = () => {
                             <TableCell colSpan={6} className="text-center py-8">
                               <div className="flex items-center justify-center space-x-2">
                                 <RefreshCw className="h-4 w-4 animate-spin" />
-                                <span>Loading products...</span>
+                                <span>{t('pages.adminDashboard.loadingProducts')}</span>
                               </div>
                             </TableCell>
                           </TableRow>
                         ) : products.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                              No products found
+                              {t('pages.adminDashboard.noProductsFound')}
                             </TableCell>
                           </TableRow>
                         ) : (
@@ -1695,7 +1692,7 @@ const AdminDashboard = () => {
                                 <Badge
                                   variant={product.status === 'active' ? "default" : product.status === 'flagged' ? "destructive" : "secondary"}
                                 >
-                                  {product.status}
+                                  {formatStatus(product.status)}
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right">
@@ -1771,15 +1768,15 @@ const AdminDashboard = () => {
                       <Users className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-navy-900 dark:text-navy-100">Customer Management</CardTitle>
+                      <CardTitle className="text-navy-900 dark:text-navy-100">{t('pages.adminDashboard.customerManagement')}</CardTitle>
                       <CardDescription className="text-navy-600 dark:text-orange-400">
-                        View and manage customer accounts
+                        {t('pages.adminDashboard.viewAndManageCustomerAccounts')}
                       </CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-navy-100 text-navy-800">
-                      {customers.length} customers
+                      {t('pages.adminDashboard.countCustomers', { count: customers.length })}
                     </Badge>
                     <Button
                       onClick={fetchCustomers}
@@ -1788,7 +1785,7 @@ const AdminDashboard = () => {
                       className="border-orange-300 hover:bg-orange-50"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
+                      {t('pages.adminDashboard.refresh')}
                     </Button>
                   </div>
                 </div>
@@ -1797,7 +1794,7 @@ const AdminDashboard = () => {
                 <div className="flex space-x-4 mb-6">
                   <div className="flex-1 flex items-center space-x-4">
                     <Input
-                      placeholder="Search customers..."
+                      placeholder={t('pages.adminDashboard.searchCustomers')}
                       value={customersSearch}
                       onChange={(e) => setCustomersSearch(e.target.value)}
                       className="max-w-sm"
@@ -1809,7 +1806,7 @@ const AdminDashboard = () => {
                         className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                       >
                         <XCircle className="h-4 w-4 mr-2" />
-                        Clear All
+                        {t('pages.adminDashboard.clearAll')}
                       </Button>
                     )}
                   </div>
@@ -1820,12 +1817,12 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Created</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+                          <TableHead>{t('pages.adminDashboard.name')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.email')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.phone')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.status')}</TableHead>
+                          <TableHead>{t('pages.adminDashboard.created')}</TableHead>
+                          <TableHead className="text-right">{t('pages.adminDashboard.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1834,14 +1831,14 @@ const AdminDashboard = () => {
                             <TableCell colSpan={6} className="text-center py-8">
                               <div className="flex items-center justify-center space-x-2">
                                 <RefreshCw className="h-4 w-4 animate-spin" />
-                                <span>Loading customers...</span>
+                                <span>{t('pages.adminDashboard.loadingCustomers')}</span>
                               </div>
                             </TableCell>
                           </TableRow>
                         ) : customers.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                              No customers found
+                              {t('pages.adminDashboard.noCustomersFound')}
                             </TableCell>
                           </TableRow>
                         ) : (
@@ -1869,11 +1866,11 @@ const AdminDashboard = () => {
                               <TableCell>{customer.phone_number || 'N/A'}</TableCell>
                               <TableCell>
                                 <Badge variant={customer.verified ? "default" : "secondary"}>
-                                  {customer.verified ? "Verified" : "Unverified"}
+                                  {customer.verified ? t('pages.adminDashboard.verified') : t('pages.adminDashboard.unverified')}
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {new Date(customer.created_at).toLocaleDateString()}
+                                {formatDate(customer.created_at)}
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex items-center justify-end space-x-2">
@@ -1897,7 +1894,7 @@ const AdminDashboard = () => {
                                       setSelectedHistoryCustomerId(customer.id);
                                       setIsHistoryModalOpen(true);
                                     }}
-                                    title="Purchase History"
+                                    title={t('pages.adminDashboard.purchaseHistory')}
                                   >
                                     <History className="h-4 w-4" />
                                   </Button>
@@ -1908,7 +1905,7 @@ const AdminDashboard = () => {
                                       setSelectedReviewsCustomerId(customer.id);
                                       setIsReviewsModalOpen(true);
                                     }}
-                                    title="Feedback & Reviews"
+                                    title={t('pages.adminDashboard.feedbackReviews')}
                                   >
                                     <MessageSquare className="h-4 w-4" />
                                   </Button>
@@ -1941,9 +1938,9 @@ const AdminDashboard = () => {
       <Dialog open={isVendorViewModalOpen} onOpenChange={setIsVendorViewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Vendor Details</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.vendorDetails')}</DialogTitle>
             <DialogDescription>
-              Complete information about {selectedVendor?.business_name}
+              {t('pages.adminDashboard.completeInformationAboutBusinessName', { business_name: selectedVendor?.business_name })}
             </DialogDescription>
           </DialogHeader>
           {selectedVendor && (
@@ -1977,26 +1974,26 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Store className="h-5 w-5 mr-2 text-orange-600" />
-                  Basic Information
+                  {t('pages.adminDashboard.basicInformation')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Business Name</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.businessName')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.business_name}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Business Type</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.businessType')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.business_type}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Email</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.email')}</Label>
                     <div className="flex items-center mt-1">
                       <Mail className="h-4 w-4 text-gray-400 mr-2" />
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedVendor.business_email}</p>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Phone</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.phone')}</Label>
                     <div className="flex items-center mt-1">
                       <Phone className="h-4 w-4 text-gray-400 mr-2" />
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedVendor.business_phone}</p>
@@ -2004,7 +2001,7 @@ const AdminDashboard = () => {
                   </div>
                   {selectedVendor.business_website && (
                     <div className="col-span-2">
-                      <Label className="text-sm font-medium text-gray-500">Website</Label>
+                      <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.website')}</Label>
                       <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
                         <a href={selectedVendor.business_website} target="_blank" rel="noopener noreferrer" className="hover:underline">
                           {selectedVendor.business_website}
@@ -2019,27 +2016,27 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <MapPin className="h-5 w-5 mr-2 text-orange-600" />
-                  Address Information
+                  {t('pages.adminDashboard.addressInformation')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Street Address</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.streetAddress')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.business_address}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">City</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.city')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.city}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">State/Province</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.stateProvince')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.state}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Postal Code</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.postalCode')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.postal_code}</p>
                   </div>
                   <div className="col-span-2">
-                    <Label className="text-sm font-medium text-gray-500">Country</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.country')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{selectedVendor.country}</p>
                   </div>
                 </div>
@@ -2048,7 +2045,7 @@ const AdminDashboard = () => {
               {/* Description */}
               {selectedVendor.description && (
                 <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-4">Description</h3>
+                  <h3 className="text-lg font-semibold mb-4">{t('pages.adminDashboard.description')}</h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-navy-800/50 p-4 rounded-lg">
                     {selectedVendor.description}
                   </p>
@@ -2058,7 +2055,7 @@ const AdminDashboard = () => {
               {/* Categories */}
               {selectedVendor.categories && selectedVendor.categories.length > 0 && (
                 <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-4">Categories</h3>
+                  <h3 className="text-lg font-semibold mb-4">{t('pages.adminDashboard.categories')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedVendor.categories.map((category, index) => (
                       <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">
@@ -2073,11 +2070,11 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Shield className="h-5 w-5 mr-2 text-orange-600" />
-                  Status & Verification
+                  {t('pages.adminDashboard.statusVerification')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Approval Status</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.approvalStatus')}</Label>
                     <div className="mt-1">
                       <Badge className={
                         selectedVendor.approved
@@ -2089,35 +2086,35 @@ const AdminDashboard = () => {
                         {selectedVendor.approved ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1 inline" />
-                            Approved
+                            {t('pages.adminDashboard.approved')}
                           </>
                         ) : selectedVendor.rejected_at ? (
                           <>
                             <XCircle className="h-3 w-3 mr-1 inline" />
-                            Rejected
+                            {t('pages.adminDashboard.rejected')}
                           </>
                         ) : (
                           <>
                             <Clock className="h-3 w-3 mr-1 inline" />
-                            Pending
+                            {t('pages.adminDashboard.pending')}
                           </>
                         )}
                       </Badge>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Verification Status</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.verificationStatus')}</Label>
                     <div className="mt-1">
                       <Badge variant={selectedVendor.verified ? "default" : "secondary"}>
                         {selectedVendor.verified ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1 inline" />
-                            Verified
+                            {t('pages.adminDashboard.verified')}
                           </>
                         ) : (
                           <>
                             <XCircle className="h-3 w-3 mr-1 inline" />
-                            Not Verified
+                            {t('pages.adminDashboard.notVerified')}
                           </>
                         )}
                       </Badge>
@@ -2125,23 +2122,23 @@ const AdminDashboard = () => {
                   </div>
                   {selectedVendor.approved_at && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Approved Date</Label>
+                      <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.approvedDate')}</Label>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                        {new Date(selectedVendor.approved_at).toLocaleDateString()} at {new Date(selectedVendor.approved_at).toLocaleTimeString()}
+                        {formatDateTime(selectedVendor.approved_at)}
                       </p>
                     </div>
                   )}
                   {selectedVendor.rejected_at && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Rejected Date</Label>
+                      <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.rejectedDate')}</Label>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                        {new Date(selectedVendor.rejected_at).toLocaleDateString()} at {new Date(selectedVendor.rejected_at).toLocaleTimeString()}
+                        {formatDateTime(selectedVendor.rejected_at)}
                       </p>
                     </div>
                   )}
                   {selectedVendor.rejection_reason && (
                     <div className="col-span-2">
-                      <Label className="text-sm font-medium text-red-600">Rejection Reason</Label>
+                      <Label className="text-sm font-medium text-red-600">{t('pages.adminDashboard.rejectionReason')}</Label>
                       <p className="text-sm text-red-600 dark:text-red-400 mt-1 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                         {selectedVendor.rejection_reason}
                       </p>
@@ -2154,19 +2151,19 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Calendar className="h-5 w-5 mr-2 text-orange-600" />
-                  Account Information
+                  {t('pages.adminDashboard.accountInformation')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Created At</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.createdAt')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {new Date(selectedVendor.created_at).toLocaleDateString()} at {new Date(selectedVendor.created_at).toLocaleTimeString()}
+                      {formatDateTime(selectedVendor.created_at)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Last Updated</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.lastUpdated')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {new Date(selectedVendor.updated_at).toLocaleDateString()} at {new Date(selectedVendor.updated_at).toLocaleTimeString()}
+                      {formatDateTime(selectedVendor.updated_at)}
                     </p>
                   </div>
                 </div>
@@ -2180,20 +2177,20 @@ const AdminDashboard = () => {
       <Dialog open={isApproveModalOpen} onOpenChange={setIsApproveModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Vendor</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.approveVendor')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to approve {selectedVendor?.business_name}? This will send an approval email to the vendor.
+              {t('pages.adminDashboard.areYouSureYouWantTo', { business_name: selectedVendor?.business_name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsApproveModalOpen(false)}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button
               onClick={() => selectedVendor && handleApproveVendor(selectedVendor.id)}
               disabled={isVendorActionLoading}
             >
-              {isVendorActionLoading ? "Approving..." : "Approve Vendor"}
+              {isVendorActionLoading ? t('pages.adminDashboard.approving') : t('pages.adminDashboard.approveVendor')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2203,17 +2200,17 @@ const AdminDashboard = () => {
       <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Vendor</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.rejectVendor')}</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting {selectedVendor?.business_name}.
+              {t('pages.adminDashboard.pleaseProvideAReasonForRejecting', { business_name: selectedVendor?.business_name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="rejection_reason">Rejection Reason</Label>
+              <Label htmlFor="rejection_reason">{t('pages.adminDashboard.rejectionReason')}</Label>
               <Textarea
                 id="rejection_reason"
-                placeholder="Enter reason for rejection..."
+                placeholder={t('pages.adminDashboard.enterReasonForRejection')}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
               />
@@ -2221,14 +2218,14 @@ const AdminDashboard = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsRejectModalOpen(false)}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={() => selectedVendor && handleRejectVendor(selectedVendor.id)}
               disabled={!rejectionReason.trim() || isVendorActionLoading}
             >
-              {isVendorActionLoading ? "Rejecting..." : "Reject Vendor"}
+              {isVendorActionLoading ? t('pages.adminDashboard.rejecting') : t('pages.adminDashboard.rejectVendor')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2238,16 +2235,16 @@ const AdminDashboard = () => {
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.confirmDeletion')}</DialogTitle>
             <DialogDescription>
-              {selectedVendor && `Are you sure you want to delete ${selectedVendor.business_name}? This will permanently delete the vendor and all associated data.`}
-              {selectedProduct && `Are you sure you want to delete ${selectedProduct.name}? This action cannot be undone.`}
-              {selectedCustomer && `Are you sure you want to delete ${selectedCustomer.first_name} ${selectedCustomer.last_name}? This will permanently delete the customer and all associated data.`}
+              {selectedVendor && t('pages.adminDashboard.areYouSureYouWantTo2', { business_name: selectedVendor.business_name })}
+              {selectedProduct && t('pages.adminDashboard.areYouSureYouWantTo3', { name: selectedProduct.name })}
+              {selectedCustomer && t('pages.adminDashboard.areYouSureYouWantTo4', { first_name: selectedCustomer.first_name, last_name: selectedCustomer.last_name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -2262,7 +2259,7 @@ const AdminDashboard = () => {
               }}
               disabled={isVendorActionLoading}
             >
-              {isVendorActionLoading ? "Deleting..." : "Delete"}
+              {isVendorActionLoading ? t('pages.adminDashboard.deleting') : t('pages.adminDashboard.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2272,17 +2269,17 @@ const AdminDashboard = () => {
       <Dialog open={isRedMarkModalOpen} onOpenChange={setIsRedMarkModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Red Mark Product</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.redMarkProduct')}</DialogTitle>
             <DialogDescription>
-              Please provide a reason for flagging {selectedProduct?.name}.
+              {t('pages.adminDashboard.pleaseProvideAReasonForFlagging', { name: selectedProduct?.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="red_mark_reason">Reason for Flagging</Label>
+              <Label htmlFor="red_mark_reason">{t('pages.adminDashboard.reasonForFlagging')}</Label>
               <Textarea
                 id="red_mark_reason"
-                placeholder="Enter reason for flagging this product..."
+                placeholder={t('pages.adminDashboard.enterReasonForFlaggingThisProduct')}
                 value={redMarkReason}
                 onChange={(e) => setRedMarkReason(e.target.value)}
               />
@@ -2290,14 +2287,14 @@ const AdminDashboard = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsRedMarkModalOpen(false)}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={() => selectedProduct && handleRedMarkProduct(selectedProduct.id)}
               disabled={!redMarkReason.trim()}
             >
-              Red Mark Product
+              {t('pages.adminDashboard.redMarkProduct')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2307,16 +2304,16 @@ const AdminDashboard = () => {
       <Dialog open={isVendorEditModalOpen} onOpenChange={setIsVendorEditModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Vendor</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.editVendor')}</DialogTitle>
             <DialogDescription>
-              Update vendor information for {selectedVendor?.business_name}
+              {t('pages.adminDashboard.updateVendorInformationForBusinessName', { business_name: selectedVendor?.business_name })}
             </DialogDescription>
           </DialogHeader>
           {selectedVendor && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="business_name">Business Name</Label>
+                  <Label htmlFor="business_name">{t('pages.adminDashboard.businessName')}</Label>
                   <Input
                     id="business_name"
                     value={vendorForm.business_name || ''}
@@ -2324,7 +2321,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="business_email">Email</Label>
+                  <Label htmlFor="business_email">{t('pages.adminDashboard.email')}</Label>
                   <Input
                     id="business_email"
                     type="email"
@@ -2333,7 +2330,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="business_phone">Phone</Label>
+                  <Label htmlFor="business_phone">{t('pages.adminDashboard.phone')}</Label>
                   <Input
                     id="business_phone"
                     value={vendorForm.business_phone || ''}
@@ -2341,7 +2338,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="business_type">Business Type</Label>
+                  <Label htmlFor="business_type">{t('pages.adminDashboard.businessType')}</Label>
                   <Input
                     id="business_type"
                     value={vendorForm.business_type || ''}
@@ -2350,7 +2347,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="business_address">Address</Label>
+                <Label htmlFor="business_address">{t('pages.adminDashboard.address')}</Label>
                 <Textarea
                   id="business_address"
                   value={vendorForm.business_address || ''}
@@ -2358,7 +2355,7 @@ const AdminDashboard = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('pages.adminDashboard.description')}</Label>
                 <Textarea
                   id="description"
                   value={vendorForm.description || ''}
@@ -2373,7 +2370,7 @@ const AdminDashboard = () => {
                     checked={vendorForm.verified || false}
                     onChange={(e) => setVendorForm({ ...vendorForm, verified: e.target.checked })}
                   />
-                  <Label htmlFor="verified">Verified</Label>
+                  <Label htmlFor="verified">{t('pages.adminDashboard.verified')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
@@ -2382,7 +2379,7 @@ const AdminDashboard = () => {
                     checked={vendorForm.approved || false}
                     onChange={(e) => setVendorForm({ ...vendorForm, approved: e.target.checked })}
                   />
-                  <Label htmlFor="approved">Approved</Label>
+                  <Label htmlFor="approved">{t('pages.adminDashboard.approved')}</Label>
                 </div>
               </div>
             </div>
@@ -2393,10 +2390,10 @@ const AdminDashboard = () => {
               setSelectedVendor(null);
               setVendorForm({});
             }}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button onClick={handleUpdateVendor}>
-              Update Vendor
+              {t('pages.adminDashboard.updateVendor')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2406,16 +2403,16 @@ const AdminDashboard = () => {
       <Dialog open={isProductEditModalOpen} onOpenChange={setIsProductEditModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.editProduct')}</DialogTitle>
             <DialogDescription>
-              Update product information for {selectedProduct?.name}
+              {t('pages.adminDashboard.updateProductInformationForName', { name: selectedProduct?.name })}
             </DialogDescription>
           </DialogHeader>
           {selectedProduct && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="product_name">Product Name</Label>
+                  <Label htmlFor="product_name">{t('pages.adminDashboard.productName')}</Label>
                   <Input
                     id="product_name"
                     value={productForm.name || selectedProduct.name || ''}
@@ -2423,7 +2420,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="product_price">Price</Label>
+                  <Label htmlFor="product_price">{t('pages.adminDashboard.price')}</Label>
                   <Input
                     id="product_price"
                     type="number"
@@ -2433,7 +2430,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="product_category">Category</Label>
+                  <Label htmlFor="product_category">{t('pages.adminDashboard.category')}</Label>
                   <Input
                     id="product_category"
                     value={productForm.category || selectedProduct.category || ''}
@@ -2441,7 +2438,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="product_stock">Stock</Label>
+                  <Label htmlFor="product_stock">{t('pages.adminDashboard.stock')}</Label>
                   <Input
                     id="product_stock"
                     type="number"
@@ -2450,24 +2447,24 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="product_status">Status</Label>
+                  <Label htmlFor="product_status">{t('pages.adminDashboard.status')}</Label>
                   <Select
                     value={productForm.status || selectedProduct.status || 'active'}
                     onValueChange={(value) => setProductForm({ ...productForm, status: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder={t('pages.adminDashboard.selectStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="flagged">Flagged</SelectItem>
+                      <SelectItem value="active">{t('pages.adminDashboard.active')}</SelectItem>
+                      <SelectItem value="inactive">{t('pages.adminDashboard.inactive')}</SelectItem>
+                      <SelectItem value="flagged">{t('pages.adminDashboard.flagged')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div>
-                <Label htmlFor="product_description">Description</Label>
+                <Label htmlFor="product_description">{t('pages.adminDashboard.description')}</Label>
                 <Textarea
                   id="product_description"
                   value={productForm.description || selectedProduct.description || ''}
@@ -2476,7 +2473,7 @@ const AdminDashboard = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="product_images">Images (JSON array)</Label>
+                <Label htmlFor="product_images">{t('pages.adminDashboard.imagesJsonArray')}</Label>
                 <Textarea
                   id="product_images"
                   value={Array.isArray(productForm.images) ? productForm.images.join(', ') : (productForm.images || '')}
@@ -2484,7 +2481,7 @@ const AdminDashboard = () => {
                     const images = e.target.value.split(',').map(img => img.trim()).filter(img => img);
                     setProductForm({ ...productForm, images });
                   }}
-                  placeholder="Enter image URLs separated by commas"
+                  placeholder={t('pages.adminDashboard.enterImageUrlsSeparatedByCommas')}
                   className="min-h-[80px]"
                 />
               </div>
@@ -2496,10 +2493,10 @@ const AdminDashboard = () => {
               setSelectedProduct(null);
               setProductForm({});
             }}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button onClick={handleUpdateProduct}>
-              Update Product
+              {t('pages.adminDashboard.updateProduct')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2509,9 +2506,9 @@ const AdminDashboard = () => {
       <Dialog open={isProductViewModalOpen} onOpenChange={setIsProductViewModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Product Details</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.productDetails')}</DialogTitle>
             <DialogDescription>
-              Complete information about {selectedProduct?.name}
+              {t('pages.adminDashboard.completeInformationAboutName', { name: selectedProduct?.name })}
             </DialogDescription>
           </DialogHeader>
           {selectedProduct && (
@@ -2532,39 +2529,39 @@ const AdminDashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Product Name</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.productName')}</Label>
                   <p className="text-sm text-gray-600">{selectedProduct.name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Price</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.price')}</Label>
                   <p className="text-sm text-gray-600">${selectedProduct.price}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Category</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.category')}</Label>
                   <p className="text-sm text-gray-600">{selectedProduct.category}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Stock</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.stock')}</Label>
                   <p className="text-sm text-gray-600">{selectedProduct.stock}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Status</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.status')}</Label>
                   <Badge variant={selectedProduct.status === 'active' ? "default" : selectedProduct.status === 'flagged' ? "destructive" : "secondary"}>
-                    {selectedProduct.status}
+                    {formatStatus(selectedProduct.status)}
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Vendor</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.vendor')}</Label>
                   <p className="text-sm text-gray-600">{selectedProduct.vendor.business_name}</p>
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">Description</Label>
+                <Label className="text-sm font-medium">{t('pages.adminDashboard.description')}</Label>
                 <p className="text-sm text-gray-600">{selectedProduct.description}</p>
               </div>
               {selectedProduct.flagged_reason && (
                 <div>
-                  <Label className="text-sm font-medium">Flagged Reason</Label>
+                  <Label className="text-sm font-medium">{t('pages.adminDashboard.flaggedReason')}</Label>
                   <p className="text-sm text-red-600">{selectedProduct.flagged_reason}</p>
                 </div>
               )}
@@ -2577,9 +2574,9 @@ const AdminDashboard = () => {
       <Dialog open={isCustomerViewModalOpen} onOpenChange={setIsCustomerViewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.customerDetails')}</DialogTitle>
             <DialogDescription>
-              Complete information about {selectedCustomer?.first_name} {selectedCustomer?.last_name}
+              {t('pages.adminDashboard.completeInformationAboutFirstNameLast', { first_name: selectedCustomer?.first_name, last_name: selectedCustomer?.last_name })}
             </DialogDescription>
           </DialogHeader>
           {selectedCustomer && (
@@ -2616,44 +2613,44 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Users className="h-5 w-5 mr-2 text-blue-600" />
-                  Personal Information
+                  {t('pages.adminDashboard.personalInformation')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Full Name</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.fullName')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
                       {selectedCustomer.first_name} {selectedCustomer.last_name}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Email</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.email')}</Label>
                     <div className="flex items-center mt-1">
                       <Mail className="h-4 w-4 text-gray-400 mr-2" />
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedCustomer.email}</p>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Phone Number</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.phoneNumber')}</Label>
                     <div className="flex items-center mt-1">
                       <Phone className="h-4 w-4 text-gray-400 mr-2" />
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {selectedCustomer.phone_number || 'Not provided'}
+                        {selectedCustomer.phone_number || t('pages.adminDashboard.notProvided')}
                       </p>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Gender</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.gender')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {selectedCustomer.gender ? selectedCustomer.gender.charAt(0).toUpperCase() + selectedCustomer.gender.slice(1) : 'Not specified'}
+                      {selectedCustomer.gender ? selectedCustomer.gender.charAt(0).toUpperCase() + selectedCustomer.gender.slice(1) : t('pages.adminDashboard.notSpecified')}
                     </p>
                   </div>
                   {selectedCustomer.date_of_birth && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Date of Birth</Label>
+                      <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.dateOfBirth')}</Label>
                       <div className="flex items-center mt-1">
                         <Calendar className="h-4 w-4 text-gray-400 mr-2" />
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {new Date(selectedCustomer.date_of_birth).toLocaleDateString()}
+                          {formatDate(selectedCustomer.date_of_birth)}
                         </p>
                       </div>
                     </div>
@@ -2666,7 +2663,7 @@ const AdminDashboard = () => {
                 <div className="border-t pt-4">
                   <h3 className="text-lg font-semibold mb-4 flex items-center">
                     <MapPin className="h-5 w-5 mr-2 text-blue-600" />
-                    Address Information
+                    {t('pages.adminDashboard.addressInformation')}
                   </h3>
                   <div className="bg-gray-50 dark:bg-navy-800/50 p-4 rounded-lg">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -2680,40 +2677,40 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Shield className="h-5 w-5 mr-2 text-blue-600" />
-                  Account Status
+                  {t('pages.adminDashboard.accountStatus')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Verification Status</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.verificationStatus')}</Label>
                     <div className="mt-1">
                       <Badge variant={selectedCustomer.verified ? "default" : "secondary"}>
                         {selectedCustomer.verified ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1 inline" />
-                            Verified
+                            {t('pages.adminDashboard.verified')}
                           </>
                         ) : (
                           <>
                             <XCircle className="h-3 w-3 mr-1 inline" />
-                            Not Verified
+                            {t('pages.adminDashboard.notVerified')}
                           </>
                         )}
                       </Badge>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Profile Completion</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.profileCompletion')}</Label>
                     <div className="mt-1">
                       <Badge variant={selectedCustomer.profile_completed ? "default" : "secondary"}>
                         {selectedCustomer.profile_completed ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1 inline" />
-                            Completed
+                            {t('pages.adminDashboard.completed')}
                           </>
                         ) : (
                           <>
                             <Clock className="h-3 w-3 mr-1 inline" />
-                            Incomplete
+                            {t('pages.adminDashboard.incomplete')}
                           </>
                         )}
                       </Badge>
@@ -2726,19 +2723,19 @@ const AdminDashboard = () => {
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Calendar className="h-5 w-5 mr-2 text-blue-600" />
-                  Account Information
+                  {t('pages.adminDashboard.accountInformation')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Account Created</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.accountCreated')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {new Date(selectedCustomer.created_at).toLocaleDateString()} at {new Date(selectedCustomer.created_at).toLocaleTimeString()}
+                      {formatDateTime(selectedCustomer.created_at)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Last Updated</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.lastUpdated')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {new Date(selectedCustomer.updated_at).toLocaleDateString()} at {new Date(selectedCustomer.updated_at).toLocaleTimeString()}
+                      {formatDateTime(selectedCustomer.updated_at)}
                     </p>
                   </div>
                 </div>
@@ -2752,9 +2749,9 @@ const AdminDashboard = () => {
       <Dialog open={isOrderViewModalOpen} onOpenChange={setIsOrderViewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Details - #{selectedOrder?.orderId.substring(0, 8)}</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.orderDetailsValue', { value: selectedOrder?.orderNumber ?? selectedOrder?.orderId.substring(0, 8) })}</DialogTitle>
             <DialogDescription>
-              Complete information about this order
+              {t('pages.adminDashboard.completeInformationAboutThisOrder')}
             </DialogDescription>
           </DialogHeader>
           {selectedOrder && (
@@ -2762,52 +2759,52 @@ const AdminDashboard = () => {
               {/* Order Summary */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Order ID</Label>
+                  <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.orderId')}</Label>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.orderId}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Order Date</Label>
+                  <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.orderDate')}</Label>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {new Date(selectedOrder.createdAt).toLocaleString()}
+                    {formatDateTime(selectedOrder.createdAt)}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Status</Label>
+                  <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.status')}</Label>
                   <Badge className={getStatusColor(selectedOrder.status)}>
-                    {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1).replace('_', ' ')}
+                    {formatStatus(selectedOrder.status)}
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Payment Status</Label>
+                  <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.paymentStatus')}</Label>
                   <Badge className={getPaymentStatusColor(selectedOrder.paymentStatus)}>
-                    {selectedOrder.paymentStatus.charAt(0).toUpperCase() + selectedOrder.paymentStatus.slice(1).replace('_', ' ')}
+                    {formatStatus(selectedOrder.paymentStatus)}
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Payment Method</Label>
+                  <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.paymentMethod')}</Label>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.paymentMethod}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Total Amount</Label>
+                  <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.totalAmount')}</Label>
                   <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatMoney(selectedOrder.totalAmount)}</p>
                 </div>
               </div>
 
               {/* Customer Information */}
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-3">Customer Information</h3>
+                <h3 className="text-lg font-semibold mb-3">{t('pages.adminDashboard.customerInformation')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Name</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.name')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.customer.name}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Email</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.email')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.customer.email}</p>
                   </div>
                   {selectedOrder.customer.phone && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Phone</Label>
+                      <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.phone')}</Label>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.customer.phone}</p>
                     </div>
                   )}
@@ -2816,19 +2813,19 @@ const AdminDashboard = () => {
 
               {/* Vendor Information */}
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-3">Vendor Information</h3>
+                <h3 className="text-lg font-semibold mb-3">{t('pages.adminDashboard.vendorInformation')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Business Name</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.businessName')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.vendor.name}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Email</Label>
+                    <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.email')}</Label>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.vendor.email}</p>
                   </div>
                   {selectedOrder.vendor.phone && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Phone</Label>
+                      <Label className="text-sm font-medium text-gray-500">{t('pages.adminDashboard.phone')}</Label>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.vendor.phone}</p>
                     </div>
                   )}
@@ -2837,7 +2834,7 @@ const AdminDashboard = () => {
 
               {/* Order Items */}
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-3">Order Items</h3>
+                <h3 className="text-lg font-semibold mb-3">{t('pages.adminDashboard.orderItems')}</h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item) => (
                     <div key={item.id} className="flex items-center space-x-4 p-3 bg-gray-50 dark:bg-navy-800/50 rounded-lg">
@@ -2851,7 +2848,7 @@ const AdminDashboard = () => {
                       <div className="flex-1">
                         <p className="font-medium text-gray-900 dark:text-gray-100">{item.productName}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Quantity: {item.quantity} × {formatMoney(item.price)}
+                          {t('pages.adminDashboard.quantityQuantityPrice', { quantity: item.quantity, price: formatMoney(item.price) })}
                         </p>
                       </div>
                       <div className="text-right">
@@ -2861,7 +2858,7 @@ const AdminDashboard = () => {
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">Total</span>
+                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('pages.adminDashboard.total')}</span>
                   <span className="text-xl font-bold text-green-600 dark:text-green-400">{formatMoney(selectedOrder.totalAmount)}</span>
                 </div>
               </div>
@@ -2869,8 +2866,16 @@ const AdminDashboard = () => {
               {/* Cancellation Reason */}
               {selectedOrder.cancellationReason && (
                 <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-2 text-red-600">Cancellation Reason</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-red-600">{t('pages.adminDashboard.cancellationReason')}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.cancellationReason}</p>
+                </div>
+              )}
+
+              {/* Payment Pending Reason (COD not yet collected) */}
+              {selectedOrder.paymentPendingReason && (
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-2 text-amber-600">{t('pages.adminDashboard.paymentPendingReason', 'Payment Pending Reason')}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.paymentPendingReason}</p>
                 </div>
               )}
             </div>
@@ -2882,35 +2887,35 @@ const AdminDashboard = () => {
       <Dialog open={isOrderStatusModalOpen} onOpenChange={setIsOrderStatusModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Order Status</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.updateOrderStatus')}</DialogTitle>
             <DialogDescription>
-              Update the status of order #{selectedOrder?.orderId.substring(0, 8)}
+              {t('pages.adminDashboard.updateTheStatusOfOrderValue', { value: selectedOrder?.orderId.substring(0, 8) })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="order_status">Order Status</Label>
+              <Label htmlFor="order_status">{t('pages.adminDashboard.orderStatus')}</Label>
               <Select value={newOrderStatus} onValueChange={setNewOrderStatus}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select order status" />
+                  <SelectValue placeholder={t('pages.adminDashboard.selectOrderStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="pending">{t('pages.adminDashboard.pending')}</SelectItem>
+                  <SelectItem value="confirmed">{t('pages.adminDashboard.confirmed')}</SelectItem>
+                  <SelectItem value="processing">{t('pages.adminDashboard.processing')}</SelectItem>
+                  <SelectItem value="shipped">{t('pages.adminDashboard.shipped')}</SelectItem>
+                  <SelectItem value="out_for_delivery">{t('pages.adminDashboard.outForDelivery')}</SelectItem>
+                  <SelectItem value="delivered">{t('pages.adminDashboard.delivered')}</SelectItem>
+                  <SelectItem value="completed">{t('pages.adminDashboard.completed')}</SelectItem>
+                  <SelectItem value="cancelled">{t('pages.adminDashboard.cancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="status_notes">Notes (Optional)</Label>
+              <Label htmlFor="status_notes">{t('pages.adminDashboard.notesOptional')}</Label>
               <Textarea
                 id="status_notes"
-                placeholder="Add any notes about this status update..."
+                placeholder={t('pages.adminDashboard.addAnyNotesAboutThisStatus')}
                 value={orderStatusNotes}
                 onChange={(e) => setOrderStatusNotes(e.target.value)}
                 className="min-h-[100px]"
@@ -2928,13 +2933,13 @@ const AdminDashboard = () => {
               setNewOrderStatus('');
               setOrderStatusNotes('');
             }}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button
               onClick={handleUpdateOrderStatus}
               disabled={!newOrderStatus || isOrderActionLoading}
             >
-              {isOrderActionLoading ? "Updating..." : "Update Status"}
+              {isOrderActionLoading ? t('pages.adminDashboard.updating') : t('pages.adminDashboard.updateStatus')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2944,24 +2949,24 @@ const AdminDashboard = () => {
       <Dialog open={isOrderPaymentModalOpen} onOpenChange={setIsOrderPaymentModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Payment Status</DialogTitle>
+            <DialogTitle>{t('pages.adminDashboard.updatePaymentStatus')}</DialogTitle>
             <DialogDescription>
-              Update the payment status of order #{selectedOrder?.orderId.substring(0, 8)}
+              {t('pages.adminDashboard.updateThePaymentStatusOfOrder', { value: selectedOrder?.orderId.substring(0, 8) })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="payment_status">Payment Status</Label>
+              <Label htmlFor="payment_status">{t('pages.adminDashboard.paymentStatus')}</Label>
               <Select value={newPaymentStatus} onValueChange={setNewPaymentStatus}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select payment status" />
+                  <SelectValue placeholder={t('pages.adminDashboard.selectPaymentStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="refunded">Refunded</SelectItem>
-                  <SelectItem value="partially_refunded">Partially Refunded</SelectItem>
+                  <SelectItem value="pending">{t('pages.adminDashboard.pending')}</SelectItem>
+                  <SelectItem value="paid">{t('pages.adminDashboard.paid')}</SelectItem>
+                  <SelectItem value="failed">{t('pages.adminDashboard.failed')}</SelectItem>
+                  <SelectItem value="refunded">{t('pages.adminDashboard.refunded')}</SelectItem>
+                  <SelectItem value="partially_refunded">{t('pages.adminDashboard.partiallyRefunded')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -2972,13 +2977,13 @@ const AdminDashboard = () => {
               setSelectedOrder(null);
               setNewPaymentStatus('');
             }}>
-              Cancel
+              {t('pages.adminDashboard.cancel')}
             </Button>
             <Button
               onClick={handleUpdatePaymentStatus}
               disabled={!newPaymentStatus || isOrderActionLoading}
             >
-              {isOrderActionLoading ? "Updating..." : "Update Payment Status"}
+              {isOrderActionLoading ? t('pages.adminDashboard.updating') : t('pages.adminDashboard.updatePaymentStatus')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -77,7 +77,7 @@ const Cart = () => {
             <ShoppingCart className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">{t('cart')}</h1>
             <Badge variant="secondary" className="ml-2">
-              {t('items_plural', { count: cartItems.length })}
+              {t('itemCount', { count: cartItems.length })}
             </Badge>
           </div>
 

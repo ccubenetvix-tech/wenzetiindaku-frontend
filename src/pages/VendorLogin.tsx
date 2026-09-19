@@ -9,6 +9,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/utils/api";
+import i18n from "@/lib/i18n";
 
 const VendorLogin = () => {
   const { t } = useTranslation();
@@ -44,21 +46,51 @@ const VendorLogin = () => {
       // Check if vendor is approved
       if (user.role === 'vendor' && !user.approved) {
         toast({
-          title: "Login Successful",
-          description: "Your vendor application is pending approval. You'll be notified once approved.",
+          title: i18n.t('pages.vendorLogin.loginSuccessful'),
+          description: i18n.t('pages.vendorLogin.yourVendorApplicationIsPendingApproval'),
         });
         navigate("/");
       } else {
         toast({
-          title: "Login Successful",
-          description: "Welcome to your vendor dashboard!",
+          title: i18n.t('pages.vendorLogin.loginSuccessful'),
+          description: i18n.t('pages.vendorLogin.welcomeToYourVendorDashboard'),
         });
         navigate("/vendor/dashboard");
       }
     } catch (error) {
+      // Account exists but was never verified (e.g. their OTP expired before they
+      // finished signing up) — send them to the verify step with a fresh code
+      // instead of leaving them stuck on a "please verify your email" error.
+      if (error instanceof Error && error.message.toLowerCase().includes('verify your email')) {
+        navigate(`/vendor/register?verify=1&email=${encodeURIComponent(formData.email)}`);
+        return;
+      }
+
+      // Fall back to admin credentials — lets the admin log in from the
+      // normal login form without needing to know the separate /admin/login URL.
+      // Reuses /api/admin/login, which already has its own strict rate limit.
+      try {
+        const adminResult: any = await apiClient.adminLogin(formData.email, formData.password);
+        if (adminResult.success) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          localStorage.setItem('adminToken', adminResult.data.token);
+          localStorage.setItem('adminUser', JSON.stringify(adminResult.data.admin));
+
+          toast({
+            title: i18n.t('pages.vendorLogin.loginSuccessful'),
+            description: i18n.t('pages.vendorLogin.welcomeToTheAdminDashboard'),
+          });
+          navigate('/admin/dashboard');
+          return;
+        }
+      } catch (adminError) {
+        // Not an admin either — fall through to the original error below.
+      }
+
       toast({
-        title: "Login Failed",
-        description: error instanceof Error ? error.message : "An error occurred during login",
+        title: i18n.t('pages.vendorLogin.loginFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.vendorLogin.anErrorOccurredDuringLogin'),
         variant: "destructive",
       });
     }
@@ -184,8 +216,8 @@ const VendorLogin = () => {
                     checked={formData.rememberMe}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-orange-600 border-muted rounded focus:ring-orange-600 focus:ring-2"
-                    aria-label="Remember me"
-                    title="Remember me"
+                    aria-label={t('pages.vendorLogin.rememberMe')}
+                    title={t('pages.vendorLogin.rememberMe')}
                   />
                   <Label htmlFor="rememberMe" className="text-sm text-muted-foreground">
                     {t('rememberMe')}
@@ -238,10 +270,10 @@ const VendorLogin = () => {
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
               <h3 className="text-sm font-medium text-foreground mb-2">{t('needSupport')}</h3>
               <div className="text-xs text-muted-foreground">
-                <p>Email: wenzetiindaku@outlook.com</p>
-                <p>Phone: +32 495 84 68 66</p>
-                <p>Location: Kinshasa, R.D. CONGO</p>
-                <p>Hours: Mon-Fri 9AM-6PM WAT</p>
+                <p>{t('pages.vendorLogin.emailWenzetiindakuOutlookCom')}</p>
+                <p>{t('pages.vendorLogin.phone32495846866')}</p>
+                <p>{t('pages.vendorLogin.locationKinshasaRDCongo')}</p>
+                <p>{t('pages.vendorLogin.hoursMonFri9am6pmWat')}</p>
               </div>
             </div>
 

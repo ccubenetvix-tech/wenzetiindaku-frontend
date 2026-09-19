@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from '../utils/api';
 import {
   Store,
@@ -38,7 +38,8 @@ import {
   Loader2,
   RefreshCw,
   X,
-  UploadCloud
+  UploadCloud,
+  FileText
 } from "lucide-react";
 import { calculateIncludedVAT, calculateTotalWithVAT, formatPrice, extractBasePrice } from "@/utils/priceUtils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -74,8 +75,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { predefinedCategories } from "@/data/categories";
 import { Footer } from "@/components/Footer";
+import i18n from "@/lib/i18n";
 
 
+import { categoryLabel, formatDate, formatDateTime, formatMoney, formatPaymentMethod, formatStatus } from "@/lib/format";
 interface DashboardStats {
   totalSales: number;
   totalOrders: number;
@@ -85,6 +88,8 @@ interface DashboardStats {
 
 interface Order {
   id: string;
+  orderNumber?: string | null;
+  order_number?: string | null;
   customer: string;
   date: string;
   status: string;
@@ -93,6 +98,7 @@ interface Order {
   items: number;
   payment: string;
   paymentStatus?: string | null;
+  paymentPendingReason?: string | null;
   shippingAddress?: Record<string, any> | null;
   cancellationReason?: string | null;
   orderItems?: Array<{
@@ -130,6 +136,7 @@ interface Vendor {
 
 // Vendor Reviews Section Component
 function VendorReviewsSection() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [reviews, setReviews] = useState<any[]>([]);
@@ -151,8 +158,8 @@ function VendorReviewsSection() {
       } catch (error) {
         console.error('Error loading reviews:', error);
         toast({
-          title: "Error",
-          description: "Failed to load reviews",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: i18n.t('pages.vendorDashboard.failedToLoadReviews'),
           variant: "destructive",
         });
       } finally {
@@ -207,14 +214,14 @@ function VendorReviewsSection() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Product Reviews</CardTitle>
+          <CardTitle>{t('pages.vendorDashboard.productReviews')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="py-10 text-center">
             <Star className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <h3 className="mb-2 text-lg font-medium">No reviews yet</h3>
+            <h3 className="mb-2 text-lg font-medium">{t('pages.vendorDashboard.noReviewsYet')}</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Reviews from customers will appear here once they review your products.
+              {t('pages.vendorDashboard.reviewsFromCustomersWillAppearHere')}
             </p>
           </div>
         </CardContent>
@@ -227,14 +234,14 @@ function VendorReviewsSection() {
       <CardHeader>
         <div className="space-y-3">
           <div>
-            <CardTitle>Product Reviews</CardTitle>
-            <CardDescription>Customer reviews for your products</CardDescription>
+            <CardTitle>{t('pages.vendorDashboard.productReviews')}</CardTitle>
+            <CardDescription>{t('pages.vendorDashboard.customerReviewsForYourProducts')}</CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search reviews by product, customer, or text..."
+                placeholder={t('pages.vendorDashboard.searchReviewsByProductCustomerOr')}
                 value={reviewSearch}
                 onChange={(e) => setReviewSearch(e.target.value)}
                 className="pl-10"
@@ -247,15 +254,15 @@ function VendorReviewsSection() {
               }
             >
               <SelectTrigger className="w-full sm:w-44">
-                <SelectValue placeholder="Filter by rating" />
+                <SelectValue placeholder={t('pages.vendorDashboard.filterByRating')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Ratings</SelectItem>
-                <SelectItem value="5">5★ and above</SelectItem>
-                <SelectItem value="4">4★ and above</SelectItem>
-                <SelectItem value="3">3★ and above</SelectItem>
-                <SelectItem value="2">2★ and above</SelectItem>
-                <SelectItem value="1">1★ and above</SelectItem>
+                <SelectItem value="all">{t('pages.vendorDashboard.allRatings')}</SelectItem>
+                <SelectItem value="5">{t('pages.vendorDashboard.n5AndAbove')}</SelectItem>
+                <SelectItem value="4">{t('pages.vendorDashboard.n4AndAbove')}</SelectItem>
+                <SelectItem value="3">{t('pages.vendorDashboard.n3AndAbove')}</SelectItem>
+                <SelectItem value="2">{t('pages.vendorDashboard.n2AndAbove')}</SelectItem>
+                <SelectItem value="1">{t('pages.vendorDashboard.n1AndAbove')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -265,7 +272,7 @@ function VendorReviewsSection() {
         <div className="space-y-4">
           {filteredReviews.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No reviews match your search.
+              {t('pages.vendorDashboard.noReviewsMatchYourSearch')}
             </p>
           ) : filteredReviews.map((review) => {
             const customer = review.customer || {};
@@ -287,11 +294,7 @@ function VendorReviewsSection() {
               : customer.first_name || customer.email || 'Anonymous';
             const initials = customerName.charAt(0).toUpperCase();
             const reviewDate = review.created_at
-              ? new Date(review.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })
+              ? formatDate(review.created_at)
               : 'Recently';
 
             return (
@@ -300,7 +303,7 @@ function VendorReviewsSection() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium">{product.name || 'Product'}</h4>
+                        <h4 className="font-medium">{product.name || t('pages.vendorDashboard.product')}</h4>
                         {productId && (
                           <Button
                             variant="ghost"
@@ -359,10 +362,15 @@ function VendorReviewsSection() {
 export default function VendorDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const validTabs = new Set(["overview", "products", "orders", "reviews", "settings"]);
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    initialTab && validTabs.has(initialTab) ? initialTab : "overview",
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -390,6 +398,9 @@ export default function VendorDashboard() {
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [codConfirmOrder, setCodConfirmOrder] = useState<Order | null>(null);
+  const [codConfirmStep, setCodConfirmStep] = useState<'ask' | 'reason'>('ask');
+  const [codUnpaidReason, setCodUnpaidReason] = useState('');
 
   // Product form
   const [showProductDialog, setShowProductDialog] = useState(false);
@@ -411,8 +422,8 @@ export default function VendorDashboard() {
   useEffect(() => {
     if (!authLoading && (!isAuthenticated || user?.role !== 'vendor')) {
       toast({
-        title: "Authentication Required",
-        description: "Please log in as a vendor to access the dashboard.",
+        title: i18n.t('pages.vendorDashboard.authenticationRequired'),
+        description: i18n.t('pages.vendorDashboard.pleaseLogInAsAVendor'),
         variant: "destructive",
       });
       navigate('/vendor/login');
@@ -436,19 +447,19 @@ export default function VendorDashboard() {
         setTopProducts(data.data.topProducts);
         setVendor(data.data.vendor);
       } else {
-        setError(data.error?.message || 'Failed to load dashboard data');
+        setError(data.error?.message || i18n.t('pages.vendorDashboard.failedToLoadDashboardData'));
         toast({
-          title: "Error",
-          description: data.error?.message || "Failed to load dashboard data",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: data.error?.message || i18n.t('pages.vendorDashboard.failedToLoadDashboardData'),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error('Dashboard fetch error:', err);
-      setError('Network error. Please try again.');
+      setError(i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'));
       toast({
-        title: "Error",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -469,16 +480,16 @@ export default function VendorDashboard() {
         setProductsPage(page);
       } else {
         toast({
-          title: "Error",
-          description: data.error?.message || "Failed to load products",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: data.error?.message || i18n.t('pages.vendorDashboard.failedToLoadProducts'),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error('Products fetch error:', err);
       toast({
-        title: "Error",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -506,6 +517,7 @@ export default function VendorDashboard() {
 
           return {
             id: order.id,
+            orderNumber: order.order_number ?? null,
             customer: customerName,
             date: order.created_at ?? new Date().toISOString(),
             status: statusValue,
@@ -514,6 +526,7 @@ export default function VendorDashboard() {
             items: Array.isArray(order.order_items) ? order.order_items.length : 0,
             payment: order.payment_method ?? "N/A",
             paymentStatus: order.payment_status ?? null,
+            paymentPendingReason: order.payment_pending_reason ?? null,
             shippingAddress: order.shipping_address ?? null,
             cancellationReason: order.cancellation_reason ?? null,
             orderItems: order.order_items ?? [],
@@ -525,16 +538,16 @@ export default function VendorDashboard() {
         setOrdersPage(page);
       } else {
         toast({
-          title: "Error",
-          description: data.error?.message || "Failed to load orders",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: data.error?.message || i18n.t('pages.vendorDashboard.failedToLoadOrders'),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error('Orders fetch error:', err);
       toast({
-        title: "Error",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -548,35 +561,15 @@ export default function VendorDashboard() {
     return orders.filter((order) => {
       return (
         order.id.toLowerCase().includes(query) ||
+        (order.orderNumber ?? "").toLowerCase().includes(query) ||
         order.customer.toLowerCase().includes(query) ||
         order.statusLabel.toLowerCase().includes(query)
       );
     });
   }, [orders, ordersSearch]);
 
-  const formatVendorStatusLabel = (status: string) => {
-    const value = (status || "").toLowerCase();
-    switch (value) {
-      case "pending":
-        return "Pending";
-      case "confirmed":
-        return "Confirmed";
-      case "processing":
-        return "Processing";
-      case "shipped":
-        return "Shipped";
-      case "out_for_delivery":
-        return "Out for Delivery";
-      case "delivered":
-      case "completed":
-        return "Delivered";
-      case "cancelled":
-      case "canceled":
-        return "Cancelled";
-      default:
-        return status || "Unknown";
-    }
-  };
+  const formatVendorStatusLabel = (status: string) =>
+    formatStatus((status || "").toLowerCase() === "completed" ? "delivered" : status);
 
   const getStatusColor = (status: string) => {
     const value = (status || "").toLowerCase();
@@ -606,12 +599,6 @@ export default function VendorDashboard() {
     }
   };
 
-  const formatMoney = (value: number) =>
-    new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(Number.isFinite(value) ? value : 0);
 
   const formatShippingAddress = (address?: Record<string, any> | null) => {
     if (!address || typeof address !== "object") {
@@ -747,7 +734,7 @@ export default function VendorDashboard() {
             const base64 = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = (event) => resolve(event.target?.result as string);
-              reader.onerror = () => reject(new Error('Failed to read image file'));
+              reader.onerror = () => reject(new Error(i18n.t('pages.vendorDashboard.failedToReadImageFile')));
               reader.readAsDataURL(file);
             });
             processedNewImages.push({ base64, name: file.name });
@@ -765,15 +752,15 @@ export default function VendorDashboard() {
 
       if (!data.success) {
         toast({
-          title: "Error",
-          description: data.error?.message || "Failed to save product",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: data.error?.message || i18n.t('pages.vendorDashboard.failedToSaveProduct'),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: editingProduct ? "Product Updated" : "Product Created",
+        title: editingProduct ? i18n.t('pages.vendorDashboard.productUpdated') : i18n.t('pages.vendorDashboard.productCreated'),
         description: data.message,
       });
 
@@ -800,8 +787,8 @@ export default function VendorDashboard() {
     } catch (err) {
       console.error('Product save error:', err);
       toast({
-        title: "Error",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -827,14 +814,14 @@ export default function VendorDashboard() {
   };
 
   const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm(i18n.t('pages.vendorDashboard.areYouSureYouWantTo'))) return;
 
     try {
       const data = await apiClient.deleteVendorProduct(productId) as any;
 
       if (data.success) {
         toast({
-          title: "Product Deleted",
+          title: i18n.t('pages.vendorDashboard.productDeleted'),
           description: data.message,
         });
 
@@ -844,29 +831,33 @@ export default function VendorDashboard() {
         fetchDashboardData(); // Refresh dashboard statistics
       } else {
         toast({
-          title: "Error",
-          description: data.error?.message || "Failed to delete product",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: data.error?.message || i18n.t('pages.vendorDashboard.failedToDeleteProduct'),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error('Product delete error:', err);
       toast({
-        title: "Error",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateOrderStatus = async (
+    orderId: string,
+    newStatus: string,
+    paymentInfo?: { paymentCollected?: boolean; unpaidReason?: string }
+  ) => {
     try {
       setUpdatingOrderId(orderId);
-      const data = await apiClient.updateVendorOrderStatus(orderId, newStatus) as any;
+      const data = await apiClient.updateVendorOrderStatus(orderId, newStatus, paymentInfo) as any;
 
       if (data.success) {
         toast({
-          title: "Order Updated",
+          title: i18n.t('pages.vendorDashboard.orderUpdated'),
           description: data.message,
         });
 
@@ -876,16 +867,16 @@ export default function VendorDashboard() {
         fetchDashboardData(); // Refresh dashboard statistics
       } else {
         toast({
-          title: "Error",
-          description: data.error?.message || "Failed to update order",
+          title: i18n.t('pages.vendorDashboard.error'),
+          description: data.error?.message || i18n.t('pages.vendorDashboard.failedToUpdateOrder'),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error('Order update error:', err);
       toast({
-        title: "Error",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -894,12 +885,57 @@ export default function VendorDashboard() {
     }
   };
 
+  const closeCodConfirmDialog = () => {
+    setCodConfirmOrder(null);
+    setCodConfirmStep('ask');
+    setCodUnpaidReason('');
+  };
+
+  const handleOrderStatusChange = (order: Order, newStatus: string) => {
+    if (updatingOrderId === order.id) return;
+
+    const isCod = (order.payment || '').toLowerCase() === 'cod';
+    const isAlreadyPaid = (order.paymentStatus || '').toLowerCase() === 'paid';
+
+    if (newStatus === 'delivered' && isCod && !isAlreadyPaid) {
+      setCodConfirmOrder(order);
+      setCodConfirmStep('ask');
+      setCodUnpaidReason('');
+      return;
+    }
+
+    handleUpdateOrderStatus(order.id, newStatus);
+  };
+
+  const handleConfirmCodPaymentCollected = async () => {
+    if (!codConfirmOrder) return;
+    const orderId = codConfirmOrder.id;
+    closeCodConfirmDialog();
+    await handleUpdateOrderStatus(orderId, 'delivered', { paymentCollected: true });
+  };
+
+  const handleSubmitCodUnpaidReason = async () => {
+    if (!codConfirmOrder) return;
+    if (!codUnpaidReason.trim()) {
+      toast({
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.unpaidReasonRequired'),
+        variant: "destructive",
+      });
+      return;
+    }
+    const orderId = codConfirmOrder.id;
+    const reason = codUnpaidReason.trim();
+    closeCodConfirmDialog();
+    await handleUpdateOrderStatus(orderId, 'delivered', { paymentCollected: false, unpaidReason: reason });
+  };
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <p className="text-muted-foreground">{t('pages.vendorDashboard.loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -913,7 +949,7 @@ export default function VendorDashboard() {
           <p className="text-red-500 mb-4">{error}</p>
           <Button onClick={fetchDashboardData}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
+            {t('pages.vendorDashboard.retry')}
           </Button>
         </div>
       </div>
@@ -939,13 +975,13 @@ export default function VendorDashboard() {
                 onClick={() => navigate('/')}
                 className="text-gray-600 hover:text-gray-900"
               >
-                ← Back to Store
+                {t('pages.vendorDashboard.backToStore')}
               </Button>
               <div className="flex items-center space-x-3">
                 {vendor?.profilePhoto || user?.profilePhoto ? (
                   <img
                     src={vendor?.profilePhoto || user?.profilePhoto}
-                    alt="Profile"
+                    alt={t('pages.vendorDashboard.profile')}
                     className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
                   />
                 ) : (
@@ -954,9 +990,9 @@ export default function VendorDashboard() {
                   </div>
                 )}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vendor Dashboard</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('pages.vendorDashboard.vendorDashboard')}</h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Welcome back, {vendor?.businessName || user?.businessName || 'Vendor'}
+                    {t('pages.vendorDashboard.welcomeBack')} {vendor?.businessName || user?.businessName || t('pages.vendorDashboard.vendor')}
                   </p>
                 </div>
               </div>
@@ -964,11 +1000,11 @@ export default function VendorDashboard() {
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm" onClick={() => navigate('/vendor/profile')}>
                 <Settings className="h-4 w-4 mr-2" />
-                Profile
+                {t('pages.vendorDashboard.profile')}
               </Button>
               <Button variant="outline" size="sm" onClick={fetchDashboardData}>
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
+                {t('pages.vendorDashboard.refresh')}
               </Button>
             </div>
           </div>
@@ -987,8 +1023,8 @@ export default function VendorDashboard() {
                       <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sales</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">${(stats?.totalSales || 0).toLocaleString()}</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('pages.vendorDashboard.totalSales')}</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatMoney(stats?.totalSales || 0)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -1001,7 +1037,7 @@ export default function VendorDashboard() {
                       <ShoppingCart className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Orders</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('pages.vendorDashboard.orders')}</p>
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalOrders || 0}</p>
                     </div>
                   </div>
@@ -1015,7 +1051,7 @@ export default function VendorDashboard() {
                       <Package className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Products</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('pages.vendorDashboard.products')}</p>
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalProducts || 0}</p>
                     </div>
                   </div>
@@ -1029,7 +1065,7 @@ export default function VendorDashboard() {
                       <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Customers</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('pages.vendorDashboard.customers')}</p>
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalCustomers || 0}</p>
                     </div>
                   </div>
@@ -1057,11 +1093,11 @@ export default function VendorDashboard() {
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-5">
-              <TabsTrigger value="overview" className="min-w-[140px] sm:min-w-0">Overview</TabsTrigger>
-              <TabsTrigger value="products" className="min-w-[140px] sm:min-w-0">Products</TabsTrigger>
-              <TabsTrigger value="orders" className="min-w-[140px] sm:min-w-0">Orders</TabsTrigger>
-              <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">Reviews</TabsTrigger>
-              <TabsTrigger value="settings" className="min-w-[140px] sm:min-w-0">Settings</TabsTrigger>
+              <TabsTrigger value="overview" className="min-w-[140px] sm:min-w-0">{t('pages.vendorDashboard.overview')}</TabsTrigger>
+              <TabsTrigger value="products" className="min-w-[140px] sm:min-w-0">{t('pages.vendorDashboard.products')}</TabsTrigger>
+              <TabsTrigger value="orders" className="min-w-[140px] sm:min-w-0">{t('pages.vendorDashboard.orders')}</TabsTrigger>
+              <TabsTrigger value="reviews" className="min-w-[140px] sm:min-w-0">{t('pages.vendorDashboard.reviews')}</TabsTrigger>
+              <TabsTrigger value="settings" className="min-w-[140px] sm:min-w-0">{t('pages.vendorDashboard.settings')}</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -1071,28 +1107,28 @@ export default function VendorDashboard() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      Recent Orders
+                      {t('pages.vendorDashboard.recentOrders')}
                       <Button variant="outline" size="sm" onClick={() => setActiveTab("orders")}>
-                        View All
+                        {t('pages.vendorDashboard.viewAll')}
                       </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {!recentOrders || recentOrders.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-4">No recent orders</p>
+                        <p className="text-center text-muted-foreground py-4">{t('pages.vendorDashboard.noRecentOrders')}</p>
                       ) : (
                         recentOrders.map((order) => (
                           <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div>
-                              <p className="font-medium">Order {order.id}</p>
+                              <p className="font-medium">{t('pages.vendorDashboard.orderOrderNumber', { order_number: order.order_number ?? order.orderNumber ?? order.id })}</p>
                               <p className="text-sm text-gray-500">{order.customer}</p>
-                              <p className="text-sm text-gray-500">{new Date(order.date).toLocaleDateString()}</p>
+                              <p className="text-sm text-gray-500">{formatDate(order.date)}</p>
                             </div>
                             <div className="text-right">
                               <p className="font-bold">${order.total}</p>
                               <Badge className={getStatusColor(order.status)}>
-                                {order.status}
+                                {formatStatus(order.status)}
                               </Badge>
                             </div>
                           </div>
@@ -1106,16 +1142,16 @@ export default function VendorDashboard() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      Top Products
+                      {t('pages.vendorDashboard.topProducts')}
                       <Button variant="outline" size="sm" onClick={() => setActiveTab("products")}>
-                        View All
+                        {t('pages.vendorDashboard.viewAll')}
                       </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {!topProducts || topProducts.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-4">No products yet</p>
+                        <p className="text-center text-muted-foreground py-4">{t('pages.vendorDashboard.noProductsYet')}</p>
                       ) : (
                         topProducts.map((product) => {
                           // Get product image - support both images array and image single value
@@ -1143,7 +1179,7 @@ export default function VendorDashboard() {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{product.name || 'Unnamed Product'}</p>
+                                <p className="font-medium truncate">{product.name || t('pages.vendorDashboard.unnamedProduct')}</p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                   ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
                                 </p>
@@ -1170,7 +1206,7 @@ export default function VendorDashboard() {
               {/* Quick Actions */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+                  <CardTitle>{t('pages.vendorDashboard.quickActions')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1196,19 +1232,19 @@ export default function VendorDashboard() {
                       }}
                     >
                       <Plus className="h-6 w-6 mb-2" />
-                      Add Product
+                      {t('pages.vendorDashboard.addProduct')}
                     </Button>
                     <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab("orders")}>
                       <BarChart3 className="h-6 w-6 mb-2" />
-                      View Orders
+                      {t('pages.vendorDashboard.viewOrders')}
                     </Button>
                     <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab("products")}>
                       <Package className="h-6 w-6 mb-2" />
-                      Manage Products
+                      {t('pages.vendorDashboard.manageProducts')}
                     </Button>
                     <Button variant="outline" className="h-20 flex-col" onClick={() => navigate('/vendor/profile')}>
                       <Settings className="h-6 w-6 mb-2" />
-                      Store Settings
+                      {t('pages.vendorDashboard.storeSettings')}
                     </Button>
                   </div>
                 </CardContent>
@@ -1220,7 +1256,7 @@ export default function VendorDashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    Products
+                    {t('pages.vendorDashboard.products')}
                     <Button
                       size="sm"
                       onClick={() => {
@@ -1242,14 +1278,14 @@ export default function VendorDashboard() {
                       }}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Product
+                      {t('pages.vendorDashboard.addProduct')}
                     </Button>
                   </CardTitle>
                   <div className="flex items-center space-x-4">
                     <div className="relative flex-1 max-w-sm">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search products..."
+                        placeholder={t('pages.vendorDashboard.searchProducts')}
                         className="pl-10"
                         value={productSearch}
                         onChange={(e) => setProductSearch(e.target.value)}
@@ -1257,13 +1293,13 @@ export default function VendorDashboard() {
                     </div>
                     <Select value={productStatusFilter} onValueChange={setProductStatusFilter}>
                       <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Filter by status" />
+                        <SelectValue placeholder={t('pages.vendorDashboard.filterByStatus')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="all">{t('pages.vendorDashboard.allStatus')}</SelectItem>
+                        <SelectItem value="active">{t('pages.vendorDashboard.active')}</SelectItem>
+                        <SelectItem value="inactive">{t('pages.vendorDashboard.inactive')}</SelectItem>
+                        <SelectItem value="draft">{t('pages.vendorDashboard.draft')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1278,20 +1314,20 @@ export default function VendorDashboard() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Product</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Stock</TableHead>
-                            <TableHead>Rating</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.product')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.category')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.price')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.stock')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.rating')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.status')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.actions')}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {!products || products.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                                No products found
+                                {t('pages.vendorDashboard.noProductsFound')}
                               </TableCell>
                             </TableRow>
                           ) : (
@@ -1316,7 +1352,7 @@ export default function VendorDashboard() {
                                     <span>{product.name}</span>
                                   </div>
                                 </TableCell>
-                                <TableCell>{product.category}</TableCell>
+                                <TableCell>{categoryLabel(product.category)}</TableCell>
                                 <TableCell>${product.price}</TableCell>
                                 <TableCell>{product.stock}</TableCell>
                                 <TableCell>
@@ -1331,7 +1367,7 @@ export default function VendorDashboard() {
                                 </TableCell>
                                 <TableCell>
                                   <Badge className={getStatusColor(product.status || 'Active')}>
-                                    {product.status || 'Active'}
+                                    {product.status || t('pages.vendorDashboard.active')}
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
@@ -1366,7 +1402,7 @@ export default function VendorDashboard() {
                 <CardHeader>
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle>Order Management</CardTitle>
+                      <CardTitle>{t('pages.vendorDashboard.orderManagement')}</CardTitle>
                       <div className="flex items-center space-x-4">
                         <Button
                           variant="outline"
@@ -1382,7 +1418,7 @@ export default function VendorDashboard() {
                           ) : (
                             <RefreshCw className="h-4 w-4" />
                           )}
-                          <span className="ml-2">Refresh</span>
+                          <span className="ml-2">{t('pages.vendorDashboard.refresh')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1390,7 +1426,7 @@ export default function VendorDashboard() {
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="Search orders by ID, customer or status..."
+                          placeholder={t('pages.vendorDashboard.searchOrdersByIdCustomerOr')}
                           value={ordersSearch}
                           onChange={(e) => setOrdersSearch(e.target.value)}
                           className="pl-10"
@@ -1398,16 +1434,16 @@ export default function VendorDashboard() {
                       </div>
                       <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
                         <SelectTrigger className="w-full sm:w-40">
-                          <SelectValue placeholder="Filter by status" />
+                          <SelectValue placeholder={t('pages.vendorDashboard.filterByStatus')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="shipped">Shipped</SelectItem>
-                          <SelectItem value="out_for_delivery">Out for delivery</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="all">{t('pages.vendorDashboard.allStatus')}</SelectItem>
+                          <SelectItem value="pending">{t('pages.vendorDashboard.pending')}</SelectItem>
+                          <SelectItem value="processing">{t('pages.vendorDashboard.processing')}</SelectItem>
+                          <SelectItem value="shipped">{t('pages.vendorDashboard.shipped')}</SelectItem>
+                          <SelectItem value="out_for_delivery">{t('pages.vendorDashboard.outForDelivery')}</SelectItem>
+                          <SelectItem value="delivered">{t('pages.vendorDashboard.delivered')}</SelectItem>
+                          <SelectItem value="cancelled">{t('pages.vendorDashboard.cancelled')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1423,29 +1459,29 @@ export default function VendorDashboard() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Items</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead>Payment Status</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.orderId')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.customer')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.date')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.status')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.items')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.total')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.paymentStatus')}</TableHead>
+                            <TableHead>{t('pages.vendorDashboard.actions')}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {!filteredOrders || filteredOrders.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                                No orders found
+                                {t('pages.vendorDashboard.noOrdersFound')}
                               </TableCell>
                             </TableRow>
                           ) : (
                             filteredOrders.map((order) => (
                               <TableRow key={order.id}>
-                                <TableCell className="font-medium">{order.id}</TableCell>
+                                <TableCell className="font-medium">{order.orderNumber ?? order.id}</TableCell>
                                 <TableCell>{order.customer}</TableCell>
-                                <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
+                                <TableCell>{formatDate(order.date)}</TableCell>
                                 <TableCell>
                                   <Badge className={getStatusColor(order.status)}>
                                     {formatVendorStatusLabel(order.status)}
@@ -1453,27 +1489,31 @@ export default function VendorDashboard() {
                                 </TableCell>
                                 <TableCell>{order.items}</TableCell>
                                 <TableCell>{formatMoney(order.total)}</TableCell>
-                                <TableCell>{order.paymentStatus ?? "—"}</TableCell>
+                                <TableCell>
+                                  <div>{order.paymentStatus ? formatStatus(order.paymentStatus) : "—"}</div>
+                                  {order.paymentPendingReason && (
+                                    <div className="text-xs text-amber-600 dark:text-amber-400 max-w-[160px] truncate" title={order.paymentPendingReason}>
+                                      {order.paymentPendingReason}
+                                    </div>
+                                  )}
+                                </TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-2">
                                     <Select
                                       value={order.status}
-                                      onValueChange={(value) => {
-                                        if (updatingOrderId === order.id) return;
-                                        handleUpdateOrderStatus(order.id, value);
-                                      }}
+                                      onValueChange={(value) => handleOrderStatusChange(order, value)}
                                       disabled={order.status.toLowerCase() === 'cancelled' || updatingOrderId === order.id}
                                     >
                                       <SelectTrigger className="w-32" disabled={order.status.toLowerCase() === 'cancelled' || updatingOrderId === order.id}>
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                                        <SelectItem value="processing">Processing</SelectItem>
-                                        <SelectItem value="shipped">Shipped</SelectItem>
-                                        <SelectItem value="out_for_delivery">Out for delivery</SelectItem>
-                                        <SelectItem value="delivered">Delivered</SelectItem>
+                                        <SelectItem value="pending">{t('pages.vendorDashboard.pending')}</SelectItem>
+                                        <SelectItem value="confirmed">{t('pages.vendorDashboard.confirmed')}</SelectItem>
+                                        <SelectItem value="processing">{t('pages.vendorDashboard.processing')}</SelectItem>
+                                        <SelectItem value="shipped">{t('pages.vendorDashboard.shipped')}</SelectItem>
+                                        <SelectItem value="out_for_delivery">{t('pages.vendorDashboard.outForDelivery')}</SelectItem>
+                                        <SelectItem value="delivered">{t('pages.vendorDashboard.delivered')}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     {updatingOrderId === order.id && (
@@ -1486,7 +1526,7 @@ export default function VendorDashboard() {
                                       disabled={updatingOrderId === order.id}
                                     >
                                       <Eye className="mr-1.5 h-4 w-4" />
-                                      View
+                                      {t('pages.vendorDashboard.view')}
                                     </Button>
                                   </div>
                                 </TableCell>
@@ -1513,54 +1553,54 @@ export default function VendorDashboard() {
                     <div className="space-y-6">
                       <DialogHeader>
                         <DialogTitle>
-                          Order {orderDetails.id}
+                          {t('pages.vendorDashboard.orderId2', { id: orderDetails.orderNumber ?? orderDetails.id })}
                         </DialogTitle>
                         <DialogDescription>
-                          {new Date(orderDetails.date).toLocaleString()}
+                          {formatDateTime(orderDetails.date)}
                         </DialogDescription>
                       </DialogHeader>
 
                       <div className="grid gap-5 md:grid-cols-2">
                         <div className="rounded-lg border p-4">
                           <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Customer
+                            {t('pages.vendorDashboard.customer')}
                           </h4>
                           <p className="mt-2 text-sm font-medium text-foreground">
                             {orderDetails.customer}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {orderDetails.paymentStatus
-                              ? `Payment status: ${orderDetails.paymentStatus}`
-                              : "Awaiting payment confirmation"}
+                              ? t('pages.vendorDashboard.paymentStatusPaymentstatus', { paymentStatus: formatStatus(orderDetails.paymentStatus) })
+                              : t('pages.vendorDashboard.awaitingPaymentConfirmation')}
                           </p>
                         </div>
                         <div className="rounded-lg border p-4">
                           <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Payment
+                            {t('pages.vendorDashboard.payment')}
                           </h4>
                           <p className="mt-2 text-sm font-medium text-foreground">
-                            Method: {orderDetails.payment}
+                            {t('pages.vendorDashboard.methodPayment', { payment: formatPaymentMethod(orderDetails.payment) })}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Total: {formatMoney(orderDetails.total)}
+                            {t('pages.vendorDashboard.totalTotal', { total: formatMoney(orderDetails.total) })}
                           </p>
                         </div>
                       </div>
 
                       <div className="rounded-lg border p-4">
                         <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Shipping address
+                          {t('pages.vendorDashboard.shippingAddress')}
                         </h4>
                         <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                           {formatShippingAddress(orderDetails.shippingAddress) ??
-                            "No shipping address provided yet."}
+                            t('pages.vendorDashboard.noShippingAddressProvidedYet')}
                         </pre>
                       </div>
 
                       {orderDetails.status.toLowerCase() === 'cancelled' && orderDetails.cancellationReason && (
                         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/10">
                           <h4 className="text-xs font-semibold uppercase tracking-wide text-red-800 dark:text-red-400">
-                            Cancellation Reason
+                            {t('pages.vendorDashboard.cancellationReason')}
                           </h4>
                           <p className="mt-2 text-sm text-red-700 dark:text-red-300">
                             {orderDetails.cancellationReason}
@@ -1568,9 +1608,20 @@ export default function VendorDashboard() {
                         </div>
                       )}
 
+                      {orderDetails.paymentPendingReason && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/10">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-400">
+                            {t('pages.vendorDashboard.paymentPendingReason')}
+                          </h4>
+                          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                            {orderDetails.paymentPendingReason}
+                          </p>
+                        </div>
+                      )}
+
                       <div className="rounded-lg border p-4">
                         <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Items
+                          {t('pages.vendorDashboard.items')}
                         </h4>
                         <div className="mt-3 space-y-3">
                           {orderDetails.orderItems && orderDetails.orderItems.length > 0 ? (
@@ -1586,10 +1637,10 @@ export default function VendorDashboard() {
                                   >
                                     <div>
                                       <p className="text-sm font-medium">
-                                        {item.product?.name ?? "Product"}
+                                        {item.product?.name ?? t('pages.vendorDashboard.product')}
                                       </p>
                                       <p className="text-xs text-muted-foreground">
-                                        Qty: {Number.isFinite(quantity) ? quantity : 0}
+                                        {t('pages.vendorDashboard.qty')} {Number.isFinite(quantity) ? quantity : 0}
                                       </p>
                                     </div>
                                     <p className="text-sm font-semibold">
@@ -1600,30 +1651,129 @@ export default function VendorDashboard() {
                               })}
                               <div className="pt-2 space-y-1">
                                 <div className="flex justify-between text-sm text-muted-foreground">
-                                  <span>Subtotal (Excl. VAT)</span>
+                                  <span>{t('pages.vendorDashboard.subtotalExclVat')}</span>
                                   <span>{formatMoney(orderDetails.total - calculateIncludedVAT(orderDetails.total))}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-muted-foreground">
-                                  <span>VAT (16%)</span>
+                                  <span>{t('pages.vendorDashboard.vat16')}</span>
                                   <span>{formatMoney(calculateIncludedVAT(orderDetails.total))}</span>
                                 </div>
                                 <div className="flex justify-between text-base font-bold border-t pt-1">
-                                  <span>Total (Incl. VAT)</span>
+                                  <span>{t('pages.vendorDashboard.totalInclVat')}</span>
                                   <span>{formatMoney(orderDetails.total)}</span>
                                 </div>
                               </div>
                             </>
                           ) : (
                             <p className="text-sm text-muted-foreground">
-                              No line items available for this order.
+                              {t('pages.vendorDashboard.noLineItemsAvailableForThis')}
                             </p>
                           )}
                         </div>
                       </div>
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            const address = orderDetails.shippingAddress ?? {};
+                            const invoiceData = {
+                              orderId: orderDetails.id,
+                              orderNumber: orderDetails.orderNumber ?? orderDetails.order_number,
+                              createdAt: orderDetails.date,
+                              customer: {
+                                name: orderDetails.customer,
+                                email: (address as Record<string, any>).email ?? "",
+                                phone: (address as Record<string, any>).phone ?? (address as Record<string, any>).phoneNumber,
+                                address: orderDetails.shippingAddress,
+                              },
+                              items: (orderDetails.orderItems ?? []).map((item) => {
+                                const price = Number(item.price ?? 0);
+                                const quantity = Number(item.quantity ?? 0);
+                                return {
+                                  productName: item.product?.name ?? "",
+                                  quantity,
+                                  price,
+                                  subtotal: price * quantity,
+                                };
+                              }),
+                              totalAmount: orderDetails.total,
+                              paymentMethod: orderDetails.payment,
+                              status: orderDetails.status,
+                            };
+                            import("@/utils/invoice").then((mod) => mod.generateInvoicePDF(invoiceData));
+                          }}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          {t('pages.vendorDashboard.downloadInvoice', 'Download invoice')}
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="py-6 text-center text-sm text-muted-foreground">
-                      Select an order to view the details.
+                      {t('pages.vendorDashboard.selectAnOrderToViewThe')}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+
+              {/* COD payment confirmation dialog */}
+              <Dialog
+                open={!!codConfirmOrder}
+                onOpenChange={(open) => {
+                  if (!open) closeCodConfirmDialog();
+                }}
+              >
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>{t('pages.vendorDashboard.confirmCodPaymentTitle')}</DialogTitle>
+                    <DialogDescription>
+                      {t('pages.vendorDashboard.confirmCodPaymentQuestion')}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {codConfirmStep === 'ask' ? (
+                    <DialogFooter className="gap-2 sm:justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => setCodConfirmStep('reason')}
+                        disabled={!!updatingOrderId}
+                      >
+                        {t('pages.vendorDashboard.paymentCollectedNo')}
+                      </Button>
+                      <Button
+                        onClick={handleConfirmCodPaymentCollected}
+                        disabled={!!updatingOrderId}
+                      >
+                        {t('pages.vendorDashboard.paymentCollectedYes')}
+                      </Button>
+                    </DialogFooter>
+                  ) : (
+                    <div className="space-y-3">
+                      <Label htmlFor="cod-unpaid-reason">
+                        {t('pages.vendorDashboard.unpaidReasonLabel')}
+                      </Label>
+                      <Textarea
+                        id="cod-unpaid-reason"
+                        value={codUnpaidReason}
+                        onChange={(e) => setCodUnpaidReason(e.target.value)}
+                        placeholder={t('pages.vendorDashboard.unpaidReasonPlaceholder')}
+                        rows={3}
+                      />
+                      <DialogFooter className="gap-2 sm:justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => setCodConfirmStep('ask')}
+                          disabled={!!updatingOrderId}
+                        >
+                          {t('pages.vendorDashboard.cancel')}
+                        </Button>
+                        <Button
+                          onClick={handleSubmitCodUnpaidReason}
+                          disabled={!!updatingOrderId || !codUnpaidReason.trim()}
+                        >
+                          {t('pages.vendorDashboard.submitReason')}
+                        </Button>
+                      </DialogFooter>
                     </div>
                   )}
                 </DialogContent>
@@ -1640,14 +1790,14 @@ export default function VendorDashboard() {
             <TabsContent value="settings" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Store Settings</CardTitle>
+                  <CardTitle>{t('pages.vendorDashboard.storeSettings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">
                     <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">Store settings are managed in your profile</p>
+                    <p className="text-muted-foreground mb-4">{t('pages.vendorDashboard.storeSettingsAreManagedInYour')}</p>
                     <Button onClick={() => navigate('/vendor/profile')}>
-                      Go to Profile
+                      {t('pages.vendorDashboard.goToProfile')}
                     </Button>
                   </div>
                 </CardContent>
@@ -1661,15 +1811,15 @@ export default function VendorDashboard() {
       <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+            <DialogTitle>{editingProduct ? t('pages.vendorDashboard.editProduct') : t('pages.vendorDashboard.addNewProduct')}</DialogTitle>
             <DialogDescription>
-              {editingProduct ? 'Update your product information' : 'Add a new product to your store'}
+              {editingProduct ? t('pages.vendorDashboard.updateYourProductInformation') : t('pages.vendorDashboard.addANewProductToYour')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleProductSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Product Name *</Label>
+                <Label htmlFor="name">{t('pages.vendorDashboard.productName')}</Label>
                 <Input
                   id="name"
                   value={productForm.name}
@@ -1678,13 +1828,13 @@ export default function VendorDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">{t('pages.vendorDashboard.category2')}</Label>
                 <Select
                   value={productForm.category}
                   onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder={t('pages.vendorDashboard.selectACategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     {predefinedCategories.map((category) => (
@@ -1700,7 +1850,7 @@ export default function VendorDashboard() {
               </div>
             </div>
             <div>
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="description">{t('pages.vendorDashboard.description')}</Label>
               <Textarea
                 id="description"
                 value={productForm.description}
@@ -1710,7 +1860,7 @@ export default function VendorDashboard() {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="price">Price *</Label>
+                <Label htmlFor="price">{t('pages.vendorDashboard.price2')}</Label>
                 <Input
                   id="price"
                   type="number"
@@ -1721,12 +1871,12 @@ export default function VendorDashboard() {
                 />
                 {productForm.price && !isNaN(Number(productForm.price)) && (
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    Inc. 16% VAT: <span className="font-medium text-primary">{formatPrice(calculateTotalWithVAT(Number(productForm.price)))}</span>
+                    {t('pages.vendorDashboard.inc16Vat')} <span className="font-medium text-primary">{formatPrice(calculateTotalWithVAT(Number(productForm.price)))}</span>
                   </p>
                 )}
               </div>
               <div>
-                <Label htmlFor="stock">Stock *</Label>
+                <Label htmlFor="stock">{t('pages.vendorDashboard.stock2')}</Label>
                 <Input
                   id="stock"
                   type="number"
@@ -1736,15 +1886,15 @@ export default function VendorDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t('pages.vendorDashboard.status')}</Label>
                 <Select value={productForm.status} onValueChange={(value) => setProductForm(prev => ({ ...prev, status: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="active">{t('pages.vendorDashboard.active')}</SelectItem>
+                    <SelectItem value="inactive">{t('pages.vendorDashboard.inactive')}</SelectItem>
+                    <SelectItem value="draft">{t('pages.vendorDashboard.draft')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1752,7 +1902,7 @@ export default function VendorDashboard() {
 
 
             <div>
-              <Label htmlFor="product_image">Product Images</Label>
+              <Label htmlFor="product_image">{t('pages.vendorDashboard.productImages')}</Label>
               <div className="space-y-4">
                 {/* Image Previews Grid */}
                 <div className="grid grid-cols-4 gap-4">
@@ -1761,7 +1911,7 @@ export default function VendorDashboard() {
                     <div key={`existing-${index}`} className="relative group aspect-square">
                       <img
                         src={url}
-                        alt={`Existing ${index}`}
+                        alt={t('pages.vendorDashboard.existingIndex', { index })}
                         className="w-full h-full object-cover rounded-lg border"
                       />
                       <button
@@ -1778,7 +1928,7 @@ export default function VendorDashboard() {
                     <div key={`new-${index}`} className="relative group aspect-square">
                       <img
                         src={preview}
-                        alt={`New ${index}`}
+                        alt={t('pages.vendorDashboard.newIndex', { index })}
                         className="w-full h-full object-cover rounded-lg border"
                       />
                       <button
@@ -1796,7 +1946,7 @@ export default function VendorDashboard() {
                     onClick={() => document.getElementById('product-image-upload')?.click()}
                   >
                     <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
-                    <span className="text-xs text-gray-500">Upload</span>
+                    <span className="text-xs text-gray-500">{t('pages.vendorDashboard.upload')}</span>
                   </div>
                 </div>
 
@@ -1811,16 +1961,16 @@ export default function VendorDashboard() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  You can upload multiple images. The first image will be the primary one.
+                  {t('pages.vendorDashboard.youCanUploadMultipleImagesThe')}
                 </p>
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowProductDialog(false)}>
-                Cancel
+                {t('pages.vendorDashboard.cancel')}
               </Button>
               <Button type="submit" disabled={isCreatingProduct}>
-                {isCreatingProduct ? 'Creating...' : editingProduct ? 'Update Product' : 'Create Product'}
+                {isCreatingProduct ? t('pages.vendorDashboard.creating') : editingProduct ? t('pages.vendorDashboard.updateProduct') : t('pages.vendorDashboard.createProduct')}
               </Button>
             </DialogFooter>
           </form>

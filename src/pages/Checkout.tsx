@@ -5,6 +5,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { formatNumber } from "@/lib/format";
 import {
   ArrowLeft,
   CheckCircle,
@@ -853,12 +854,12 @@ const Checkout = () => {
                                               <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
                                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                                   <div>
-                                                    <span className="text-muted-foreground">Email:</span>
+                                                    <span className="text-muted-foreground">{t('pages.checkout.email')}</span>
                                                     <span className="ml-1 text-foreground">{address.email || "N/A"}</span>
                                                   </div>
                                                   {address.alt_phone && (
                                                     <div>
-                                                      <span className="text-muted-foreground">Alt. Phone:</span>
+                                                      <span className="text-muted-foreground">{t('pages.checkout.altPhone')}</span>
                                                       <span className="ml-1 text-foreground">{address.alt_phone}</span>
                                                     </div>
                                                   )}
@@ -977,7 +978,7 @@ const Checkout = () => {
                                   id="fullName"
                                   value={addressForm.fullName}
                                   onChange={(event) => updateAddressField("fullName", event.target.value)}
-                                  placeholder="Jane Doe"
+                                  placeholder={t('pages.checkout.janeDoe')}
                                   autoComplete="name"
                                 />
                               </div>
@@ -1011,7 +1012,7 @@ const Checkout = () => {
                                 id="street1"
                                 value={addressForm.street1}
                                 onChange={(event) => updateAddressField("street1", event.target.value)}
-                                placeholder="123 Market Avenue"
+                                placeholder={t('pages.checkout.n123MarketAvenue')}
                                 autoComplete="address-line1"
                               />
                             </div>
@@ -1022,7 +1023,7 @@ const Checkout = () => {
                                 id="street2"
                                 value={addressForm.street2 ?? ""}
                                 onChange={(event) => updateAddressField("street2", event.target.value)}
-                                placeholder="Apartment 5B"
+                                placeholder={t('pages.checkout.apartment5b')}
                                 autoComplete="address-line2"
                               />
                             </div>
@@ -1034,7 +1035,7 @@ const Checkout = () => {
                                   id="city"
                                   value={addressForm.city}
                                   onChange={(event) => updateAddressField("city", event.target.value)}
-                                  placeholder="Lusaka"
+                                  placeholder={t('pages.checkout.lusaka')}
                                   autoComplete="address-level2"
                                 />
                               </div>
@@ -1044,7 +1045,7 @@ const Checkout = () => {
                                   id="state"
                                   value={addressForm.state}
                                   onChange={(event) => updateAddressField("state", event.target.value)}
-                                  placeholder="Lusaka Province"
+                                  placeholder={t('pages.checkout.lusakaProvince')}
                                   autoComplete="address-level1"
                                 />
                               </div>
@@ -1066,7 +1067,7 @@ const Checkout = () => {
                                 id="country"
                                 value={addressForm.country}
                                 onChange={(event) => updateAddressField("country", event.target.value)}
-                                placeholder="Zambia"
+                                placeholder={t('pages.checkout.zambia')}
                                 autoComplete="country-name"
                               />
                             </div>
@@ -1178,7 +1179,7 @@ const Checkout = () => {
 
                       {paymentMethod === 'online' && (
                         <div className="mt-4 pl-4 border-l-2 border-primary/20">
-                          <label className="text-sm font-medium mb-2 block">Select Currency:</label>
+                          <label className="text-sm font-medium mb-2 block">{t('pages.checkout.selectCurrency')}</label>
                           <div className="flex gap-4">
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
@@ -1189,7 +1190,7 @@ const Checkout = () => {
                                 onChange={() => setCurrency('USD')}
                                 className="accent-primary"
                               />
-                              <span>USD ($)</span>
+                              <span>{t('pages.checkout.usd')}</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
@@ -1200,12 +1201,12 @@ const Checkout = () => {
                                 onChange={() => setCurrency('CDF')}
                                 className="accent-primary"
                               />
-                              <span>CDF ({(total * exchangeRate).toLocaleString()} FC)</span>
+                              <span>{t('pages.checkout.cdfValueFc', { value: formatNumber(total * exchangeRate) })}</span>
                             </label>
                           </div>
                           {currency === 'CDF' && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              * Exchange Rate: 1 USD = {exchangeRate} CDF
+                              {t('pages.checkout.exchangeRate1UsdExchangerateCdf', { exchangeRate })}
                             </p>
                           )}
                         </div>
@@ -1255,7 +1256,7 @@ const Checkout = () => {
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">{t('paymentMethodLabel')}</p>
                             <p className="mt-2 text-sm font-semibold">
-                              {paymentMethod === "cod" ? t('cashOnDelivery') : "Maisha Pay (Card / Mobile Money)"}
+                              {paymentMethod === "cod" ? t('cashOnDelivery') : t('pages.checkout.maishaPayCardMobileMoney')}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {paymentMethod === "cod"
@@ -1309,7 +1310,7 @@ const Checkout = () => {
                         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                           {t('orderItems')}
                         </h3>
-                        <Badge variant="outline">{t('items_plural', { count: cartItems.length })}</Badge>
+                        <Badge variant="outline">{t('itemCount', { count: cartItems.length })}</Badge>
                       </div>
                       <div className="divide-y divide-border/60">
                         {cartItems.map((item) => (
@@ -1373,7 +1374,7 @@ const Checkout = () => {
                         <div className="flex-1 pr-4">
                           <p className="font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Qty: {item.quantity} × ${item.price.toFixed(2)}
+                            {t('pages.checkout.qtyQuantityValue', { quantity: item.quantity, value: item.price.toFixed(2) })}
                           </p>
                         </div>
                         <span className="font-semibold">

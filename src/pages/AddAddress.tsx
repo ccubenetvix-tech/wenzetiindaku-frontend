@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/utils/api";
+import i18n from "@/lib/i18n";
 
 interface CustomerProfileResponse {
   success?: boolean;
@@ -59,8 +60,8 @@ const AddAddress = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       toast({
-        title: "Please sign in",
-        description: "You need to be logged in to add an address.",
+        title: i18n.t('pages.addAddress.pleaseSignIn'),
+        description: i18n.t('pages.addAddress.youNeedToBeLoggedIn'),
         variant: "destructive",
       });
       navigate("/customer/login", { state: { redirectTo: location.pathname } });
@@ -148,8 +149,8 @@ const AddAddress = () => {
     for (const field of requiredFields) {
       if (!formData[field] || !formData[field].trim()) {
         toast({
-          title: "Missing information",
-          description: `Please fill in the ${field.replace(/([A-Z])/g, " $1").toLowerCase()} field.`,
+          title: i18n.t('pages.addAddress.missingInformation'),
+          description: i18n.t('pages.addAddress.pleaseFillInTheValueField', { value: field.replace(/([A-Z])/g, " $1").toLowerCase() }),
           variant: "destructive",
         });
         return false;
@@ -160,8 +161,8 @@ const AddAddress = () => {
     const phoneRegex = /^[\d\s\-+()]+$/;
     if (!phoneRegex.test(formData.phone)) {
       toast({
-        title: "Invalid phone number",
-        description: "Please enter a valid phone number.",
+        title: i18n.t('pages.addAddress.invalidPhoneNumber'),
+        description: i18n.t('pages.addAddress.pleaseEnterAValidPhoneNumber'),
         variant: "destructive",
       });
       return false;
@@ -170,8 +171,8 @@ const AddAddress = () => {
     // Validate pincode (should be numeric)
     if (!/^\d+$/.test(formData.pincode)) {
       toast({
-        title: "Invalid pincode",
-        description: "Pincode should contain only numbers.",
+        title: i18n.t('pages.addAddress.invalidPincode'),
+        description: i18n.t('pages.addAddress.pincodeShouldContainOnlyNumbers'),
         variant: "destructive",
       });
       return false;
@@ -248,8 +249,8 @@ const AddAddress = () => {
       }
 
       toast({
-        title: isEditing ? "Address updated successfully" : "Address added successfully",
-        description: isEditing ? "Your address has been updated." : "Your address has been saved.",
+        title: isEditing ? i18n.t('pages.addAddress.addressUpdatedSuccessfully') : i18n.t('pages.addAddress.addressAddedSuccessfully'),
+        description: isEditing ? i18n.t('pages.addAddress.yourAddressHasBeenUpdated') : i18n.t('pages.addAddress.yourAddressHasBeenSaved'),
       });
 
       // Redirect back to the page that sent us here, or to dashboard
@@ -275,7 +276,7 @@ const AddAddress = () => {
       }
 
       toast({
-        title: "Failed to add address",
+        title: i18n.t('pages.addAddress.failedToAddAddress'),
         description: message,
         variant: "destructive",
       });
@@ -297,7 +298,7 @@ const AddAddress = () => {
               className="mb-6"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('pages.addAddress.back')}
             </Button>
 
             <div className="bg-card border border-border/60 rounded-lg shadow-sm">
@@ -305,7 +306,7 @@ const AddAddress = () => {
                 <div className="flex items-center gap-2 mb-6">
                   <MapPin className="h-5 w-5 text-primary" />
                   <h1 className="text-2xl font-semibold">
-                    {isEditing ? "Edit Address" : "Add New Address"}
+                    {isEditing ? t('pages.addAddress.editAddress') : t('pages.addAddress.addNewAddress')}
                   </h1>
                 </div>
 
@@ -313,20 +314,20 @@ const AddAddress = () => {
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span className="ml-2 text-sm text-muted-foreground">
-                      Loading profile...
+                      {t('pages.addAddress.loadingProfile')}
                     </span>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                       <Label htmlFor="fullName">
-                        Full Name <span className="text-destructive">*</span>
+                        {t('pages.addAddress.fullName')} <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="fullName"
                         value={formData.fullName}
                         onChange={(e) => updateField("fullName", e.target.value)}
-                        placeholder="John Doe"
+                        placeholder={t('pages.addAddress.johnDoe')}
                         required
                         autoComplete="name"
                       />
@@ -335,24 +336,24 @@ const AddAddress = () => {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <Label htmlFor="phone">
-                          Phone Number <span className="text-destructive">*</span>
+                          {t('pages.addAddress.phoneNumber')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="phone"
                           value={formData.phone}
                           onChange={(e) => updateField("phone", e.target.value)}
-                          placeholder="+243 xxx xxx xxx"
+                          placeholder={t('pages.addAddress.n243XxxXxxXxx')}
                           required
                           autoComplete="tel"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="altPhone">Alternate Number (Optional)</Label>
+                        <Label htmlFor="altPhone">{t('pages.addAddress.alternateNumberOptional')}</Label>
                         <Input
                           id="altPhone"
                           value={formData.altPhone}
                           onChange={(e) => updateField("altPhone", e.target.value)}
-                          placeholder="+243 xxx xxx xxx"
+                          placeholder={t('pages.addAddress.n243XxxXxxXxx')}
                           autoComplete="tel"
                         />
                       </div>
@@ -360,13 +361,13 @@ const AddAddress = () => {
 
                     <div>
                       <Label htmlFor="houseNo">
-                        House No / Flat No <span className="text-destructive">*</span>
+                        {t('pages.addAddress.houseNoFlatNo')} <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="houseNo"
                         value={formData.houseNo}
                         onChange={(e) => updateField("houseNo", e.target.value)}
-                        placeholder="123, Flat 5B"
+                        placeholder={t('pages.addAddress.n123Flat5b')}
                         required
                         autoComplete="address-line1"
                       />
@@ -374,13 +375,13 @@ const AddAddress = () => {
 
                     <div>
                       <Label htmlFor="street">
-                        Street / Area <span className="text-destructive">*</span>
+                        {t('pages.addAddress.streetArea')} <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="street"
                         value={formData.street}
                         onChange={(e) => updateField("street", e.target.value)}
-                        placeholder="Main Street, Downtown"
+                        placeholder={t('pages.addAddress.mainStreetDowntown')}
                         required
                         autoComplete="address-line2"
                       />
@@ -389,33 +390,33 @@ const AddAddress = () => {
                     <div className="grid gap-4 md:grid-cols-3">
                       <div>
                         <Label htmlFor="city">
-                          City <span className="text-destructive">*</span>
+                          {t('pages.addAddress.city')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="city"
                           value={formData.city}
                           onChange={(e) => updateField("city", e.target.value)}
-                          placeholder="Kinshasa"
+                          placeholder={t('pages.addAddress.kinshasa')}
                           required
                           autoComplete="address-level2"
                         />
                       </div>
                       <div>
                         <Label htmlFor="state">
-                          State <span className="text-destructive">*</span>
+                          {t('pages.addAddress.state')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="state"
                           value={formData.state}
                           onChange={(e) => updateField("state", e.target.value)}
-                          placeholder="Kinshasa"
+                          placeholder={t('pages.addAddress.kinshasa')}
                           required
                           autoComplete="address-level1"
                         />
                       </div>
                       <div>
                         <Label htmlFor="pincode">
-                          Pincode <span className="text-destructive">*</span>
+                          {t('pages.addAddress.pincode')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="pincode"
@@ -431,7 +432,7 @@ const AddAddress = () => {
 
                     <div>
                       <Label htmlFor="addressType">
-                        Address Type <span className="text-destructive">*</span>
+                        {t('pages.addAddress.addressType')} <span className="text-destructive">*</span>
                       </Label>
                       <Select
                         value={formData.addressType}
@@ -442,13 +443,13 @@ const AddAddress = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Home">
-                            Home
+                            {t('pages.addAddress.home')}
                           </SelectItem>
                           <SelectItem value="Work">
-                            Work
+                            {t('pages.addAddress.work')}
                           </SelectItem>
                           <SelectItem value="Other">
-                            Other
+                            {t('pages.addAddress.other')}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -461,11 +462,11 @@ const AddAddress = () => {
                         onClick={() => navigate(-1)}
                         disabled={isSubmitting}
                       >
-                        Cancel
+                        {t('pages.addAddress.cancel')}
                       </Button>
                       <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isEditing ? "Update Address" : "Save Address"}
+                        {isEditing ? t('pages.addAddress.updateAddress') : t('pages.addAddress.saveAddress')}
                       </Button>
                     </div>
                   </form>

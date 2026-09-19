@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/format";
 /**
  * Price and VAT utility functions
  */
@@ -43,13 +44,6 @@ export const calculateTotalWithVAT = (price: number): number => {
  * @param amount The number to format
  * @returns A formatted currency string
  */
-export const formatPrice = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(amount);
-};
+export const formatPrice = (amount: number): string => formatMoney(amount);
 
 export const getVATPercentage = (): number => VAT_PERCENTAGE;

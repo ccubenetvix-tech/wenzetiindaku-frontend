@@ -1,15 +1,10 @@
+import { formatLongDate, formatMoney, formatNumber, formatRelativeTime as sharedRelativeTime } from "@/lib/format";
+
 // Format currency
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(amount);
-};
+export const formatCurrency = (amount: number, currency: string = 'USD'): string => formatMoney(amount, currency);
 
 // Format number with locale
-export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('en-US').format(num);
-};
+export { formatNumber };
 
 // Generate image URL with proper dimensions
 export const generateImageUrl = (
@@ -34,28 +29,10 @@ export const calculateDiscount = (originalPrice: number, currentPrice: number): 
 };
 
 // Format date
-export const formatDate = (date: string | Date): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(dateObj);
-};
+export const formatDate = (date: string | Date): string => formatLongDate(date);
 
 // Format relative time
-export const formatRelativeTime = (date: string | Date): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
-
-  if (diffInSeconds < 60) return 'Just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  
-  return formatDate(dateObj);
-};
+export const formatRelativeTime = (date: string | Date): string => sharedRelativeTime(date);
 
 // Generate random ID
 export const generateId = (): string => {

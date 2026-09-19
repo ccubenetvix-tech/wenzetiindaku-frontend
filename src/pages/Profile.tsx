@@ -37,6 +37,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
+import { formatDate, formatStatus } from "@/lib/format";
 const Profile = () => {
   const { t, i18n } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -126,9 +127,9 @@ const Profile = () => {
                 <User className="h-12 w-12 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold mb-2">John Doe</h1>
+                <h1 className="text-3xl font-bold mb-2">{t('pages.profile.johnDoe')}</h1>
                 <p className="text-white/90 mb-1">john.doe@example.com</p>
-                <p className="text-white/80">Member since January 2023</p>
+                <p className="text-white/80">{t('pages.profile.memberSinceJanuary2023')}</p>
               </div>
             </div>
           </div>
@@ -137,23 +138,23 @@ const Profile = () => {
             <TabsList className="tabs-scroll no-scrollbar sm:grid-cols-2 lg:grid-cols-5">
               <TabsTrigger value="personal" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <User className="h-4 w-4" />
-                Personal Info
+                {t('pages.profile.personalInfo')}
               </TabsTrigger>
               <TabsTrigger value="addresses" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <MapPin className="h-4 w-4" />
-                Addresses
+                {t('pages.profile.addresses')}
               </TabsTrigger>
               <TabsTrigger value="payment" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <CreditCard className="h-4 w-4" />
-                Payment
+                {t('pages.profile.payment')}
               </TabsTrigger>
               <TabsTrigger value="orders" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <Clock className="h-4 w-4" />
-                Order History
+                {t('pages.profile.orderHistory')}
               </TabsTrigger>
               <TabsTrigger value="wishlist" className="flex items-center gap-2 min-w-[140px] sm:min-w-0">
                 <Heart className="h-4 w-4" />
-                Wishlist
+                {t('pages.profile.wishlist')}
               </TabsTrigger>
             </TabsList>
 
@@ -163,7 +164,7 @@ const Profile = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold flex items-center">
                     <User className="h-5 w-5 mr-2 text-primary" />
-                    Personal Information
+                    {t('pages.profile.personalInformation')}
                   </h2>
                   <Button
                     variant="outline"
@@ -172,12 +173,12 @@ const Profile = () => {
                     {isEditing ? (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        Save Changes
+                        {t('pages.profile.saveChanges')}
                       </>
                     ) : (
                       <>
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit Profile
+                        {t('pages.profile.editProfile')}
                       </>
                     )}
                   </Button>
@@ -185,7 +186,7 @@ const Profile = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName">{t('pages.profile.firstName')}</Label>
                     <Input
                       id="firstName"
                       defaultValue="John"
@@ -193,7 +194,7 @@ const Profile = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName">{t('pages.profile.lastName')}</Label>
                     <Input
                       id="lastName"
                       defaultValue="Doe"
@@ -201,7 +202,7 @@ const Profile = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t('pages.profile.email')}</Label>
                     <Input
                       id="email"
                       type="email"
@@ -210,7 +211,7 @@ const Profile = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone">{t('pages.profile.phoneNumber')}</Label>
                     <Input
                       id="phone"
                       defaultValue="+32 495 84 68 66"
@@ -225,10 +226,10 @@ const Profile = () => {
                 <div>
                   <h3 className="text-lg font-semibold mb-4 flex items-center">
                     <Globe className="h-5 w-5 mr-2 text-primary" />
-                    {t('language')} Settings
+                    {t('language')} {t('pages.profile.settings')}
                   </h3>
                   <div className="max-w-xs">
-                    <Label htmlFor="language">Preferred Language</Label>
+                    <Label htmlFor="language">{t('pages.profile.preferredLanguage')}</Label>
                     <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
                       <SelectTrigger>
                         <SelectValue />
@@ -252,25 +253,25 @@ const Profile = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold flex items-center">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    Shipping Addresses
+                    {t('pages.profile.shippingAddresses')}
                   </h2>
-                  <Button>Add New Address</Button>
+                  <Button>{t('pages.profile.addNewAddress')}</Button>
                 </div>
 
                 <div className="space-y-4">
                   <div className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium">Home Address</h3>
-                      <Badge variant="secondary">Default</Badge>
+                      <h3 className="font-medium">{t('pages.profile.homeAddress')}</h3>
+                      <Badge variant="secondary">{t('pages.profile.default')}</Badge>
                     </div>
                     <p className="text-muted-foreground">
-                      Kinshasa, Kinshasa 0000<br />
-                      DR Congo
+                      {t('pages.profile.kinshasaKinshasa0000')}<br />
+                      {t('pages.profile.drCongo')}
                     </p>
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm">
                         <Edit className="h-3 w-3 mr-1" />
-                        Edit
+                        {t('pages.profile.edit')}
                       </Button>
                     </div>
                   </div>
@@ -284,9 +285,9 @@ const Profile = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold flex items-center">
                     <CreditCard className="h-5 w-5 mr-2 text-primary" />
-                    Payment Methods
+                    {t('pages.profile.paymentMethods')}
                   </h2>
-                  <Button>Add Payment Method</Button>
+                  <Button>{t('pages.profile.addPaymentMethod')}</Button>
                 </div>
 
                 <div className="space-y-4">
@@ -296,15 +297,15 @@ const Profile = () => {
                         <CreditCard className="h-5 w-5 text-primary" />
                         <div>
                           <h3 className="font-medium">•••• •••• •••• 4242</h3>
-                          <p className="text-sm text-muted-foreground">Expires 12/25</p>
+                          <p className="text-sm text-muted-foreground">{t('pages.profile.expires1225')}</p>
                         </div>
                       </div>
-                      <Badge variant="secondary">Default</Badge>
+                      <Badge variant="secondary">{t('pages.profile.default')}</Badge>
                     </div>
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm">
                         <Edit className="h-3 w-3 mr-1" />
-                        Edit
+                        {t('pages.profile.edit')}
                       </Button>
                     </div>
                   </div>
@@ -317,7 +318,7 @@ const Profile = () => {
               <div className="bg-card rounded-lg p-6 shadow-sm">
                 <h2 className="text-xl font-semibold mb-6 flex items-center">
                   <Clock className="h-5 w-5 mr-2 text-primary" />
-                  Order History
+                  {t('pages.profile.orderHistory')}
                 </h2>
 
                 <div className="space-y-4">
@@ -325,34 +326,34 @@ const Profile = () => {
                     <div key={order.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <h3 className="font-medium">Order {order.id}</h3>
+                          <h3 className="font-medium">{t('pages.profile.orderId', { id: order.id })}</h3>
                           <p className="text-sm text-muted-foreground">
-                            Placed on {new Date(order.date).toLocaleDateString()}
+                            {t('pages.profile.placedOnValue', { value: formatDate(order.date) })}
                           </p>
                         </div>
                         <Badge className={getStatusColor(order.status)}>
-                          {order.status}
+                          {formatStatus(order.status)}
                         </Badge>
                       </div>
 
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
-                          <p>{order.items} item(s) • Total: ${order.total}</p>
-                          <p>Tracking: {order.trackingNumber}</p>
+                          <p>{t('pages.profile.itemsItemSTotalTotal', { items: order.items, total: order.total })}</p>
+                          <p>{t('pages.profile.trackingTrackingnumber', { trackingNumber: order.trackingNumber })}</p>
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Eye className="h-3 w-3 mr-1" />
-                            View Details
+                            {t('pages.profile.viewDetails')}
                           </Button>
                           <Button variant="outline" size="sm">
                             <Truck className="h-3 w-3 mr-1" />
-                            Track Order
+                            {t('pages.profile.trackOrder')}
                           </Button>
                           {order.status === 'Delivered' && (
                             <Button variant="outline" size="sm">
                               <RefreshCw className="h-3 w-3 mr-1" />
-                              Reorder
+                              {t('pages.profile.reorder')}
                             </Button>
                           )}
                         </div>
@@ -368,7 +369,7 @@ const Profile = () => {
               <div className="bg-card rounded-lg p-6 shadow-sm">
                 <h2 className="text-xl font-semibold mb-6 flex items-center">
                   <Heart className="h-5 w-5 mr-2 text-primary" />
-                  Wishlist ({wishlistItems.length} items)
+                  {t('pages.profile.wishlistCountItems', { count: wishlistItems.length })}
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -384,17 +385,17 @@ const Profile = () => {
           <div className="bg-card rounded-lg p-6 shadow-sm mt-8">
             <h2 className="text-xl font-semibold mb-6 flex items-center">
               <Settings className="h-5 w-5 mr-2 text-primary" />
-              Account Actions
+              {t('pages.profile.accountActions')}
             </h2>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
+                {t('pages.profile.editProfile')}
               </Button>
               <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
                 <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                {t('pages.profile.signOut')}
               </Button>
             </div>
           </div>

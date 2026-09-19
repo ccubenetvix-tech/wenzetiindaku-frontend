@@ -18,6 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import i18n from "@/lib/i18n";
 
 interface Product {
   id: string;
@@ -74,8 +75,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
 
     if (user?.role !== 'customer') {
       toast({
-        title: "Action not allowed",
-        description: "Only customers can manage wishlists.",
+        title: i18n.t('components.minimalProductCard.actionNotAllowed'),
+        description: i18n.t('components.minimalProductCard.onlyCustomersCanManageWishlists'),
         variant: "destructive"
       });
       return;
@@ -97,18 +98,18 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       });
 
       toast({
-        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        title: added ? i18n.t('components.minimalProductCard.addedToWishlist') : i18n.t('components.minimalProductCard.removedFromWishlist'),
         description: added
-          ? `${name} has been added to your wishlist.`
-          : `${name} has been removed from your wishlist.`,
+          ? i18n.t('components.minimalProductCard.nameHasBeenAddedToYour2', { name })
+          : i18n.t('components.minimalProductCard.nameHasBeenRemovedFromYour', { name }),
       });
 
       onWishlistToggle?.();
     } catch (error) {
       console.error('Failed to toggle wishlist:', error);
       toast({
-        title: "Error",
-        description: "Unable to update wishlist. Please try again.",
+        title: i18n.t('components.minimalProductCard.error'),
+        description: i18n.t('components.minimalProductCard.unableToUpdateWishlistPleaseTry'),
         variant: "destructive"
       });
     } finally {
@@ -137,8 +138,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
     // Check if user is a vendor (vendors cannot add to cart)
     if (user?.role === 'vendor') {
       toast({
-        title: "Not Available",
-        description: "Vendors cannot add products to cart.",
+        title: i18n.t('components.minimalProductCard.notAvailable'),
+        description: i18n.t('components.minimalProductCard.vendorsCannotAddProductsToCart'),
         variant: "destructive"
       });
       return;
@@ -147,8 +148,8 @@ export const MinimalProductCard = memo(function MinimalProductCard({
     // Only customers can add to cart
     if (user?.role !== 'customer') {
       toast({
-        title: "Access Denied",
-        description: "Only customers can add products to cart.",
+        title: i18n.t('components.minimalProductCard.accessDenied'),
+        description: i18n.t('components.minimalProductCard.onlyCustomersCanAddProductsTo'),
         variant: "destructive"
       });
       return;
@@ -167,16 +168,16 @@ export const MinimalProductCard = memo(function MinimalProductCard({
       });
 
       toast({
-        title: "Added to cart",
-        description: `${name} has been added to your cart.`,
+        title: i18n.t('components.minimalProductCard.addedToCart'),
+        description: i18n.t('components.minimalProductCard.nameHasBeenAddedToYour', { name }),
       });
 
       onAddToCart?.();
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
-        title: "Error",
-        description: "Failed to add item to cart. Please try again.",
+        title: i18n.t('components.minimalProductCard.error'),
+        description: i18n.t('components.minimalProductCard.failedToAddItemToCart'),
         variant: "destructive"
       });
     } finally {
@@ -211,7 +212,7 @@ export const MinimalProductCard = memo(function MinimalProductCard({
           <button
             onClick={handleWishlistToggle}
             className="absolute top-2 right-2 p-1 rounded-full bg-white/90 dark:bg-navy-800/90 shadow-sm hover:shadow-md transition-all duration-200"
-            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            aria-label={wishlisted ? t('components.minimalProductCard.removeFromWishlist') : t('components.minimalProductCard.addToWishlist')}
             disabled={isWishlistProcessing || isWishlistLoading}
           >
             {isWishlistProcessing || isWishlistLoading ? (

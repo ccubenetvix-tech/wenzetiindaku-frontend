@@ -1,19 +1,19 @@
 export const predefinedCategories = [
   {
     id: 'Technology & Electronics',
-    name: 'Technology & Electronics',
+    name: 'technologyElectronics',
     description: 'descElectronics',
     icon: ''
   },
   {
     id: 'Clothing & Fashion',
-    name: 'Clothing & Fashion',
+    name: 'clothingFashion',
     description: 'descFashionClothing',
     icon: ''
   },
   {
     id: 'Home & Garden',
-    name: 'Home & Garden',
+    name: 'homeGarden',
     description: 'descHomeGarden',
     icon: ''
   },
@@ -77,7 +77,8 @@ export const getCategoryById = (id: string) => {
   return predefinedCategories.find(category => category.id === id);
 };
 
+// Returns the translation key for a category's display name.
 export const getCategoryName = (id: string) => {
   const category = getCategoryById(id);
-  return category ? category.name : 'Unknown Category';
+  return category ? category.name : 'unknownCategory';
 };

@@ -23,8 +23,12 @@ import { useChat, ChatMessage, ChatConversation } from "@/contexts/ChatContext";
 import { apiClient } from "@/utils/api";
 import { getSocket, disconnectSocket } from "@/utils/socket";
 import { cn } from "@/lib/utils";
+import i18n from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
+import { formatRelativeTime } from "@/lib/format";
 
 export default function Chat() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAuthenticated, token } = useAuth();
@@ -102,8 +106,8 @@ export default function Chat() {
       
       if (shouldShowError) {
         toast({
-          title: "Connection Error",
-          description: error?.message || "Failed to connect to chat server. Trying to reconnect...",
+          title: i18n.t('pages.chat.connectionError'),
+          description: error?.message || i18n.t('pages.chat.failedToConnectToChatServer'),
           variant: "destructive",
         });
       }
@@ -127,7 +131,7 @@ export default function Chat() {
       // Only show toast for non-connection errors (connection errors are handled separately)
       if (errorData?.message && !errorData.message.includes('timeout') && !errorData.message.includes('connection')) {
         toast({
-          title: "Chat Error",
+          title: i18n.t('pages.chat.chatError'),
           description: errorData.message,
           variant: "destructive",
         });
@@ -201,7 +205,7 @@ export default function Chat() {
 
     socket.on('error', (data: { message: string }) => {
       toast({
-        title: "Error",
+        title: i18n.t('pages.chat.error'),
         description: data.message,
         variant: "destructive",
       });
@@ -321,7 +325,7 @@ export default function Chat() {
       
       // Validate conversation ID
       if (!conversationId || typeof conversationId !== 'string') {
-        throw new Error('Invalid conversation ID');
+        throw new Error(i18n.t('pages.chat.invalidConversationId'));
       }
       
       const response = await apiClient.getChatMessages(conversationId) as {
@@ -359,7 +363,7 @@ export default function Chat() {
         
         if (initialLoad && retryCount >= MAX_RETRIES) {
           toast({
-            title: "Error",
+            title: i18n.t('pages.chat.error'),
             description: errorMessage,
             variant: "destructive",
           });
@@ -384,8 +388,8 @@ export default function Chat() {
       
       if (initialLoad) {
         toast({
-          title: "Error",
-          description: error?.message || "Failed to load messages. Please refresh the page.",
+          title: i18n.t('pages.chat.error'),
+          description: error?.message || i18n.t('pages.chat.failedToLoadMessagesPleaseRefresh'),
           variant: "destructive",
         });
       }
@@ -401,8 +405,8 @@ export default function Chat() {
     // Validate inputs
     if (!messageInput.trim()) {
       toast({
-        title: "Invalid Message",
-        description: "Message cannot be empty",
+        title: i18n.t('pages.chat.invalidMessage'),
+        description: i18n.t('pages.chat.messageCannotBeEmpty'),
         variant: "destructive",
       });
       return;
@@ -410,8 +414,8 @@ export default function Chat() {
 
     if (!selectedConversationId) {
       toast({
-        title: "Error",
-        description: "No conversation selected",
+        title: i18n.t('pages.chat.error'),
+        description: i18n.t('pages.chat.noConversationSelected'),
         variant: "destructive",
       });
       return;
@@ -430,8 +434,8 @@ export default function Chat() {
     // Validate message length
     if (messageInput.length > 5000) {
       toast({
-        title: "Message Too Long",
-        description: "Message cannot exceed 5000 characters",
+        title: i18n.t('pages.chat.messageTooLong'),
+        description: i18n.t('pages.chat.messageCannotExceed5000Characters'),
         variant: "destructive",
       });
       return;
@@ -469,7 +473,7 @@ export default function Chat() {
           
           refreshConversations();
         } else {
-          throw new Error(response.error?.message || 'Failed to send message');
+          throw new Error(response.error?.message || i18n.t('pages.chat.failedToSendMessage'));
         }
         setIsSendingMessage(false);
         return;
@@ -528,17 +532,17 @@ export default function Chat() {
             refreshConversations();
             
             toast({
-              title: "Message sent",
-              description: "Message sent via REST API (WebSocket unavailable).",
+              title: i18n.t('pages.chat.messageSent'),
+              description: i18n.t('pages.chat.messageSentViaRestApiWebsocket'),
             });
           } else {
-            throw new Error(response.error?.message || 'Failed to send message');
+            throw new Error(response.error?.message || i18n.t('pages.chat.failedToSendMessage'));
           }
         } catch (fallbackError) {
           // Both WebSocket and REST API failed
           toast({
-            title: "Failed to Send",
-            description: errorData?.message || "Failed to send message. Please try again.",
+            title: i18n.t('pages.chat.failedToSend'),
+            description: errorData?.message || i18n.t('pages.chat.failedToSendMessagePleaseTry'),
             variant: "destructive",
           });
           
@@ -571,8 +575,8 @@ export default function Chat() {
       pendingTempMessagesRef.current.delete(content);
       
       toast({
-        title: "Error",
-        description: error?.message || "Failed to send message. Please check your connection and try again.",
+        title: i18n.t('pages.chat.error'),
+        description: error?.message || i18n.t('pages.chat.failedToSendMessagePleaseCheck'),
         variant: "destructive",
       });
       
@@ -599,20 +603,7 @@ export default function Chat() {
     );
   });
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString();
-  };
+  const formatTime = (dateString: string) => formatRelativeTime(dateString);
 
   // Handle initial connection state
   useEffect(() => {
@@ -661,7 +652,7 @@ export default function Chat() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>Loading...</p>
+            <p>{t('pages.chat.loading')}</p>
           </div>
         </div>
       </div>
@@ -673,8 +664,8 @@ export default function Chat() {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Please log in to access chat</h1>
-            <Button onClick={() => navigate("/customer/login")}>Login</Button>
+            <h1 className="text-2xl font-bold mb-4">{t('pages.chat.pleaseLogInToAccessChat')}</h1>
+            <Button onClick={() => navigate("/customer/login")}>{t('pages.chat.login')}</Button>
           </div>
         </div>
       </div>
@@ -686,8 +677,8 @@ export default function Chat() {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Chat is only available for customers and vendors</h1>
-            <Button onClick={() => navigate("/")}>Go Home</Button>
+            <h1 className="text-2xl font-bold mb-4">{t('pages.chat.chatIsOnlyAvailableForCustomers')}</h1>
+            <Button onClick={() => navigate("/")}>{t('pages.chat.goHome')}</Button>
           </div>
         </div>
       </div>
@@ -715,7 +706,7 @@ export default function Chat() {
             </Button>
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-navy-600 dark:text-navy-400" />
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Messages</h1>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{t('pages.chat.messages')}</h1>
             </div>
           </div>
         </div>
@@ -729,12 +720,12 @@ export default function Chat() {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                {connectionTimeout ? 'Connection Timeout' : 'Connecting to chat...'}
+                {connectionTimeout ? t('pages.chat.connectionTimeout') : t('pages.chat.connectingToChat')}
               </h2>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 {connectionTimeout 
-                  ? 'Unable to connect to chat server. Please check your connection and try again.'
-                  : 'Please wait while we establish a secure connection'
+                  ? t('pages.chat.unableToConnectToChatServer')
+                  : t('pages.chat.pleaseWaitWhileWeEstablishA')
                 }
               </p>
               {connectionTimeout && (
@@ -755,10 +746,10 @@ export default function Chat() {
                     }}
                     variant="default"
                   >
-                    Retry Connection
+                    {t('pages.chat.retryConnection')}
                   </Button>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    If this persists, the backend server may be down or WebSocket is not supported on your hosting platform.
+                    {t('pages.chat.ifThisPersistsTheBackendServer')}
                   </p>
                 </div>
               )}
@@ -784,7 +775,7 @@ export default function Chat() {
           </Button>
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-navy-600 dark:text-navy-400" />
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Messages</h1>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{t('pages.chat.messages')}</h1>
             {unreadCount > 0 && (
               <Badge variant="destructive" className="ml-2">{unreadCount}</Badge>
             )}
@@ -794,17 +785,17 @@ export default function Chat() {
           {isConnected ? (
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
               <Wifi className="h-4 w-4" />
-              <span className="text-xs">Connected</span>
+              <span className="text-xs">{t('pages.chat.connected')}</span>
             </div>
           ) : socketRef.current ? (
             <div className="flex items-center gap-2 text-gray-500">
               <WifiOff className="h-4 w-4" />
-              <span className="text-xs">Connecting...</span>
+              <span className="text-xs">{t('pages.chat.connecting')}</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
               <Wifi className="h-4 w-4" />
-              <span className="text-xs">REST API</span>
+              <span className="text-xs">{t('pages.chat.restApi')}</span>
             </div>
           )}
         </div>
@@ -819,7 +810,7 @@ export default function Chat() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search conversations..."
+                placeholder={t('pages.chat.searchConversations')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -843,7 +834,7 @@ export default function Chat() {
               </div>
             ) : filteredConversations.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
-                {searchQuery ? "No conversations found" : "No conversations yet"}
+                {searchQuery ? t('pages.chat.noConversationsFound') : t('pages.chat.noConversationsYet')}
               </div>
             ) : (
               filteredConversations.map((conversation) => (
@@ -879,7 +870,7 @@ export default function Chat() {
                       </div>
                       {conversation.unreadCount > 0 && (
                         <Badge variant="destructive" className="text-xs mt-1">
-                          {conversation.unreadCount} unread
+                          {t('pages.chat.unreadCount', { count: conversation.unreadCount })}
                         </Badge>
                       )}
                     </div>
@@ -942,7 +933,7 @@ export default function Chat() {
                   <div className="flex items-center justify-center h-full text-gray-500">
                     <div className="text-center">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No messages yet. Start the conversation!</p>
+                      <p>{t('pages.chat.noMessagesYetStartTheConversation')}</p>
                     </div>
                   </div>
                 ) : (
@@ -1008,7 +999,7 @@ export default function Chat() {
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder="Type a message..."
+                    placeholder={t('pages.chat.typeAMessage')}
                     className="flex-1 min-h-[60px] max-h-[120px] resize-none border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-navy-500"
                     rows={2}
                     disabled={!isConnected && socketRef.current !== null}
@@ -1027,7 +1018,7 @@ export default function Chat() {
                   </Button>
                 </div>
                 {!isConnected && socketRef.current && (
-                  <p className="text-xs text-gray-500 mt-2">Reconnecting to chat server...</p>
+                  <p className="text-xs text-gray-500 mt-2">{t('pages.chat.reconnectingToChatServer')}</p>
                 )}
               </div>
             </>
@@ -1035,7 +1026,7 @@ export default function Chat() {
             <div className="flex-1 flex items-center justify-center text-gray-500 bg-gray-50 dark:bg-gray-950">
               <div className="text-center">
                 <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">Select a conversation to start chatting</p>
+                <p className="text-lg font-medium">{t('pages.chat.selectAConversationToStartChatting')}</p>
               </div>
             </div>
           )}

@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { apiClient } from '@/utils/api';
 import { useAuth } from './AuthContext';
+import i18n from "@/lib/i18n";
 
 export interface WishlistItem {
   id: string;
@@ -68,7 +69,7 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
   if (!context) {
-    throw new Error('useWishlist must be used within a WishlistProvider');
+    throw new Error(i18n.t('contexts.wishlistContext.usewishlistMustBeUsedWithinA'));
   }
   return context;
 };
@@ -159,7 +160,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const addToWishlist = useCallback(async (product: WishlistProductInput) => {
     if (!isAuthenticated || user?.role !== 'customer') {
-      throw new Error('Must be logged in as a customer to manage wishlist');
+      throw new Error(i18n.t('contexts.wishlistContext.mustBeLoggedInAsA'));
     }
 
     if (isWishlisted(product.productId)) {
@@ -176,7 +177,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
 
       if (!response?.success) {
-        throw new Error(response?.error?.message || 'Failed to add to wishlist');
+        throw new Error(response?.error?.message || i18n.t('contexts.wishlistContext.failedToAddToWishlist'));
       }
 
       const newItem: WishlistItem = {
@@ -215,7 +216,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
 
       if (!response?.success) {
-        throw new Error(response?.error?.message || 'Failed to remove from wishlist');
+        throw new Error(response?.error?.message || i18n.t('contexts.wishlistContext.failedToRemoveFromWishlist'));
       }
       setItems(prev => prev.filter(item => item.productId !== productId));
     } catch (error) {

@@ -21,113 +21,113 @@ export default function ShippingInfo() {
 
   const shippingOptions = [
     {
-      name: "Standard Shipping",
+      name: t('pages.shippingInfo.standardShipping'),
       icon: Truck,
-      duration: "3-7 business days",
-      cost: "Free on orders over $50",
-      description: "Regular delivery to your doorstep",
-      features: ["Tracking included", "Signature required", "Insurance included"],
+      duration: t('pages.shippingInfo.n37BusinessDays'),
+      cost: t('pages.shippingInfo.freeOnOrdersOver50'),
+      description: t('pages.shippingInfo.regularDeliveryToYourDoorstep'),
+      features: [t('pages.shippingInfo.trackingIncluded'), t('pages.shippingInfo.signatureRequired'), t('pages.shippingInfo.insuranceIncluded')],
       color: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
     },
     {
-      name: "Express Shipping",
+      name: t('pages.shippingInfo.expressShipping'),
       icon: Clock,
-      duration: "1-3 business days",
+      duration: t('pages.shippingInfo.n13BusinessDays'),
       cost: "$9.99",
-      description: "Fast delivery for urgent orders",
-      features: ["Priority handling", "Real-time tracking", "Guaranteed delivery"],
+      description: t('pages.shippingInfo.fastDeliveryForUrgentOrders'),
+      features: [t('pages.shippingInfo.priorityHandling'), t('pages.shippingInfo.realTimeTracking'), t('pages.shippingInfo.guaranteedDelivery')],
       color: "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400"
     },
     {
-      name: "Same Day Delivery",
+      name: t('pages.shippingInfo.sameDayDelivery'),
       icon: Package,
-      duration: "Same day",
+      duration: t('pages.shippingInfo.sameDay'),
       cost: "$19.99",
-      description: "Delivery within hours (select areas)",
-      features: ["Available in major cities", "2-hour delivery window", "Live tracking"],
+      description: t('pages.shippingInfo.deliveryWithinHoursSelectAreas'),
+      features: [t('pages.shippingInfo.availableInMajorCities'), t('pages.shippingInfo.n2HourDeliveryWindow'), t('pages.shippingInfo.liveTracking')],
       color: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
     },
     {
-      name: "International Shipping",
+      name: t('pages.shippingInfo.internationalShipping'),
       icon: Globe,
-      duration: "7-21 business days",
-      cost: "Varies by destination",
-      description: "Worldwide delivery to your location",
-      features: ["Customs handling", "Duty calculation", "International tracking"],
+      duration: t('pages.shippingInfo.n721BusinessDays'),
+      cost: t('pages.shippingInfo.variesByDestination'),
+      description: t('pages.shippingInfo.worldwideDeliveryToYourLocation'),
+      features: [t('pages.shippingInfo.customsHandling'), t('pages.shippingInfo.dutyCalculation'), t('pages.shippingInfo.internationalTracking')],
       color: "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400"
     }
   ];
 
   const shippingRegions = [
     {
-      region: "Local (Same City)",
-      duration: "1-2 days",
-      cost: "Free",
-      coverage: "Major cities and surrounding areas"
+      region: t('pages.shippingInfo.localSameCity'),
+      duration: t('pages.shippingInfo.n12Days'),
+      cost: t('pages.shippingInfo.free'),
+      coverage: t('pages.shippingInfo.majorCitiesAndSurroundingAreas')
     },
     {
-      region: "Domestic (Same Country)",
-      duration: "3-5 days",
-      cost: "Free on orders $50+",
-      coverage: "All major cities and towns"
+      region: t('pages.shippingInfo.domesticSameCountry'),
+      duration: t('pages.shippingInfo.n35Days'),
+      cost: t('pages.shippingInfo.freeOnOrders50'),
+      coverage: t('pages.shippingInfo.allMajorCitiesAndTowns')
     },
     {
-      region: "Regional (Africa)",
-      duration: "5-10 days",
+      region: t('pages.shippingInfo.regionalAfrica'),
+      duration: t('pages.shippingInfo.n510Days'),
       cost: "$12.99",
-      coverage: "All African countries"
+      coverage: t('pages.shippingInfo.allAfricanCountries')
     },
     {
-      region: "International",
-      duration: "10-21 days",
+      region: t('pages.shippingInfo.international'),
+      duration: t('pages.shippingInfo.n1021Days'),
       cost: "$24.99+",
-      coverage: "Worldwide delivery"
+      coverage: t('pages.shippingInfo.worldwideDelivery')
     }
   ];
 
   const shippingTips = [
     {
       icon: CheckCircle,
-      title: "Verify Your Address",
-      description: "Double-check your shipping address before placing your order to avoid delays."
+      title: t('pages.shippingInfo.verifyYourAddress'),
+      description: t('pages.shippingInfo.doubleCheckYourShippingAddressBefore')
     },
     {
       icon: Clock,
-      title: "Order Early",
-      description: "Place orders early in the day for same-day processing and faster delivery."
+      title: t('pages.shippingInfo.orderEarly'),
+      description: t('pages.shippingInfo.placeOrdersEarlyInTheDay')
     },
     {
       icon: MapPin,
-      title: "Provide Landmarks",
-      description: "Include nearby landmarks or specific delivery instructions for easier location."
+      title: t('pages.shippingInfo.provideLandmarks'),
+      description: t('pages.shippingInfo.includeNearbyLandmarksOrSpecificDelivery')
     },
     {
       icon: Shield,
-      title: "Track Your Package",
-      description: "Use the tracking number to monitor your package's progress in real-time."
+      title: t('pages.shippingInfo.trackYourPackage'),
+      description: t('pages.shippingInfo.useTheTrackingNumberToMonitor')
     }
   ];
 
   const restrictions = [
     {
-      category: "Hazardous Materials",
-      items: ["Batteries", "Aerosols", "Flammable liquids", "Explosives"],
-      reason: "Safety regulations and shipping restrictions"
+      category: t('pages.shippingInfo.hazardousMaterials'),
+      items: [t('pages.shippingInfo.batteries'), t('pages.shippingInfo.aerosols'), t('pages.shippingInfo.flammableLiquids'), t('pages.shippingInfo.explosives')],
+      reason: t('pages.shippingInfo.safetyRegulationsAndShippingRestrictions')
     },
     {
-      category: "Perishable Items",
-      items: ["Fresh food", "Live plants", "Medications", "Cosmetics"],
-      reason: "Requires special handling and temperature control"
+      category: t('pages.shippingInfo.perishableItems'),
+      items: [t('pages.shippingInfo.freshFood'), t('pages.shippingInfo.livePlants'), t('pages.shippingInfo.medications'), t('pages.shippingInfo.cosmetics')],
+      reason: t('pages.shippingInfo.requiresSpecialHandlingAndTemperatureControl')
     },
     {
-      category: "Fragile Items",
-      items: ["Glassware", "Electronics", "Artwork", "Ceramics"],
-      reason: "May require special packaging and handling"
+      category: t('pages.shippingInfo.fragileItems'),
+      items: [t('pages.shippingInfo.glassware'), t('pages.shippingInfo.electronics'), t('pages.shippingInfo.artwork'), t('pages.shippingInfo.ceramics')],
+      reason: t('pages.shippingInfo.mayRequireSpecialPackagingAndHandling')
     },
     {
-      category: "Restricted Items",
-      items: ["Weapons", "Alcohol", "Tobacco", "Prescription drugs"],
-      reason: "Legal restrictions and customs regulations"
+      category: t('pages.shippingInfo.restrictedItems2'),
+      items: [t('pages.shippingInfo.weapons'), t('pages.shippingInfo.alcohol'), t('pages.shippingInfo.tobacco'), t('pages.shippingInfo.prescriptionDrugs')],
+      reason: t('pages.shippingInfo.legalRestrictionsAndCustomsRegulations')
     }
   ];
 
@@ -139,9 +139,9 @@ export default function ShippingInfo() {
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-blue-600 to-orange-500 text-white py-16">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Shipping Information</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('pages.shippingInfo.shippingInformation')}</h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Everything you need to know about shipping, delivery, and tracking your orders
+              {t('pages.shippingInfo.everythingYouNeedToKnowAbout')}
             </p>
           </div>
         </section>
@@ -149,7 +149,7 @@ export default function ShippingInfo() {
         {/* Shipping Options */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Shipping Options</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('pages.shippingInfo.shippingOptions')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {shippingOptions.map((option, index) => (
@@ -186,14 +186,14 @@ export default function ShippingInfo() {
         {/* Shipping Regions */}
         <section className="py-16 bg-muted/50">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Shipping Regions & Times</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('pages.shippingInfo.shippingRegionsTimes')}</h2>
             
             <div className="max-w-4xl mx-auto">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-6 w-6 text-blue-600" />
-                    Delivery Coverage
+                    {t('pages.shippingInfo.deliveryCoverage')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -201,10 +201,10 @@ export default function ShippingInfo() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-semibold">Region</th>
-                          <th className="text-left py-3 px-4 font-semibold">Delivery Time</th>
-                          <th className="text-left py-3 px-4 font-semibold">Cost</th>
-                          <th className="text-left py-3 px-4 font-semibold">Coverage</th>
+                          <th className="text-left py-3 px-4 font-semibold">{t('pages.shippingInfo.region')}</th>
+                          <th className="text-left py-3 px-4 font-semibold">{t('pages.shippingInfo.deliveryTime')}</th>
+                          <th className="text-left py-3 px-4 font-semibold">{t('pages.shippingInfo.cost')}</th>
+                          <th className="text-left py-3 px-4 font-semibold">{t('pages.shippingInfo.coverage')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -228,7 +228,7 @@ export default function ShippingInfo() {
         {/* Shipping Tips */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Shipping Tips</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('pages.shippingInfo.shippingTips')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {shippingTips.map((tip, index) => (
@@ -249,7 +249,7 @@ export default function ShippingInfo() {
         {/* Shipping Restrictions */}
         <section className="py-16 bg-muted/50">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Shipping Restrictions</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('pages.shippingInfo.shippingRestrictions')}</h2>
             
             <div className="max-w-4xl mx-auto space-y-6">
               {restrictions.map((restriction, index) => (
@@ -263,7 +263,7 @@ export default function ShippingInfo() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <h4 className="font-semibold mb-2">Restricted Items:</h4>
+                        <h4 className="font-semibold mb-2">{t('pages.shippingInfo.restrictedItems')}</h4>
                         <ul className="space-y-1">
                           {restriction.items.map((item, itemIndex) => (
                             <li key={itemIndex} className="text-sm text-muted-foreground flex items-center gap-2">
@@ -274,7 +274,7 @@ export default function ShippingInfo() {
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-2">Reason:</h4>
+                        <h4 className="font-semibold mb-2">{t('pages.shippingInfo.reason')}</h4>
                         <p className="text-sm text-muted-foreground">{restriction.reason}</p>
                       </div>
                     </div>
@@ -289,9 +289,9 @@ export default function ShippingInfo() {
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl font-bold mb-8">Track Your Package</h2>
+              <h2 className="text-3xl font-bold mb-8">{t('pages.shippingInfo.trackYourPackage')}</h2>
               <p className="text-muted-foreground mb-8">
-                Once your order ships, you'll receive a tracking number to monitor your package's journey.
+                {t('pages.shippingInfo.onceYourOrderShipsYouLl')}
               </p>
               
               <Card className="max-w-2xl mx-auto">
@@ -299,15 +299,15 @@ export default function ShippingInfo() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Info className="h-4 w-4" />
-                      <span>Enter your tracking number below</span>
+                      <span>{t('pages.shippingInfo.enterYourTrackingNumberBelow')}</span>
                     </div>
                     <div className="flex gap-2">
                       <input 
                         type="text" 
-                        placeholder="Enter tracking number"
+                        placeholder={t('pages.shippingInfo.enterTrackingNumber')}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <Button>Track Package</Button>
+                      <Button>{t('pages.shippingInfo.trackPackage')}</Button>
                     </div>
                   </div>
                 </CardContent>
@@ -319,17 +319,17 @@ export default function ShippingInfo() {
         {/* Contact Support */}
         <section className="py-16 bg-muted/50">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">Need Help with Shipping?</h2>
+            <h2 className="text-3xl font-bold mb-4">{t('pages.shippingInfo.needHelpWithShipping')}</h2>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Have questions about your order or shipping? Our support team is here to help.
+              {t('pages.shippingInfo.haveQuestionsAboutYourOrderOr')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600">
-                Contact Support
+                {t('pages.shippingInfo.contactSupport')}
               </Button>
               <Button size="lg" variant="outline">
-                Check Order Status
+                {t('pages.shippingInfo.checkOrderStatus')}
               </Button>
             </div>
           </div>

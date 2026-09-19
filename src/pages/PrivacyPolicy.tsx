@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 
 
 const PrivacyPolicy = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -13,10 +14,10 @@ const PrivacyPolicy = () => {
           <div className="container mx-auto px-4 text-center text-white">
             <div className="flex items-center justify-center mb-6">
               <Shield className="h-12 w-12 mr-4" />
-              <h1 className="text-4xl md:text-6xl font-bold">POLITIQUE DE CONFIDENTIALITÉ</h1>
+              <h1 className="text-4xl md:text-6xl font-bold">{t('pages.privacyPolicy.politiqueDeConfidentialit')}</h1>
             </div>
             <p className="text-xl md:text-2xl max-w-2xl mx-auto opacity-90">
-              WENZE TII NDAKU (WTN) – République Démocratique du Congo
+              {t('pages.privacyPolicy.wenzeTiiNdakuWtnRPublique')}
             </p>
           </div>
         </section>
@@ -24,85 +25,85 @@ const PrivacyPolicy = () => {
           <div className="max-w-4xl mx-auto">
             <div className="bg-muted p-4 rounded-lg mb-8">
               <p className="text-sm text-muted-foreground">
-                <strong>Dernière mise à jour :</strong> 10 février 2026
+                <strong>{t('pages.privacyPolicy.derniReMiseJour')}</strong> {t('pages.privacyPolicy.n10FVrier2026')}
               </p>
               <p className="text-sm text-muted-foreground">
-                <strong>Responsable du traitement :</strong> WENZE TII NDAKU, SARL<br />
-                <strong>Email :</strong> wenzetiindaku@outlook.com<br />
-                <strong>Téléphone :</strong> +32 495 84 68 66
+                <strong>{t('pages.privacyPolicy.responsableDuTraitement')}</strong> {t('pages.privacyPolicy.wenzeTiiNdakuSarl')}<br />
+                <strong>{t('pages.privacyPolicy.email')}</strong> wenzetiindaku@outlook.com<br />
+                <strong>{t('pages.privacyPolicy.tLPhone')}</strong> +32 495 84 68 66
               </p>
             </div>
             <div className="prose prose-lg max-w-none text-foreground mx-auto">
               <ol className="list-decimal pl-6 space-y-4">
                 <li>
-                  <strong>Champ d’application</strong><br />
-                  La présente politique s’applique à tous les utilisateurs de la plateforme.
+                  <strong>{t('pages.privacyPolicy.champDApplication')}</strong><br />
+                  {t('pages.privacyPolicy.laPrSentePolitiqueSApplique')}
                 </li>
                 <li>
-                  <strong>Données collectées</strong><br />
-                  Données d’identification : nom, prénom, téléphone, email, adresse.<br />
-                  Données vendeurs : pièce d’identité, RCCM si applicable, coordonnées bancaires.<br />
-                  Données transactionnelles : commandes, paiements, commissions.<br />
-                  Données techniques : IP, appareil, navigation, cookies.
+                  <strong>{t('pages.privacyPolicy.donnEsCollectEs')}</strong><br />
+                  {t('pages.privacyPolicy.donnEsDIdentificationNomPr')}<br />
+                  {t('pages.privacyPolicy.donnEsVendeursPiCeD')}<br />
+                  {t('pages.privacyPolicy.donnEsTransactionnellesCommandesPaiementsCommissions')}<br />
+                  {t('pages.privacyPolicy.donnEsTechniquesIpAppareilNavigation')}
                 </li>
                 <li>
-                  <strong>Finalités</strong><br />
-                  Gestion des comptes, traitement des commandes, paiements, livraison, prévention de fraude, sécurité et conformité légale.
+                  <strong>{t('pages.privacyPolicy.finalitS')}</strong><br />
+                  {t('pages.privacyPolicy.gestionDesComptesTraitementDesCommandes')}
                 </li>
                 <li>
-                  <strong>Base légale</strong><br />
-                  Exécution contractuelle, consentement, intérêt légitime, obligations légales applicables.
+                  <strong>{t('pages.privacyPolicy.baseLGale')}</strong><br />
+                  {t('pages.privacyPolicy.exCutionContractuelleConsentementIntR')}
                 </li>
                 <li>
-                  <strong>Partage des données</strong><br />
-                  Prestataires de paiement,<br />
-                  Partenaires logistiques<br />
-                  Prestatairestechniques,<br />
-                  Autoritéslégales si requis.<br />
-                  Aucune vente de données personnelles.
+                  <strong>{t('pages.privacyPolicy.partageDesDonnEs')}</strong><br />
+                  {t('pages.privacyPolicy.prestatairesDePaiement')}<br />
+                  {t('pages.privacyPolicy.partenairesLogistiques')}<br />
+                  {t('pages.privacyPolicy.prestatairestechniques')}<br />
+                  {t('pages.privacyPolicy.autoritSlGalesSiRequis')}<br />
+                  {t('pages.privacyPolicy.aucuneVenteDeDonnEsPersonnelles')}
                 </li>
                 <li>
-                  <strong>Transferts internationaux</strong><br />
-                  Des données peuvent être hébergées hors RDC avec garanties de sécurité appropriées.
+                  <strong>{t('pages.privacyPolicy.transfertsInternationaux')}</strong><br />
+                  {t('pages.privacyPolicy.desDonnEsPeuventTreH')}
                 </li>
                 <li>
-                  <strong>Sécurité</strong><br />
-                  Mesurestechniques et organisationnellesincluant contrôle d’accès et protection contre fraude.
+                  <strong>{t('pages.privacyPolicy.sCurit')}</strong><br />
+                  {t('pages.privacyPolicy.mesurestechniquesEtOrganisationnellesincluantContrLeD')}
                 </li>
                 <li>
-                  <strong>Conservation</strong><br />
-                  Données conservées selon durée d’utilisation et obligations légales applicables.
+                  <strong>{t('pages.privacyPolicy.conservation')}</strong><br />
+                  {t('pages.privacyPolicy.donnEsConservEsSelonDur')}
                 </li>
                 <li>
-                  <strong>Droits des utilisateurs</strong><br />
-                  Accès, rectification, effacement, limitation, opposition, portabilité.<br />
-                  Contact : wtn-customers@outlook.com
+                  <strong>{t('pages.privacyPolicy.droitsDesUtilisateurs')}</strong><br />
+                  {t('pages.privacyPolicy.accSRectificationEffacementLimitationOpposition')}<br />
+                  {t('pages.privacyPolicy.contactWtnCustomersOutlookCom')}
                 </li>
                 <li>
-                  <strong>Cookies</strong><br />
-                  Utilisation pour analyse, sécurité et amélioration de l’expérience utilisateur.
+                  <strong>{t('pages.privacyPolicy.cookies')}</strong><br />
+                  {t('pages.privacyPolicy.utilisationPourAnalyseSCuritEt')}
                 </li>
                 <li>
-                  <strong>Données des mineurs</strong><br />
-                  Non destiné aux moins de 18 ans sans autorisation parentale.
+                  <strong>{t('pages.privacyPolicy.donnEsDesMineurs')}</strong><br />
+                  {t('pages.privacyPolicy.nonDestinAuxMoinsDe18')}
                 </li>
                 <li>
-                  <strong>Responsabilité Marketplace</strong><br />
-                  La plateforme agit comme intermédiaire entre vendeurs et acheteurs.
+                  <strong>{t('pages.privacyPolicy.responsabilitMarketplace')}</strong><br />
+                  {t('pages.privacyPolicy.laPlateformeAgitCommeIntermDiaire')}
                 </li>
                 <li>
-                  <strong>Modifications</strong><br />
-                  La politique peut être modifiée à tout moment.
+                  <strong>{t('pages.privacyPolicy.modifications')}</strong><br />
+                  {t('pages.privacyPolicy.laPolitiquePeutTreModifiE')}
                 </li>
                 <li>
-                  <strong>Acceptation</strong><br />
-                  L’utilisation de la plateforme implique acceptation de la présente politique.
+                  <strong>{t('pages.privacyPolicy.acceptation')}</strong><br />
+                  {t('pages.privacyPolicy.lUtilisationDeLaPlateformeImplique')}
                 </li>
                 <li>
-                  <strong>Contact officiel :</strong><br />
-                  WENZE TII NDAKU, SARL<br />
-                  Email: wenzetiindaku@outlook.com<br />
-                  Téléphone: +32 495 84 68 66
+                  <strong>{t('pages.privacyPolicy.contactOfficiel')}</strong><br />
+                  {t('pages.privacyPolicy.wenzeTiiNdakuSarl')}<br />
+                  {t('pages.privacyPolicy.emailWenzetiindakuOutlookCom')}<br />
+                  {t('pages.privacyPolicy.tLPhone3249584')}
                 </li>
               </ol>
             </div>

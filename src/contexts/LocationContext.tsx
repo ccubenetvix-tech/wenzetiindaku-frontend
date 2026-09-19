@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import i18n from "@/lib/i18n";
 
 // Location interface
 export interface Location {
@@ -157,7 +158,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
 export const useLocation = (): LocationContextType => {
   const context = useContext(LocationContext);
   if (context === undefined) {
-    throw new Error('useLocation must be used within a LocationProvider');
+    throw new Error(i18n.t('contexts.locationContext.uselocationMustBeUsedWithinA'));
   }
   return context;
 };

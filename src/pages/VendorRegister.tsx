@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Store,
@@ -25,10 +25,12 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
+import i18n from "@/lib/i18n";
 
 const VendorRegister = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signup, verifyOTP, resendOTP, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -56,7 +58,9 @@ const VendorRegister = () => {
   const [emailStatus, setEmailStatus] = useState<{
     state: "idle" | "checking" | "available" | "blocked";
     message: string;
+    verified?: boolean | null;
   }>({ state: "idle", message: "" });
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -70,6 +74,41 @@ const VendorRegister = () => {
       }
     }
   }, [isAuthenticated, user, navigate]);
+
+  // Sends a fresh OTP for the given email and jumps straight to the verification
+  // step. Shared by the login-redirect flow below and the "Verify here" link that
+  // appears when signup detects an already-registered-but-unverified email.
+  const sendVerificationCodeAndShowOtp = async (email: string) => {
+    setIsSendingVerification(true);
+    try {
+      await resendOTP(email, 'vendor');
+      setShowOTPForm(true);
+      toast({
+        title: i18n.t('pages.vendorRegister.verificationRequired'),
+        description: i18n.t('pages.vendorRegister.weVeSentANewVerification'),
+      });
+    } catch (error) {
+      toast({
+        title: i18n.t('pages.vendorRegister.couldNotSendCode'),
+        description: error instanceof Error ? error.message : i18n.t('pages.vendorRegister.pleaseTryAgain'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingVerification(false);
+    }
+  };
+
+  // Arrived here from a login attempt on an unverified account (see VendorLogin.tsx) —
+  // skip straight to the OTP step with a freshly-sent code instead of making them sign up again.
+  useEffect(() => {
+    if (searchParams.get('verify') !== '1') return;
+    const email = searchParams.get('email');
+    if (!email) return;
+
+    setFormData((prev) => ({ ...prev, businessEmail: email }));
+    sendVerificationCodeAndShowOtp(email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const businessTypes = [
     "Individual/Sole Proprietor",
@@ -118,12 +157,13 @@ const VendorRegister = () => {
         const response = await apiClient.getEmailStatus(email, "vendor", controller.signal);
 
         if (response?.success) {
-          const { isRegistered, registeredAs, label, message } = response.data ?? {};
+          const { isRegistered, registeredAs, label, message, verified } = response.data ?? {};
 
           if (isRegistered && registeredAs) {
             setEmailStatus({
               state: "blocked",
               message: message || `This email is already registered as a ${label || (registeredAs === "customer" ? "Customer" : "Vendor")}. Please use a different email.`,
+              verified,
             });
           } else {
             setEmailStatus({ state: "available", message: "" });
@@ -152,7 +192,7 @@ const VendorRegister = () => {
 
     if (emailStatus.state === "blocked") {
       toast({
-        title: "Email Unavailable",
+        title: i18n.t('pages.vendorRegister.emailUnavailable'),
         description: emailStatus.message,
         variant: "destructive",
       });
@@ -163,13 +203,30 @@ const VendorRegister = () => {
       await signup(formData, 'vendor');
       setShowOTPForm(true);
       toast({
-        title: "Vendor Application Submitted",
-        description: "Please check your email for the verification code.",
+        title: i18n.t('pages.vendorRegister.vendorApplicationSubmitted'),
+        description: i18n.t('pages.vendorRegister.pleaseCheckYourEmailForThe'),
       });
     } catch (error) {
+      // Signup got blocked because this email already has an unverified account
+      // (e.g. their OTP expired before they finished last time). Instead of a
+      // dead-end error, send them straight back to the verify step with a fresh code.
+      if ((error as any)?.unverifiedAccount) {
+        try {
+          await resendOTP(formData.businessEmail, 'vendor');
+          setShowOTPForm(true);
+          toast({
+            title: i18n.t('pages.vendorRegister.accountAlreadyExists'),
+            description: i18n.t('pages.vendorRegister.youAlreadyStartedSigningUpWith'),
+          });
+          return;
+        } catch (resendError) {
+          // Fall through to the generic error below if resend also fails.
+        }
+      }
+
       toast({
-        title: "Registration Failed",
-        description: error instanceof Error ? error.message : "An error occurred during registration",
+        title: i18n.t('pages.vendorRegister.registrationFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.vendorRegister.anErrorOccurredDuringRegistration'),
         variant: "destructive",
       });
     }
@@ -181,14 +238,14 @@ const VendorRegister = () => {
     try {
       await verifyOTP(formData.businessEmail, otp, 'vendor');
       toast({
-        title: "Account Verified",
-        description: "Your vendor application is now under review. You'll be notified once approved.",
+        title: i18n.t('pages.vendorRegister.accountVerified'),
+        description: i18n.t('pages.vendorRegister.yourVendorApplicationIsNowUnder'),
       });
       navigate("/vendor/login");
     } catch (error) {
       toast({
-        title: "Verification Failed",
-        description: error instanceof Error ? error.message : "Invalid OTP",
+        title: i18n.t('pages.vendorRegister.verificationFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.vendorRegister.invalidOtp'),
         variant: "destructive",
       });
     }
@@ -276,11 +333,11 @@ const VendorRegister = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4" />
-                  <span>Easy-to-use vendor dashboard</span>
+                  <span>{t('pages.vendorRegister.easyToUseVendorDashboard')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4" />
-                  <span>Secure payment processing</span>
+                  <span>{t('pages.vendorRegister.securePaymentProcessing')}</span>
                 </div>
               </div>
             </div>
@@ -302,7 +359,7 @@ const VendorRegister = () => {
                         id="businessName"
                         name="businessName"
                         type="text"
-                        placeholder="Enter business name"
+                        placeholder={t('pages.vendorRegister.enterBusinessName')}
                         value={formData.businessName}
                         onChange={handleInputChange}
                         required
@@ -351,12 +408,29 @@ const VendorRegister = () => {
                         />
                       </div>
                       {emailStatus.state === "checking" && (
-                        <p className="text-xs text-muted-foreground">Checking email availability...</p>
+                        <p className="text-xs text-muted-foreground">{t('pages.vendorRegister.checkingEmailAvailability')}</p>
                       )}
                       {emailStatus.state === "blocked" && (
                         <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                           <AlertCircle className="mt-0.5 h-4 w-4" />
-                          <span>{emailStatus.message}</span>
+                          <span>
+                            {emailStatus.message}
+                            {emailStatus.verified === false && (
+                              <>
+                                {" "}
+                                <button
+                                  type="button"
+                                  onClick={() => sendVerificationCodeAndShowOtp(formData.businessEmail.trim())}
+                                  disabled={isSendingVerification}
+                                  className="font-medium underline underline-offset-2 hover:text-amber-900 disabled:opacity-50"
+                                >
+                                  {isSendingVerification
+                                    ? i18n.t('pages.vendorRegister.sendingCode')
+                                    : i18n.t('pages.vendorRegister.verifyHere')}
+                                </button>
+                              </>
+                            )}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -383,7 +457,7 @@ const VendorRegister = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="businessWebsite" className="text-sm font-medium text-foreground">
-                      Business Website (Start with https://)
+                      {t('pages.vendorRegister.businessWebsiteStartWithHttps')}
                     </Label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -450,7 +524,7 @@ const VendorRegister = () => {
                         id="city"
                         name="city"
                         type="text"
-                        placeholder="City"
+                        placeholder={t('pages.vendorRegister.city')}
                         value={formData.city}
                         onChange={handleInputChange}
                         required
@@ -460,13 +534,13 @@ const VendorRegister = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="state" className="text-sm font-medium text-foreground">
-                        Commune/Localite *
+                        {t('pages.vendorRegister.communeLocalite')}
                       </Label>
                       <Input
                         id="state"
                         name="state"
                         type="text"
-                        placeholder="Commune/Localite"
+                        placeholder={t('pages.vendorRegister.communeLocalite2')}
                         value={formData.state}
                         onChange={handleInputChange}
                         required
@@ -482,7 +556,7 @@ const VendorRegister = () => {
                         id="country"
                         name="country"
                         type="text"
-                        placeholder="Country"
+                        placeholder={t('pages.vendorRegister.country')}
                         value={formData.country}
                         onChange={handleInputChange}
                         required
@@ -569,7 +643,7 @@ const VendorRegister = () => {
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Must be at least 8 characters long and contain a special character.
+                        {t('pages.vendorRegister.mustBeAtLeast8Characters')}
                       </p>
                     </div>
 
@@ -604,7 +678,7 @@ const VendorRegister = () => {
                         </Button>
                       </div>
                       {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                        <p className="text-xs text-red-600">Passwords do not match</p>
+                        <p className="text-xs text-red-600">{t('pages.vendorRegister.passwordsDoNotMatch')}</p>
                       )}
                     </div>
                   </div>
@@ -625,8 +699,8 @@ const VendorRegister = () => {
                         checked={formData.agreeToTerms}
                         onChange={handleInputChange}
                         className="w-4 h-4 text-orange-600 border-muted rounded focus:ring-orange-600 focus:ring-2 mt-1"
-                        aria-label="Agree to terms and conditions"
-                        title="Agree to terms and conditions"
+                        aria-label={t('pages.vendorRegister.agreeToTermsAndConditions')}
+                        title={t('pages.vendorRegister.agreeToTermsAndConditions')}
                       />
                       <Label htmlFor="agreeToTerms" className="text-sm text-muted-foreground">
                         {t('agreeToTermsPrefix')}{" "}
@@ -648,8 +722,8 @@ const VendorRegister = () => {
                         checked={formData.agreeToVendorTerms}
                         onChange={handleInputChange}
                         className="w-4 h-4 text-orange-600 border-muted rounded focus:ring-orange-600 focus:ring-2 mt-1"
-                        aria-label="Agree to vendor terms and conditions"
-                        title="Agree to vendor terms and conditions"
+                        aria-label={t('pages.vendorRegister.agreeToVendorTermsAndConditions')}
+                        title={t('pages.vendorRegister.agreeToVendorTermsAndConditions')}
                       />
                       <Label htmlFor="agreeToVendorTerms" className="text-sm text-muted-foreground">
                         {t('agreeToTermsPrefix')}{" "}
@@ -717,7 +791,7 @@ const VendorRegister = () => {
                       className="text-center text-2xl tracking-widest border-muted focus:border-orange-600 focus:ring-orange-600"
                     />
                     <p className="text-xs text-muted-foreground text-center">
-                      Enter the 6-digit code sent to your business email
+                      {t('pages.vendorRegister.enterThe6DigitCodeSent')}
                     </p>
                   </div>
 
@@ -731,13 +805,13 @@ const VendorRegister = () => {
                         try {
                           await resendOTP(formData.businessEmail, 'vendor');
                           toast({
-                            title: "Code Sent",
-                            description: "A new verification code has been sent to your email.",
+                            title: i18n.t('pages.vendorRegister.codeSent'),
+                            description: i18n.t('pages.vendorRegister.aNewVerificationCodeHasBeen'),
                           });
                         } catch (error) {
                           toast({
-                            title: "Failed to Resend",
-                            description: error instanceof Error ? error.message : "Could not resend code",
+                            title: i18n.t('pages.vendorRegister.failedToResend'),
+                            description: error instanceof Error ? error.message : i18n.t('pages.vendorRegister.couldNotResendCode'),
                             variant: "destructive",
                           });
                         }
@@ -782,7 +856,7 @@ const VendorRegister = () => {
 
             {/* Application Process Info */}
             <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-              <h3 className="text-lg font-medium text-foreground mb-3">{t('whatHappensNext')}</h3>
+              <h3 className="text-lg font-medium text-foreground mb-3">{t('vendorWhatHappensNext')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                 <div className="text-center">
                   <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-2">

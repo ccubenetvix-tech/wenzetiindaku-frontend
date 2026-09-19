@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { User, Eye, EyeOff, Mail, Lock, ArrowLeft, UserPlus, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,12 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
+import i18n from "@/lib/i18n";
 
 const CustomerSignup = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signup, verifyOTP, resendOTP, googleLogin, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -32,7 +34,9 @@ const CustomerSignup = () => {
   const [emailStatus, setEmailStatus] = useState<{
     state: "idle" | "checking" | "available" | "blocked";
     message: string;
+    verified?: boolean | null;
   }>({ state: "idle", message: "" });
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -46,6 +50,41 @@ const CustomerSignup = () => {
       }
     }
   }, [isAuthenticated, user, navigate]);
+
+  // Sends a fresh OTP for the given email and jumps straight to the verification
+  // step. Shared by the login-redirect flow below and the "Verify here" link that
+  // appears when signup detects an already-registered-but-unverified email.
+  const sendVerificationCodeAndShowOtp = async (email: string) => {
+    setIsSendingVerification(true);
+    try {
+      await resendOTP(email, 'customer');
+      setShowOTPForm(true);
+      toast({
+        title: i18n.t('pages.customerSignup.verificationRequired'),
+        description: i18n.t('pages.customerSignup.weVeSentANewVerification'),
+      });
+    } catch (error) {
+      toast({
+        title: i18n.t('pages.customerSignup.couldNotSendCode'),
+        description: error instanceof Error ? error.message : i18n.t('pages.customerSignup.pleaseTryAgain'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingVerification(false);
+    }
+  };
+
+  // Arrived here from a login attempt on an unverified account (see CustomerLogin.tsx) —
+  // skip straight to the OTP step with a freshly-sent code instead of making them sign up again.
+  useEffect(() => {
+    if (searchParams.get('verify') !== '1') return;
+    const email = searchParams.get('email');
+    if (!email) return;
+
+    setFormData((prev) => ({ ...prev, email }));
+    sendVerificationCodeAndShowOtp(email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const email = formData.email.trim();
@@ -70,12 +109,13 @@ const CustomerSignup = () => {
         const response = await apiClient.getEmailStatus(email, "customer", controller.signal);
 
         if (response?.success) {
-          const { isRegistered, registeredAs, label, message } = response.data ?? {};
+          const { isRegistered, registeredAs, label, message, verified } = response.data ?? {};
 
           if (isRegistered && registeredAs) {
             setEmailStatus({
               state: "blocked",
               message: message || `This email is already registered as a ${label || (registeredAs === "vendor" ? "Vendor" : "Customer")}. Please use a different email.`,
+              verified,
             });
           } else {
             setEmailStatus({ state: "available", message: "" });
@@ -104,7 +144,7 @@ const CustomerSignup = () => {
 
     if (emailStatus.state === "blocked") {
       toast({
-        title: "Email Unavailable",
+        title: i18n.t('pages.customerSignup.emailUnavailable'),
         description: emailStatus.message,
         variant: "destructive",
       });
@@ -115,13 +155,30 @@ const CustomerSignup = () => {
       await signup(formData, 'customer');
       setShowOTPForm(true);
       toast({
-        title: "Account Created",
-        description: "Please check your email for the verification code.",
+        title: i18n.t('pages.customerSignup.accountCreated'),
+        description: i18n.t('pages.customerSignup.pleaseCheckYourEmailForThe'),
       });
     } catch (error) {
+      // Signup got blocked because this email already has an unverified account
+      // (e.g. their OTP expired before they finished last time). Instead of a
+      // dead-end error, send them straight back to the verify step with a fresh code.
+      if ((error as any)?.unverifiedAccount) {
+        try {
+          await resendOTP(formData.email, 'customer');
+          setShowOTPForm(true);
+          toast({
+            title: i18n.t('pages.customerSignup.accountAlreadyExists'),
+            description: i18n.t('pages.customerSignup.youAlreadyStartedSigningUpWith'),
+          });
+          return;
+        } catch (resendError) {
+          // Fall through to the generic error below if resend also fails.
+        }
+      }
+
       toast({
-        title: "Signup Failed",
-        description: error instanceof Error ? error.message : "An error occurred during signup",
+        title: i18n.t('pages.customerSignup.signupFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.customerSignup.anErrorOccurredDuringSignup'),
         variant: "destructive",
       });
     }
@@ -133,14 +190,14 @@ const CustomerSignup = () => {
     try {
       await verifyOTP(formData.email, otp, 'customer');
       toast({
-        title: "Account Verified",
-        description: "Your account has been successfully verified! Please complete your profile.",
+        title: i18n.t('pages.customerSignup.accountVerified'),
+        description: i18n.t('pages.customerSignup.yourAccountHasBeenSuccessfullyVerified'),
       });
       navigate("/update-profile");
     } catch (error) {
       toast({
-        title: "Verification Failed",
-        description: error instanceof Error ? error.message : "Invalid OTP",
+        title: i18n.t('pages.customerSignup.verificationFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.customerSignup.invalidOtp'),
         variant: "destructive",
       });
     }
@@ -151,8 +208,8 @@ const CustomerSignup = () => {
       googleLogin();
     } catch (error) {
       toast({
-        title: "Google Signup Failed",
-        description: "An error occurred during Google signup",
+        title: i18n.t('pages.customerSignup.googleSignupFailed'),
+        description: i18n.t('pages.customerSignup.anErrorOccurredDuringGoogleSignup'),
         variant: "destructive",
       });
     }
@@ -263,12 +320,29 @@ const CustomerSignup = () => {
                     />
                   </div>
                   {emailStatus.state === "checking" && (
-                    <p className="text-xs text-muted-foreground">Checking email availability...</p>
+                    <p className="text-xs text-muted-foreground">{t('pages.customerSignup.checkingEmailAvailability')}</p>
                   )}
                   {emailStatus.state === "blocked" && (
                     <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                       <AlertCircle className="mt-0.5 h-4 w-4" />
-                      <span>{emailStatus.message}</span>
+                      <span>
+                        {emailStatus.message}
+                        {emailStatus.verified === false && (
+                          <>
+                            {" "}
+                            <button
+                              type="button"
+                              onClick={() => sendVerificationCodeAndShowOtp(formData.email.trim())}
+                              disabled={isSendingVerification}
+                              className="font-medium underline underline-offset-2 hover:text-amber-900 disabled:opacity-50"
+                            >
+                              {isSendingVerification
+                                ? i18n.t('pages.customerSignup.sendingCode')
+                                : i18n.t('pages.customerSignup.verifyHere')}
+                            </button>
+                          </>
+                        )}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -305,7 +379,7 @@ const CustomerSignup = () => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Must be at least 8 characters long and contain a special character.
+                    {t('pages.customerSignup.mustBeAtLeast8Characters')}
                   </p>
                 </div>
 
@@ -341,7 +415,7 @@ const CustomerSignup = () => {
                     </Button>
                   </div>
                   {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                    <p className="text-xs text-red-600">Passwords do not match</p>
+                    <p className="text-xs text-red-600">{t('pages.customerSignup.passwordsDoNotMatch')}</p>
                   )}
                 </div>
 
@@ -355,8 +429,8 @@ const CustomerSignup = () => {
                       checked={formData.agreeToTerms}
                       onChange={handleInputChange}
                       className="w-4 h-4 text-primary border-muted rounded focus:ring-primary focus:ring-2 mt-1"
-                      aria-label="Agree to terms and conditions"
-                      title="Agree to terms and conditions"
+                      aria-label={t('pages.customerSignup.agreeToTermsAndConditions')}
+                      title={t('pages.customerSignup.agreeToTermsAndConditions')}
                     />
                     <Label htmlFor="agreeToTerms" className="text-sm text-muted-foreground">
                       {t('agreeToTermsPrefix')}{" "}
@@ -437,13 +511,13 @@ const CustomerSignup = () => {
                       try {
                         await resendOTP(formData.email, 'customer');
                         toast({
-                          title: "Code Sent",
-                          description: "A new verification code has been sent to your email.",
+                          title: i18n.t('pages.customerSignup.codeSent'),
+                          description: i18n.t('pages.customerSignup.aNewVerificationCodeHasBeen'),
                         });
                       } catch (error) {
                         toast({
-                          title: "Failed to Resend",
-                          description: error instanceof Error ? error.message : "Could not resend code",
+                          title: i18n.t('pages.customerSignup.failedToResend'),
+                          description: error instanceof Error ? error.message : i18n.t('pages.customerSignup.couldNotResendCode'),
                           variant: "destructive",
                         });
                       }

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 // Import i18next for internationalization support
 import { useTranslation } from "react-i18next";
 // Import Lucide React icons for UI elements
-import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, LifeBuoy, MessageSquare } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Globe, LogIn, Store, LogOut, LifeBuoy, MessageSquare, Package } from "lucide-react";
 // Import UI components from the design system
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,13 +26,9 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 // Import chat context for unread count
 import { useChat } from "@/contexts/ChatContext";
+import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
 
-// Supported languages for internationalization
-// Includes major African languages and international languages
-const languages = [
-  { code: 'en', name: 'English' },      // English - primary language
-  { code: 'fr', name: 'Français' },     // French - widely spoken in Africa
-];
+const languages = SUPPORTED_LANGUAGES;
 
 /**
  * Header Component - Main navigation header for the marketplace
@@ -65,24 +61,6 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile sheet state
   const lastScrollYRef = useRef(0);
   const scrollTickingRef = useRef(false);
-
-  // Profile menu hover logic
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const profileMenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleProfileMouseEnter = () => {
-    if (profileMenuTimeoutRef.current) {
-      clearTimeout(profileMenuTimeoutRef.current);
-      profileMenuTimeoutRef.current = null;
-    }
-    setIsProfileMenuOpen(true);
-  };
-
-  const handleProfileMouseLeave = () => {
-    profileMenuTimeoutRef.current = setTimeout(() => {
-      setIsProfileMenuOpen(false);
-    }, 200);
-  };
 
   // Hide blue navbar on scroll down, show on scroll up
   useEffect(() => {
@@ -122,7 +100,6 @@ export function Header() {
 
   // Function to change the application language
   const changeLanguage = (lng: string) => {
-    console.log('Changing language to:', lng);
     i18n.changeLanguage(lng);
   };
 
@@ -142,8 +119,7 @@ export function Header() {
   };
 
   // Get current language object for display
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-  console.log('Current language:', i18n.language, 'Translation test:', t('freeShippingOnOrders'));
+  const currentLanguage = languages.find(lang => lang.code === i18n.resolvedLanguage) || languages[0];
 
   // Main navigation items - Simplified
   const navigation = [
@@ -152,6 +128,12 @@ export function Header() {
     { name: t('stores'), href: '/stores' },
     { name: t('products'), href: '/search' },
     { name: t('categories'), href: '/categories' },
+    ...(isAuthenticated && user
+      ? [{
+          name: t('myOrders', 'My Orders'),
+          href: user.role === 'customer' ? '/customer/dashboard?tab=orders' : '/vendor/dashboard?tab=orders',
+        }]
+      : []),
   ];
 
   const MobileNavigationBar = () => (
@@ -221,12 +203,12 @@ export function Header() {
               >
                 <img
                   src="/marketplace.jpeg"
-                  alt="WENZE TII NDAKU"
+                  alt={t('components.header.wenzeTiiNdaku')}
                   className="h-10 w-auto"
                 />
                 <div className="ml-3 hidden lg:block">
                   <h1 className="text-xl font-bold bg-gradient-to-r from-navy-600 to-orange-500 bg-clip-text text-transparent">
-                    WENZE TII NDAKU
+                    {t('components.header.wenzeTiiNdaku')}
                   </h1>
                 </div>
               </div>
@@ -257,8 +239,8 @@ export function Header() {
             <div className="flex items-center gap-1 sm:gap-2 ml-auto">
               {/* User Account */}
               {isAuthenticated && user ? (
-                <DropdownMenu open={isProfileMenuOpen} onOpenChange={setIsProfileMenuOpen}>
-                  <DropdownMenuTrigger asChild onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 sm:px-3 hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors">
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={user.profilePhoto} alt={user.firstName || user.businessName} />
@@ -269,7 +251,7 @@ export function Header() {
                       <div className="hidden md:block text-left">
                         <div className="text-xs text-gray-500">{t('hello')}</div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {user.firstName || user.businessName || 'User'}
+                          {user.firstName || user.businessName || t('components.header.user')}
                         </div>
                       </div>
                     </Button>
@@ -277,12 +259,14 @@ export function Header() {
                   <DropdownMenuContent
                     align="end"
                     className="w-48"
-                    onMouseEnter={handleProfileMouseEnter}
-                    onMouseLeave={handleProfileMouseLeave}
                   >
                     <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/dashboard' : '/vendor/dashboard')}>
                       <User className="mr-2 h-4 w-4" />
                       {user.role === 'customer' ? t('Dashboard') : t('Dashboard')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/dashboard?tab=orders' : '/vendor/dashboard?tab=orders')}>
+                      <Package className="mr-2 h-4 w-4" />
+                      {t('myOrders', 'My Orders')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate(user.role === 'customer' ? '/customer/profile' : '/vendor/profile')}>
                       <User className="mr-2 h-4 w-4" />
@@ -376,7 +360,7 @@ export function Header() {
                         {languages.map((language) => (
                           <SheetClose asChild key={language.code}>
                             <Button
-                              variant={i18n.language === language.code ? "default" : "outline"}
+                              variant={i18n.resolvedLanguage === language.code ? "default" : "outline"}
                               onClick={() => changeLanguage(language.code)}
                               className="justify-start"
                             >
@@ -439,7 +423,12 @@ export function Header() {
       <MobileNavigationBar />
 
       {/* Navigation bar - Professional category navigation */}
-      <div className={`hidden md:block bg-navy-600 dark:bg-navy-700 transition-all duration-300 ${isNavbarHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+      {/* When hidden, this bar is translated up over the white header row — pointer-events-none
+          stops its invisible language button from swallowing clicks meant for the profile menu. */}
+      <div
+        aria-hidden={isNavbarHidden}
+        className={`hidden md:block bg-navy-600 dark:bg-navy-700 transition-all duration-300 ${isNavbarHidden ? '-translate-y-full opacity-0 pointer-events-none invisible' : 'translate-y-0 opacity-100'}`}
+      >
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-10">
             {/* Left side - Main navigation centered */}
@@ -475,7 +464,7 @@ export function Header() {
                     <DropdownMenuItem
                       key={language.code}
                       onClick={() => changeLanguage(language.code)}
-                      className={`text-xs cursor-pointer hover:bg-gray-100 hover:text-navy-900 dark:hover:bg-navy-800 dark:hover:text-white ${i18n.language === language.code ? 'bg-accent text-white' : ''}`}
+                      className={`text-xs cursor-pointer hover:bg-gray-100 hover:text-navy-900 dark:hover:bg-navy-800 dark:hover:text-white ${i18n.resolvedLanguage === language.code ? 'bg-accent text-white' : ''}`}
                     >
                       {language.name}
                     </DropdownMenuItem>

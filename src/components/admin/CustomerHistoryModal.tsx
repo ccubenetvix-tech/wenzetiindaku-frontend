@@ -7,7 +7,9 @@ import {
 } from '@/components/ui/dialog';
 import { apiClient } from '../../utils/api';
 import { Loader2, ShoppingCart, Calendar, Package, ShoppingBag } from 'lucide-react';
-import { format } from 'date-fns';
+import i18n from "@/lib/i18n";
+import { formatDate, formatMoney, formatStatus } from "@/lib/format";
+import { useTranslation } from "react-i18next";
 
 interface CustomerHistoryModalProps {
     isOpen: boolean;
@@ -41,6 +43,7 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
     onClose,
     customerId,
 }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<CustomerHistoryData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -59,28 +62,13 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
             if (response.success) {
                 setData(response.data);
             } else {
-                setError(response.error?.message || 'Failed to fetch customer history');
+                setError(response.error?.message || i18n.t('components.admin.customerHistoryModal.failedToFetchCustomerHistory'));
             }
         } catch (err) {
-            setError('An error occurred while fetching data');
+            setError(i18n.t('components.admin.customerHistoryModal.anErrorOccurredWhileFetchingData'));
             console.error(err);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-        }).format(amount);
-    };
-
-    const formatDate = (dateString: string) => {
-        try {
-            return format(new Date(dateString), 'PPP');
-        } catch {
-            return dateString;
         }
     };
 
@@ -90,7 +78,7 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold flex items-center">
                         <ShoppingCart className="mr-2 h-5 w-5" />
-                        Customer Purchase History
+                        {t('components.admin.customerHistoryModal.customerPurchaseHistory')}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -105,25 +93,25 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
                         {/* Total Spent Summary */}
                         <div className="bg-primary/5 p-4 rounded-lg flex justify-between items-center border border-primary/10">
                             <div>
-                                <p className="text-sm text-gray-500 font-medium">Total Lifetime Spend</p>
+                                <p className="text-sm text-gray-500 font-medium">{t('components.admin.customerHistoryModal.totalLifetimeSpend')}</p>
                                 <h3 className="text-2xl font-bold text-primary">{formatMoney(data.totalSpent)}</h3>
                             </div>
                             <div className="text-right">
-                                <p className="text-sm text-gray-500">Total Orders</p>
+                                <p className="text-sm text-gray-500">{t('components.admin.customerHistoryModal.totalOrders')}</p>
                                 <p className="text-xl font-semibold text-gray-800">{data.orders.length}</p>
                             </div>
                         </div>
 
                         {/* Orders List */}
                         <div className="space-y-4">
-                            <h3 className="font-semibold text-gray-800">Order History</h3>
+                            <h3 className="font-semibold text-gray-800">{t('components.admin.customerHistoryModal.orderHistory')}</h3>
                             {data.orders.length > 0 ? (
                                 <div className="space-y-4">
                                     {data.orders.map((order) => (
                                         <div key={order.id} className="border rounded-lg overflow-hidden">
                                             <div className="bg-gray-50 p-3 flex flex-wrap justify-between items-center text-sm border-b">
                                                 <div className="flex space-x-4">
-                                                    <span className="font-medium">Order ID: <span className="text-gray-600 font-normal">#{order.id.slice(0, 8)}</span></span>
+                                                    <span className="font-medium">{t('components.admin.customerHistoryModal.orderId')} <span className="text-gray-600 font-normal">#{order.id.slice(0, 8)}</span></span>
                                                     <span className="flex items-center text-gray-500">
                                                         <Calendar className="h-3 w-3 mr-1" />
                                                         {formatDate(order.date)}
@@ -134,7 +122,7 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
                                 ${order.status === 'delivered' || order.status === 'completed' ? 'bg-green-100 text-green-700' :
                                                             order.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                                                         } `}>
-                                                        {order.status}
+                                                        {formatStatus(order.status)}
                                                     </span>
                                                     <span className="font-bold">{formatMoney(Number(order.totalAmount))}</span>
                                                 </div>
@@ -143,10 +131,10 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
                                                 <table className="w-full text-sm">
                                                     <thead className="bg-gray-50/50 text-gray-500 text-xs">
                                                         <tr>
-                                                            <th className="px-4 py-2 text-left font-medium">Product</th>
-                                                            <th className="px-4 py-2 text-left font-medium">Store</th>
-                                                            <th className="px-4 py-2 text-center font-medium">Qty</th>
-                                                            <th className="px-4 py-2 text-right font-medium">Price</th>
+                                                            <th className="px-4 py-2 text-left font-medium">{t('components.admin.customerHistoryModal.product')}</th>
+                                                            <th className="px-4 py-2 text-left font-medium">{t('components.admin.customerHistoryModal.store')}</th>
+                                                            <th className="px-4 py-2 text-center font-medium">{t('components.admin.customerHistoryModal.qty')}</th>
+                                                            <th className="px-4 py-2 text-right font-medium">{t('components.admin.customerHistoryModal.price')}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
@@ -176,7 +164,7 @@ const CustomerHistoryModal: React.FC<CustomerHistoryModalProps> = ({
                             ) : (
                                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                                     <ShoppingBag className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-500">No orders found for this customer.</p>
+                                    <p className="text-gray-500">{t('components.admin.customerHistoryModal.noOrdersFoundForThisCustomer')}</p>
                                 </div>
                             )}
                         </div>

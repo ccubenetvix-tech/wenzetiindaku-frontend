@@ -52,6 +52,12 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    // Strip console.log/debugger from production builds only — dev keeps full logging.
+    // Several call sites log full API responses (user/cart/address data); this closes
+    // that PII-in-devtools leak everywhere at once instead of guarding each call site.
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
     // Build configuration
     build: {
       // Increase chunk size warning limit to 1000kb

@@ -37,7 +37,7 @@ export function Footer() {
         { name: t('helpCenter'), href: '/help' },       // Help center
         { name: t('shippingInfo'), href: '/shipping' }, // Shipping information
         { name: t('returns'), href: '/returns' },       // Returns policy
-        { name: 'FAQ', href: '/faq' },                  // FAQ page
+        { name: t('components.footer.faq'), href: '/faq' },                  // FAQ page
       ]
     },
     {
@@ -58,7 +58,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
-              WENZE TII NDAKU
+              {t('components.footer.wenzeTiiNdaku')}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md">
               {t('heroSubtitle')}
@@ -76,7 +76,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span>Kinshasa, R.D. CONGO</span>
+                <span>{t('components.footer.kinshasaRDCongo')}</span>
               </div>
             </div>
           </div>
@@ -105,15 +105,8 @@ export function Footer() {
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4 md:mb-0">
             <p className="text-muted-foreground text-sm">
-              © 2025 WENZE TII NDAKU. {t('allRightsReserved')}
+              {t('components.footer.n2025WenzeTiiNdaku')} {t('allRightsReserved')}
             </p>
-            {/* Admin Access Link - for testing purposes */}
-            <button
-              onClick={() => navigate('/admin/login')}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200 underline"
-            >
-              {t('adminAccess')}
-            </button>
           </div>
 
           {/* Social Links */}
