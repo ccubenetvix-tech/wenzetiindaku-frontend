@@ -18,6 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import i18n from "@/lib/i18n";
 
 interface ProductCardProps {
   id: string;
@@ -75,8 +76,8 @@ export const ProductCard = memo(function ProductCard({
 
     if (user?.role !== 'customer') {
       toast({
-        title: "Action not allowed",
-        description: "Only customers can manage wishlists.",
+        title: i18n.t('components.productCard.actionNotAllowed'),
+        description: i18n.t('components.productCard.onlyCustomersCanManageWishlists'),
         variant: "destructive"
       });
       return;
@@ -98,16 +99,16 @@ export const ProductCard = memo(function ProductCard({
       });
 
       toast({
-        title: added ? "Added to Wishlist" : "Removed from Wishlist",
+        title: added ? i18n.t('components.productCard.addedToWishlist') : i18n.t('components.productCard.removedFromWishlist'),
         description: added
-          ? `${name} has been added to your wishlist.`
-          : `${name} has been removed from your wishlist.`,
+          ? i18n.t('components.productCard.nameHasBeenAddedToYour2', { name })
+          : i18n.t('components.productCard.nameHasBeenRemovedFromYour', { name }),
       });
     } catch (error) {
       console.error('Failed to toggle wishlist:', error);
       toast({
-        title: "Error",
-        description: "Unable to update wishlist. Please try again.",
+        title: i18n.t('components.productCard.error'),
+        description: i18n.t('components.productCard.unableToUpdateWishlistPleaseTry'),
         variant: "destructive"
       });
     } finally {
@@ -136,8 +137,8 @@ export const ProductCard = memo(function ProductCard({
     // Check if user is a vendor (vendors cannot add to cart)
     if (user?.role === 'vendor') {
       toast({
-        title: "Not Available",
-        description: "Vendors cannot add products to cart.",
+        title: i18n.t('components.productCard.notAvailable'),
+        description: i18n.t('components.productCard.vendorsCannotAddProductsToCart'),
         variant: "destructive"
       });
       return;
@@ -146,8 +147,8 @@ export const ProductCard = memo(function ProductCard({
     // Only customers can add to cart
     if (user?.role !== 'customer') {
       toast({
-        title: "Access Denied",
-        description: "Only customers can add products to cart.",
+        title: i18n.t('components.productCard.accessDenied'),
+        description: i18n.t('components.productCard.onlyCustomersCanAddProductsTo'),
         variant: "destructive"
       });
       return;
@@ -166,14 +167,14 @@ export const ProductCard = memo(function ProductCard({
       });
 
       toast({
-        title: "Added to cart",
-        description: `${name} has been added to your cart.`,
+        title: i18n.t('components.productCard.addedToCart'),
+        description: i18n.t('components.productCard.nameHasBeenAddedToYour', { name }),
       });
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
-        title: "Error",
-        description: "Failed to add item to cart. Please try again.",
+        title: i18n.t('components.productCard.error'),
+        description: i18n.t('components.productCard.failedToAddItemToCart'),
         variant: "destructive"
       });
     } finally {

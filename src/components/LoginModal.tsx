@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, User, Store, ArrowRight, ShoppingBag, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isClosing, setIsClosing] = useState(false);
 
@@ -72,7 +74,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <button
           onClick={handleClose}
           className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors duration-200"
-          aria-label="Close modal"
+          aria-label={t('components.loginModal.closeModal')}
         >
           <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
         </button>
@@ -81,10 +83,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <div className="px-5 pt-5 pb-4">
           <div className="text-center">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Welcome to WENZE TII NDAKU
+              {t('components.loginModal.welcomeToWenzeTiiNdaku')}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Choose your login type
+              {t('components.loginModal.chooseYourLoginType')}
             </p>
           </div>
         </div>
@@ -104,10 +106,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   </div>
                   <div className="text-left">
                     <h3 className="font-medium text-sm text-gray-900 dark:text-white group-hover:text-navy-600 dark:group-hover:text-navy-300">
-                      Customer Login
+                      {t('components.loginModal.customerLogin')}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Shop and browse products
+                      {t('components.loginModal.shopAndBrowseProducts')}
                     </p>
                   </div>
                 </div>
@@ -127,10 +129,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   </div>
                   <div className="text-left">
                     <h3 className="font-medium text-sm text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-300">
-                      Vendor Login
+                      {t('components.loginModal.vendorLogin')}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Manage your store and products
+                      {t('components.loginModal.manageYourStoreAndProducts')}
                     </p>
                   </div>
                 </div>
@@ -144,7 +146,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <div className="px-5 pb-5">
           <div className="border-t border-gray-200 dark:border-navy-700 pt-4">
             <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
-              New to our platform?
+              {t('components.loginModal.newToOurPlatform')}
             </p>
             <div className="flex space-x-2">
               <Button
@@ -154,7 +156,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 className="flex-1 border border-navy-500 text-navy-600 hover:bg-navy-500 hover:text-white transition-all duration-200 text-xs h-8 px-3"
               >
                 <ShoppingBag className="h-3 w-3 mr-1" />
-                Sign Up
+                {t('components.loginModal.signUp')}
               </Button>
               <Button
                 onClick={handleBecomeVendor}
@@ -163,7 +165,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 className="flex-1 border border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white transition-all duration-200 text-xs h-8 px-3"
               >
                 <TrendingUp className="h-3 w-3 mr-1" />
-                Become Vendor
+                {t('components.loginModal.becomeVendor')}
               </Button>
             </div>
           </div>

@@ -11,6 +11,7 @@
     "build:production:win": "set VITE_ENVIRONMENT=production && vite build",
     "setup-env": "node setup-env.js",
     "lint": "eslint .",
+    "i18n:check": "node scripts/check-i18n.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -51,7 +52,7 @@
     "i18next": "^25.4.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "input-otp": "^1.4.2",
-    "jspdf": "^3.0.4",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
@@ -63,7 +64,7 @@
     "react-hook-form": "^7.61.1",
     "react-i18next": "^15.7.1",
     "react-resizable-panels": "^2.1.9",
-    "react-router-dom": "^6.30.1",
+    "react-router-dom": "^7.18.4",
     "recharts": "^2.15.4",
     "socket.io-client": "^4.7.5",
     "sonner": "^1.7.4",
@@ -88,6 +89,6 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^6.4.1"
+    "vite": "^6.4.3"
   }
 }

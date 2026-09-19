@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 
 
 const TermsOfService = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Header />
@@ -18,12 +19,12 @@ const TermsOfService = () => {
                 <Gavel className="h-12 w-12 text-blue-200" />
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-                CONDITIONS GENERALES – WENZE TII NDAKU
+                {t('pages.termsOfService.conditionsGeneralesWenzeTiiNdaku')}
               </h1>
               <div className="h-1 w-24 bg-blue-400 rounded-full mb-6"></div>
             </div>
             <p className="text-xl md:text-2xl max-w-2xl mx-auto text-blue-100 font-light">
-              Ce Contrat de Vendeur (« Accord ») est conclu entre WENZE TII NDAKU (la « Plateforme ») et le vendeur enregistré (« Vendeur »). En s'enregistrant et en opérant sur la Plateforme, le vendeur accepte d'être légalement lié par ce Contrat.
+              {t('pages.termsOfService.ceContratDeVendeurAccordEst')}
             </p>
           </div>
         </section>
@@ -31,79 +32,79 @@ const TermsOfService = () => {
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-center mb-12">
               <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
-                Dernière mise à jour : 2026
+                {t('pages.termsOfService.derniReMiseJour2026')}
               </span>
             </div>
             <div className="prose prose-lg max-w-none text-foreground mx-auto">
               <ol className="list-decimal pl-6 space-y-4">
                 <li>
-                  <strong>Champ d'application de l'accord.</strong><br />
-                  Cet accord régit les conditions sous lesquelles le vendeur est autorisé à inscrire et vendre des produits sur la plateforme WENZE TII NDAKU.
+                  <strong>{t('pages.termsOfService.champDApplicationDeLAccord')}</strong><br />
+                  {t('pages.termsOfService.cetAccordRGitLesConditions')}
                 </li>
                 <li>
-                  <strong>Obligations du vendeur.</strong><br />
-                  Le vendeur s'engage à exposer uniquement des produits légaux, authentiques et de qualité, et à se conformer à toutes les lois et réglementations applicables.
+                  <strong>{t('pages.termsOfService.obligationsDuVendeur')}</strong><br />
+                  {t('pages.termsOfService.leVendeurSEngageExposerUniquement')}
                 </li>
                 <li>
-                  <strong>Produits et comportements interdits.</strong><br />
-                  Tout produit ou activité liée à la drogue, au crime, au terrorisme, à la pédophilie, à la traite des êtres humains, aux armes ou à d'autres activités illégales est strictement interdit et soumis à une résiliation immédiate, un signalement aux autorités et des poursuites.
+                  <strong>{t('pages.termsOfService.produitsEtComportementsInterdits')}</strong><br />
+                  {t('pages.termsOfService.toutProduitOuActivitLiE')}
                 </li>
                 <li>
-                  <strong>Défauts de produit et remboursements.</strong><br />
-                  Le vendeur assume l'entière responsabilité des produits défectueux, endommagés ou non conformes et s'engage à rembourser intégralement les acheteurs.
+                  <strong>{t('pages.termsOfService.dFautsDeProduitEtRemboursements')}</strong><br />
+                  {t('pages.termsOfService.leVendeurAssumeLEntiRe')}
                 </li>
                 <li>
-                  <strong>Cotisations, adhésion et commission.</strong><br />
-                  Le vendeur accepte de payer une cotisation mensuelle de 10 USD et une commission de 10 % sur le volume total des ventes mensuelles réalisées sur la plateforme.
+                  <strong>{t('pages.termsOfService.cotisationsAdhSionEtCommission')}</strong><br />
+                  {t('pages.termsOfService.leVendeurAccepteDePayerUne')}
                 </li>
                 <li>
-                  <strong>Paiements des revenus.</strong><br />
-                  Les revenus du vendeur doivent être versés une fois à la fin de chaque mois civil, après déduction des frais et commissions applicables.
+                  <strong>{t('pages.termsOfService.paiementsDesRevenus')}</strong><br />
+                  {t('pages.termsOfService.lesRevenusDuVendeurDoiventTre')}
                 </li>
                 <li>
-                  <strong>Suspension et résiliation.</strong><br />
-                  La Plateforme se réserve le droit de suspendre ou de résilier immédiatement le compte vendeur en cas de comportement suspect ou inacceptable.
+                  <strong>{t('pages.termsOfService.suspensionEtRSiliation')}</strong><br />
+                  {t('pages.termsOfService.laPlateformeSeRServeLe')}
                 </li>
                 <li>
-                  <strong>Propriété intellectuelle.</strong><br />
-                  Le vendeur conserve la propriété du contenu produit mais accorde à la plateforme un droit non exclusif d'utiliser ce contenu.
+                  <strong>{t('pages.termsOfService.propriTIntellectuelle')}</strong><br />
+                  {t('pages.termsOfService.leVendeurConserveLaPropriT')}
                 </li>
                 <li>
-                  <strong>Limitation de responsabilité.</strong><br />
-                  La plateforme agit uniquement en tant que marché intermédiaire et n'est pas responsable des fautes commises par le vendeur.
+                  <strong>{t('pages.termsOfService.limitationDeResponsabilit')}</strong><br />
+                  {t('pages.termsOfService.laPlateformeAgitUniquementEnTant')}
                 </li>
                 <li>
-                  <strong>Droit et jurisdiction.</strong><br />
-                  Le présent Accord est régi par les lois commerciales applicables relevant de la compétence légale de la Plateforme.
+                  <strong>{t('pages.termsOfService.droitEtJurisdiction')}</strong><br />
+                  {t('pages.termsOfService.lePrSentAccordEstR')}
                 </li>
                 <li>
-                  <strong>Limitation d’age.</strong><br />
-                  La plateforme est strictement réservée aux personnes âgées de dix-huit (18) ans révolus au minimum.<br />
-                  Toute inscription, accès ou utilisation par une personne mineure est formellement interdite.<br />
-                  En cas d’utilisation de la plateforme par un mineur, la responsabilité incombe exclusivement aux parents, tuteurs légaux ou responsables du mineur concerné.<br />
-                  La plateforme se réserve le droit :
+                  <strong>{t('pages.termsOfService.limitationDAge')}</strong><br />
+                  {t('pages.termsOfService.laPlateformeEstStrictementRServ')}<br />
+                  {t('pages.termsOfService.touteInscriptionAccSOuUtilisation')}<br />
+                  {t('pages.termsOfService.enCasDUtilisationDeLa')}<br />
+                  {t('pages.termsOfService.laPlateformeSeRServeLe2')}
                   <ul className="list-disc pl-8 mt-2">
-                    <li>De procéder à toute vérification nécessaire en cas de doute ou de suspicion quant à l’âge réel d’un utilisateur ;</li>
-                    <li>D’exiger la fourniture d’une pièce d’identité officielle valide afin de confirmer l’âge déclaré ;</li>
-                    <li>De suspendre ou supprimer le compte de tout utilisateur ne respectant pas cette condition ou refusant de coopérer dans le cadre des vérifications.</li>
+                    <li>{t('pages.termsOfService.deProcDerTouteVRification')}</li>
+                    <li>{t('pages.termsOfService.dExigerLaFournitureDUne')}</li>
+                    <li>{t('pages.termsOfService.deSuspendreOuSupprimerLeCompte')}</li>
                   </ul>
-                  Toute fausse déclaration relative à l’âge constitue une violation des conditions générales d’utilisation et peut entraîner des sanctions appropriées
+                  {t('pages.termsOfService.touteFausseDClarationRelativeL')}
                 </li>
                 <li>
-                  <strong>Acceptation.</strong><br />
-                  En s'inscrivant sur la Plateforme, le vendeur confirme l'acceptation complète de cet Accord.
+                  <strong>{t('pages.termsOfService.acceptation')}</strong><br />
+                  {t('pages.termsOfService.enSInscrivantSurLaPlateforme')}
                 </li>
               </ol>
             </div>
             <div className="mt-16 text-center">
               <p className="text-muted-foreground mb-4">
-                Une question sur nos conditions ?
+                {t('pages.termsOfService.uneQuestionSurNosConditions')}
               </p>
               <a
                 href="mailto:wenzetiindaku@outlook.com"
                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm"
               >
-                Contacter le support légal
+                {t('pages.termsOfService.contacterLeSupportLGal')}
               </a>
             </div>
           </div>

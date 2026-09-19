@@ -9,7 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiClient } from '../../utils/api';
 import { Loader2, DollarSign, ShoppingBag, TrendingUp, Package, Calendar, Trophy, Box } from 'lucide-react';
+import i18n from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
 
+import { formatDate, formatMoney } from "@/lib/format";
 interface VendorRevenueModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -50,6 +53,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
     onClose,
     vendorId,
 }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<VendorRevenueData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -80,21 +84,14 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
             if (response.success) {
                 setData(response.data);
             } else {
-                setError(response.error?.message || 'Failed to fetch revenue data');
+                setError(response.error?.message || i18n.t('components.admin.vendorRevenueModal.failedToFetchRevenueData'));
             }
         } catch (err) {
-            setError('An error occurred while fetching data');
+            setError(i18n.t('components.admin.vendorRevenueModal.anErrorOccurredWhileFetchingData'));
             console.error(err);
         } finally {
             setLoading(false);
         }
-    };
-
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-        }).format(amount);
     };
 
     return (
@@ -104,7 +101,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between py-2">
                         <div>
                             <DialogTitle className="text-xl font-bold">
-                                Vendor Revenue & Performance
+                                {t('components.admin.vendorRevenueModal.vendorRevenuePerformance')}
                             </DialogTitle>
                             {data && <p className="text-sm text-gray-500 mt-1">{data.vendorName}</p>}
                         </div>
@@ -117,7 +114,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 onClick={() => setFilterType('overall')}
                                 className="text-xs h-8"
                             >
-                                Overall
+                                {t('components.admin.vendorRevenueModal.overall')}
                             </Button>
                             <Button
                                 variant={filterType === 'custom' ? "default" : "ghost"}
@@ -125,7 +122,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 onClick={() => setFilterType('custom')}
                                 className="text-xs h-8"
                             >
-                                Custom Range
+                                {t('components.admin.vendorRevenueModal.customRange')}
                             </Button>
                         </div>
                     </div>
@@ -133,7 +130,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                     {filterType === 'custom' && (
                         <div className="flex items-center space-x-2 pt-4 pb-2 justify-end">
                             <div className="flex items-center space-x-2">
-                                <span className="text-xs text-gray-500">From:</span>
+                                <span className="text-xs text-gray-500">{t('components.admin.vendorRevenueModal.from')}</span>
                                 <Input
                                     type="date"
                                     value={startDate}
@@ -142,7 +139,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 />
                             </div>
                             <div className="flex items-center space-x-2">
-                                <span className="text-xs text-gray-500">To:</span>
+                                <span className="text-xs text-gray-500">{t('components.admin.vendorRevenueModal.to')}</span>
                                 <Input
                                     type="date"
                                     value={endDate}
@@ -172,7 +169,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Revenue</p>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.totalRevenue')}</p>
                                     <p className="text-xl font-bold text-gray-900 mt-1">{formatMoney(data.totalRevenue)}</p>
                                 </div>
                             </div>
@@ -184,7 +181,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Gain</p>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.totalGain')}</p>
                                     <p className="text-xl font-bold text-gray-900 mt-1">{formatMoney(data.totalProfit)}</p>
                                 </div>
                             </div>
@@ -196,7 +193,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Avg. Gain / Order</p>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.avgGainOrder')}</p>
                                     <p className="text-xl font-bold text-gray-900 mt-1">{formatMoney(data.avgGain)}</p>
                                 </div>
                             </div>
@@ -208,7 +205,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Sales Volume</p>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.salesVolume')}</p>
                                     <p className="text-xl font-bold text-gray-900 mt-1">{data.totalSalesVolume}</p>
                                 </div>
                             </div>
@@ -220,9 +217,9 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Products</p>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.totalProducts')}</p>
                                     <p className="text-xl font-bold text-gray-900 mt-1">{data.totalProducts}</p>
-                                    <p className="text-[10px] text-gray-400">Available in store</p>
+                                    <p className="text-[10px] text-gray-400">{t('components.admin.vendorRevenueModal.availableInStore')}</p>
                                 </div>
                             </div>
                         </div>
@@ -235,19 +232,19 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 <div className="px-6 py-4 border-b bg-indigo-50/50 flex items-center justify-between">
                                     <h3 className="font-semibold text-gray-800 flex items-center">
                                         <ShoppingBag className="mr-2 h-5 w-5 text-indigo-500" />
-                                        Sold Products ({new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()})
+                                        {t('components.admin.vendorRevenueModal.soldProductsValueValue2', { value: formatDate(startDate), value2: formatDate(endDate) })}
                                     </h3>
                                     <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">
-                                        {data.productBreakdown ? data.productBreakdown.length : 0} Unique Items Sold
+                                        {data.productBreakdown ? data.productBreakdown.length : 0} {t('components.admin.vendorRevenueModal.uniqueItemsSold')}
                                     </span>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm text-left">
                                         <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                                             <tr>
-                                                <th className="px-6 py-3 font-medium">Product Name</th>
-                                                <th className="px-6 py-3 font-medium text-center">Units Sold</th>
-                                                <th className="px-6 py-3 font-medium text-right">Revenue Generated</th>
+                                                <th className="px-6 py-3 font-medium">{t('components.admin.vendorRevenueModal.productName')}</th>
+                                                <th className="px-6 py-3 font-medium text-center">{t('components.admin.vendorRevenueModal.unitsSold')}</th>
+                                                <th className="px-6 py-3 font-medium text-right">{t('components.admin.vendorRevenueModal.revenueGenerated')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
@@ -281,7 +278,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                             ) : (
                                                 <tr>
                                                     <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                                                        No products were sold during this specific date range.
+                                                        {t('components.admin.vendorRevenueModal.noProductsWereSoldDuringThis')}
                                                     </td>
                                                 </tr>
                                             )}
@@ -297,7 +294,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 <div className="lg:col-span-1 bg-white rounded-xl border shadow-sm overflow-hidden h-full flex flex-col">
                                     <div className="px-6 py-4 border-b bg-yellow-50/50 flex items-center">
                                         <Trophy className="h-5 w-5 text-yellow-500 mr-2" />
-                                        <h3 className="font-semibold text-gray-800">Top Selling Products</h3>
+                                        <h3 className="font-semibold text-gray-800">{t('components.admin.vendorRevenueModal.topSellingProducts')}</h3>
                                     </div>
                                     <div className="flex-1 overflow-y-auto max-h-[400px]">
                                         {data.topSelling && data.topSelling.length > 0 ? (
@@ -318,7 +315,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                                                            <p className="text-xs text-gray-500">{product.unitsSold} units sold</p>
+                                                            <p className="text-xs text-gray-500">{t('components.admin.vendorRevenueModal.unitssoldUnitsSold', { unitsSold: product.unitsSold })}</p>
                                                         </div>
                                                         <div className="text-right">
                                                             <p className="text-sm font-bold text-green-600">{formatMoney(product.earnings)}</p>
@@ -327,7 +324,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="p-8 text-center text-gray-500 text-sm">No sales data yet to determine top products.</div>
+                                            <div className="p-8 text-center text-gray-500 text-sm">{t('components.admin.vendorRevenueModal.noSalesDataYetToDetermine')}</div>
                                         )}
                                     </div>
                                 </div>
@@ -337,27 +334,27 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                     <div className="px-6 py-4 border-b bg-gray-50/50 flex justify-between items-center">
                                         <h3 className="font-semibold text-gray-800 flex items-center">
                                             <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-                                            Overall Revenue Breakdown
+                                            {t('components.admin.vendorRevenueModal.overallRevenueBreakdown')}
                                         </h3>
                                         {filterType === 'custom' && !startDate && (
-                                            <span className="text-xs text-orange-500 animate-pulse">Select dates to view details</span>
+                                            <span className="text-xs text-orange-500 animate-pulse">{t('components.admin.vendorRevenueModal.selectDatesToViewDetails')}</span>
                                         )}
                                     </div>
 
                                     {filterType === 'custom' && (!startDate || !endDate) ? (
                                         <div className="h-64 flex flex-col items-center justify-center bg-gray-50 text-center p-6">
                                             <Calendar className="h-12 w-12 text-gray-300 mb-3" />
-                                            <p className="text-gray-900 font-medium">Select a Date Range</p>
-                                            <p className="text-sm text-gray-500 mt-1">Choose a start and end date to see specific sold products.</p>
+                                            <p className="text-gray-900 font-medium">{t('components.admin.vendorRevenueModal.selectADateRange')}</p>
+                                            <p className="text-sm text-gray-500 mt-1">{t('components.admin.vendorRevenueModal.chooseAStartAndEndDate')}</p>
                                         </div>
                                     ) : (
                                         <div className="overflow-x-auto max-h-[400px]">
                                             <table className="w-full text-sm text-left">
                                                 <thead className="bg-gray-50 text-gray-600 uppercase text-xs sticky top-0 z-10">
                                                     <tr>
-                                                        <th className="px-6 py-3 font-semibold">Product Name</th>
-                                                        <th className="px-6 py-3 text-center font-semibold">Units Sold</th>
-                                                        <th className="px-6 py-3 text-right font-semibold">Revenue Booked</th>
+                                                        <th className="px-6 py-3 font-semibold">{t('components.admin.vendorRevenueModal.productName')}</th>
+                                                        <th className="px-6 py-3 text-center font-semibold">{t('components.admin.vendorRevenueModal.unitsSold')}</th>
+                                                        <th className="px-6 py-3 text-right font-semibold">{t('components.admin.vendorRevenueModal.revenueBooked')}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100">
@@ -380,7 +377,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                                     ) : (
                                                         <tr>
                                                             <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                                                                No sales data available.
+                                                                {t('components.admin.vendorRevenueModal.noSalesDataAvailable')}
                                                             </td>
                                                         </tr>
                                                     )}
@@ -397,9 +394,9 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                             <div className="px-6 py-4 border-b bg-gray-50/50">
                                 <h3 className="font-semibold text-gray-800 flex items-center">
                                     <Box className="mr-2 h-5 w-5 text-gray-500" />
-                                    Full Store Inventory
+                                    {t('components.admin.vendorRevenueModal.fullStoreInventory')}
                                     <span className="ml-2 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-normal">
-                                        {data.storeInventory ? data.storeInventory.length : 0} Items
+                                        {data.storeInventory ? data.storeInventory.length : 0} {t('components.admin.vendorRevenueModal.items')}
                                     </span>
                                 </h3>
                             </div>
@@ -407,10 +404,10 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 text-gray-600 uppercase text-xs sticky top-0 z-10">
                                         <tr>
-                                            <th className="px-6 py-3">Product</th>
-                                            <th className="px-6 py-3 text-center">Category</th>
-                                            <th className="px-6 py-3 text-center">Stock</th>
-                                            <th className="px-6 py-3 text-right">Unit Price</th>
+                                            <th className="px-6 py-3">{t('components.admin.vendorRevenueModal.product')}</th>
+                                            <th className="px-6 py-3 text-center">{t('components.admin.vendorRevenueModal.category')}</th>
+                                            <th className="px-6 py-3 text-center">{t('components.admin.vendorRevenueModal.stock')}</th>
+                                            <th className="px-6 py-3 text-right">{t('components.admin.vendorRevenueModal.unitPrice')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -437,7 +434,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                                 ${product.quantity > 10 ? 'bg-green-100 text-green-700' :
                                                                 product.quantity > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                                                             } `}>
-                                                            {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of Stock'}
+                                                            {product.quantity > 0 ? t('components.admin.vendorRevenueModal.quantityInStock', { quantity: product.quantity }) : t('components.admin.vendorRevenueModal.outOfStock')}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-3 text-right font-medium text-gray-900">
@@ -448,7 +445,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                         ) : (
                                             <tr>
                                                 <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                                                    No products found in this store.
+                                                    {t('components.admin.vendorRevenueModal.noProductsFoundInThisStore')}
                                                 </td>
                                             </tr>
                                         )}
@@ -461,8 +458,8 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-xs text-blue-700 flex items-center">
                                 <div className="mr-2 font-bold text-lg">ℹ</div>
                                 <div>
-                                    <p className="font-semibold">About Custom Range Data</p>
-                                    <p>Revenue and unit counts shown here represent strictly confirmed/delivered sales within the selected timeframe. Pending or cancelled orders are excluded.</p>
+                                    <p className="font-semibold">{t('components.admin.vendorRevenueModal.aboutCustomRangeData')}</p>
+                                    <p>{t('components.admin.vendorRevenueModal.revenueAndUnitCountsShownHere')}</p>
                                 </div>
                             </div>
                         )}

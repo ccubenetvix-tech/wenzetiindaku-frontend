@@ -54,6 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import i18n from "@/lib/i18n";
 
 /**
  * Store Component - Individual Store Page
@@ -96,7 +97,7 @@ const Store = () => {
   useEffect(() => {
     const loadStoreData = async () => {
       if (!storeId) {
-        setError("Store ID not found");
+        setError(i18n.t('pages.store.storeIdNotFound'));
         setIsLoading(false);
         return;
       }
@@ -171,11 +172,11 @@ const Store = () => {
             }));
           }
         } else {
-          setError("Store not found");
+          setError(i18n.t('pages.store.storeNotFound'));
         }
       } catch (error) {
         console.error('Error loading store data:', error);
-        setError("Failed to load store data");
+        setError(i18n.t('pages.store.failedToLoadStoreData'));
       } finally {
         setIsLoading(false);
       }
@@ -205,9 +206,9 @@ const Store = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {error || "Store Not Found"}
+              {error || t('pages.store.storeNotFound2')}
             </h1>
-            <Button onClick={() => window.history.back()}>Go Back</Button>
+            <Button onClick={() => window.history.back()}>{t('pages.store.goBack')}</Button>
           </div>
         </div>
         <Footer />
@@ -221,7 +222,7 @@ const Store = () => {
 
       <SEO
         title={store?.name}
-        description={store?.description || `Shop from ${store?.name} on Wenze Tii Ndaku.`}
+        description={store?.description || t('pages.store.shopFromNameOnWenzeTii', { name: store?.name })}
         image={store?.banner || "/store.jpeg"}
         url={`/store/${storeId}`}
         type="profile"
@@ -236,7 +237,7 @@ const Store = () => {
         {showLoader && (
           <PageLoader
             variant="store"
-            title="Exploring stores"
+            title={t('pages.store.exploringStores')}
             subtitle="Discovering places near you"
             fadingOut={isFadingOut}
           />
@@ -282,7 +283,7 @@ const Store = () => {
               <aside className="lg:w-1/4">
                 {/* Store Information Card */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-6 border border-gray-200 dark:border-gray-700">
-                  <h3 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">Store Information</h3>
+                  <h3 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">{t('pages.store.storeInformation')}</h3>
 
                   {/* Store description */}
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
@@ -302,23 +303,23 @@ const Store = () => {
 
                 {/* Store Stats Card */}
                 <div className="bg-card p-6 rounded-lg shadow-sm">
-                  <h3 className="font-semibold text-lg mb-4">Store Stats</h3>
+                  <h3 className="font-semibold text-lg mb-4">{t('pages.store.storeStats')}</h3>
                   <div className="space-y-3">
                     {/* Total products stat */}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Products</span>
+                      <span className="text-muted-foreground">{t('pages.store.totalProducts')}</span>
                       <span className="font-medium">{store?.totalProducts ?? 0}</span>
                     </div>
 
                     {/* Average rating stat */}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Average Rating</span>
+                      <span className="text-muted-foreground">{t('pages.store.averageRating')}</span>
                       <span className="font-medium">{store?.rating}/5</span>
                     </div>
 
                     {/* Reviews count stat */}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Reviews</span>
+                      <span className="text-muted-foreground">{t('pages.store.reviews')}</span>
                       <span className="font-medium">{store?.reviewCount}</span>
                     </div>
                   </div>
@@ -330,7 +331,7 @@ const Store = () => {
                 {/* Products and Controls Header - aligned side by side */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-3xl md:text-4xl font-bold">All Products</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold">{t('pages.store.allProducts')}</h2>
 
                     {/* Right side - Search and Sort Controls */}
                     <div className="flex items-center gap-3">
@@ -347,15 +348,15 @@ const Store = () => {
 
                       <Select>
                         <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Sort by" />
+                          <SelectValue placeholder={t('pages.store.sortBy')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="price-low">Price: Low to High</SelectItem>
-                          <SelectItem value="price-high">Price: High to Low</SelectItem>
-                          <SelectItem value="rating">Highest Rated</SelectItem>
-                          <SelectItem value="new">New Arrivals</SelectItem>
-                          <SelectItem value="alpha">Alphabetical</SelectItem>
-                          <SelectItem value="alpha-reverse">Reverse Alphabetical</SelectItem>
+                          <SelectItem value="price-low">{t('pages.store.priceLowToHigh')}</SelectItem>
+                          <SelectItem value="price-high">{t('pages.store.priceHighToLow')}</SelectItem>
+                          <SelectItem value="rating">{t('pages.store.highestRated')}</SelectItem>
+                          <SelectItem value="new">{t('pages.store.newArrivals')}</SelectItem>
+                          <SelectItem value="alpha">{t('pages.store.alphabetical')}</SelectItem>
+                          <SelectItem value="alpha-reverse">{t('pages.store.reverseAlphabetical')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -364,11 +365,11 @@ const Store = () => {
                   {/* Results count and Featured */}
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground">
-                      {filteredProducts.length} results
+                      {t('pages.store.countResults', { count: filteredProducts.length })}
                     </span>
                     <Badge variant="secondary">
                       <Star className="h-3 w-3 mr-1" />
-                      Featured
+                      {t('pages.store.featured')}
                     </Badge>
                   </div>
                 </div>
@@ -383,7 +384,7 @@ const Store = () => {
                       {/* Section header with star icon */}
                       <h2 className="text-2xl font-bold mb-3 flex items-center">
                         <Star className="h-6 w-6 text-secondary mr-2" />
-                        Featured Products
+                        {t('pages.store.featuredProducts')}
                       </h2>
 
                       {/* Featured products grid */}
@@ -408,14 +409,14 @@ const Store = () => {
                       {filteredProducts.length === 0 && searchQuery && (
                         <div className="text-center py-8">
                           <p className="text-muted-foreground text-lg">
-                            No products found for "{searchQuery}"
+                            {t('pages.store.noProductsFoundForSearchquery', { searchQuery })}
                           </p>
                           <Button
                             variant="outline"
                             className="mt-4"
                             onClick={() => setSearchQuery("")}
                           >
-                            Clear Search
+                            {t('pages.store.clearSearch')}
                           </Button>
                         </div>
                       )}

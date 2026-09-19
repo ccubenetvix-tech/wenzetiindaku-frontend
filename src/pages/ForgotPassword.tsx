@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { getApiBaseUrl } from "@/utils/api";
+import i18n from "@/lib/i18n";
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -41,8 +42,8 @@ const ForgotPassword = () => {
 
     if (!formData.email.trim()) {
       toast({
-        title: "Email is required",
-        description: "Please enter your registered email.",
+        title: i18n.t('pages.forgotPassword.emailIsRequired'),
+        description: i18n.t('pages.forgotPassword.pleaseEnterYourRegisteredEmail'),
         variant: "destructive",
       });
       return;
@@ -60,19 +61,19 @@ const ForgotPassword = () => {
 
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error?.message || "Failed to send OTP");
+        throw new Error(data?.error?.message || i18n.t('pages.forgotPassword.failedToSendOtp'));
       }
 
       toast({
-        title: "OTP sent",
-        description: "Please check your email for the password reset code.",
+        title: i18n.t('pages.forgotPassword.otpSent'),
+        description: i18n.t('pages.forgotPassword.pleaseCheckYourEmailForThe'),
       });
 
       setStage("reset");
     } catch (error) {
       toast({
-        title: "Request failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: i18n.t('pages.forgotPassword.requestFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.forgotPassword.anErrorOccurred'),
         variant: "destructive",
       });
     } finally {
@@ -85,8 +86,8 @@ const ForgotPassword = () => {
 
     if (formData.newPassword.length < 8) {
       toast({
-        title: "Password too short",
-        description: "New password must be at least 8 characters long.",
+        title: i18n.t('pages.forgotPassword.passwordTooShort'),
+        description: i18n.t('pages.forgotPassword.newPasswordMustBeAtLeast'),
         variant: "destructive",
       });
       return;
@@ -94,8 +95,8 @@ const ForgotPassword = () => {
 
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
-        title: "Passwords do not match",
-        description: "Please re-type the same new password.",
+        title: i18n.t('pages.forgotPassword.passwordsDoNotMatch'),
+        description: i18n.t('pages.forgotPassword.pleaseReTypeTheSameNew'),
         variant: "destructive",
       });
       return;
@@ -103,8 +104,8 @@ const ForgotPassword = () => {
 
     if (formData.otp.length !== 6) {
       toast({
-        title: "Invalid OTP",
-        description: "Please enter the 6-digit OTP code.",
+        title: i18n.t('pages.forgotPassword.invalidOtp'),
+        description: i18n.t('pages.forgotPassword.pleaseEnterThe6DigitOtp'),
         variant: "destructive",
       });
       return;
@@ -126,19 +127,19 @@ const ForgotPassword = () => {
 
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error?.message || "Failed to reset password");
+        throw new Error(data?.error?.message || i18n.t('pages.forgotPassword.failedToResetPassword'));
       }
 
       toast({
-        title: "Password updated",
-        description: "Please login with your new password.",
+        title: i18n.t('pages.forgotPassword.passwordUpdated'),
+        description: i18n.t('pages.forgotPassword.pleaseLoginWithYourNewPassword'),
       });
 
       navigate("/customer/login");
     } catch (error) {
       toast({
-        title: "Reset failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: i18n.t('pages.forgotPassword.resetFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.forgotPassword.anErrorOccurred'),
         variant: "destructive",
       });
     } finally {
@@ -161,19 +162,19 @@ const ForgotPassword = () => {
 
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error?.message || "Failed to resend OTP");
+        throw new Error(data?.error?.message || i18n.t('pages.forgotPassword.failedToResendOtp'));
       }
 
       toast({
-        title: "OTP resent",
-        description: "Please check your email for the new code.",
+        title: i18n.t('pages.forgotPassword.otpResent'),
+        description: i18n.t('pages.forgotPassword.pleaseCheckYourEmailForThe2'),
       });
 
       setFormData((prev) => ({ ...prev, otp: "" }));
     } catch (error) {
       toast({
-        title: "Resend failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: i18n.t('pages.forgotPassword.resendFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.forgotPassword.anErrorOccurred'),
         variant: "destructive",
       });
     } finally {
@@ -202,7 +203,7 @@ const ForgotPassword = () => {
                 <Lock className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-2">{t("forgotPassword")}</h1>
-              <p className="text-muted-foreground">Reset your customer account password</p>
+              <p className="text-muted-foreground">{t('pages.forgotPassword.resetYourCustomerAccountPassword')}</p>
             </div>
 
             {stage === "request" ? (
@@ -231,13 +232,13 @@ const ForgotPassword = () => {
                   disabled={isLoading}
                   className="w-full gradient-primary hover:from-blue-700 hover:to-blue-800 text-white py-3"
                 >
-                  {isLoading ? "Sending..." : "Send OTP"}
+                  {isLoading ? t('pages.forgotPassword.sending') : t('pages.forgotPassword.sendOtp')}
                 </Button>
               </form>
             ) : (
               <form onSubmit={resetPassword} className="space-y-6">
                 <div className="text-center mb-2">
-                  <p className="text-sm text-muted-foreground">Code sent to</p>
+                  <p className="text-sm text-muted-foreground">{t('pages.forgotPassword.codeSentTo')}</p>
                   <p className="text-sm font-medium text-primary">{formData.email}</p>
                 </div>
 
@@ -344,7 +345,7 @@ const ForgotPassword = () => {
                   }
                   className="w-full gradient-primary hover:from-blue-700 hover:to-blue-800 text-white py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Resetting..." : "Reset Password"}
+                  {isLoading ? t('pages.forgotPassword.resetting') : t('pages.forgotPassword.resetPassword')}
                 </Button>
 
                 <div className="text-center">
@@ -356,7 +357,7 @@ const ForgotPassword = () => {
                     disabled={isLoading}
                     className="text-muted-foreground hover:text-foreground"
                   >
-                    ← Change email
+                    {t('pages.forgotPassword.changeEmail')}
                   </Button>
                 </div>
               </form>

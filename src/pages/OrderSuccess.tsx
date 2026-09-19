@@ -15,6 +15,8 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { calculateVAT, calculateIncludedVAT, extractBasePrice } from "@/utils/priceUtils";
+import i18n from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
 
 interface SuccessLocationState {
   orders?: Array<{
@@ -38,6 +40,7 @@ interface SuccessLocationState {
 }
 
 const OrderSuccess = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -58,8 +61,8 @@ const OrderSuccess = () => {
       if (status && ['failed', 'cancelled', 'refused', 'error'].includes(status.toLowerCase())) {
         toast({
           variant: "destructive",
-          title: "Payment Failed",
-          description: "The payment was refused or cancelled."
+          title: i18n.t('pages.orderSuccess.paymentFailed'),
+          description: i18n.t('pages.orderSuccess.thePaymentWasRefusedOrCancelled')
         });
         navigate("/checkout/failure", { replace: true });
         return;
@@ -86,11 +89,11 @@ const OrderSuccess = () => {
               }
             });
           } else {
-            throw new Error("Payment verification failed");
+            throw new Error(i18n.t('pages.orderSuccess.paymentVerificationFailed'));
           }
         } catch (error) {
           console.error(error);
-          toast({ variant: "destructive", title: "Verification Failed", description: "Could not verify payment. Please contact support." });
+          toast({ variant: "destructive", title: i18n.t('pages.orderSuccess.verificationFailed'), description: i18n.t('pages.orderSuccess.couldNotVerifyPaymentPleaseContact') });
           navigate("/checkout/failure", { replace: true });
         } finally {
           setIsVerifying(false);
@@ -132,57 +135,28 @@ const OrderSuccess = () => {
   }, [shippingAddress]);
 
   const paymentLabel =
-    payment.method === "cod" ? "Pay on Delivery" : "Online Payment (Maisha Pay)";
+    payment.method === "cod" ? t("payOnDelivery") : t("onlinePaymentMaishaPay");
 
   const timeline = useMemo(() => {
-    if (payment.method === "cod") {
-      return [
-        {
-          label: "Order placed",
-          description: "We received your order details.",
-          completed: true,
-        },
-        {
-          label: "Awaiting confirmation",
-          description: "Vendor is preparing your order.",
-          completed: false,
-        },
-        {
-          label: "Out for delivery",
-          description: "Courier will contact you before arriving.",
-          completed: false,
-        },
-        {
-          label: "Delivered",
-          description: "Payment will be collected upon delivery.",
-          completed: false,
-        },
+    const steps = payment.method === "cod"
+      ? [
+        { key: "orderPlacedTimeline", completed: true },
+        { key: "awaitingConfirmation", completed: false },
+        { key: "outForDelivery", completed: false },
+        { key: "delivered", completed: false },
+      ]
+      : [
+        { key: "awaitingPayment", completed: true }, // if we are here, payment is done or being verified
+        { key: "paymentReceived", completed: true },
+        { key: "processingOrder", completed: false },
+        { key: "readyForDelivery", completed: false },
       ];
-    }
-
-    return [
-      {
-        label: "Awaiting payment",
-        description: "Complete the secure Maisha Pay payment to confirm.",
-        completed: true, // If we are here, payment is done or we are verifying
-      },
-      {
-        label: "Payment received",
-        description: "We will notify the vendor after payment confirmation.",
-        completed: true,
-      },
-      {
-        label: "Processing order",
-        description: "Vendor prepares your order for shipment.",
-        completed: false,
-      },
-      {
-        label: "Ready for delivery",
-        description: "Delivery will be scheduled once processed.",
-        completed: false,
-      },
-    ];
-  }, [payment.method]);
+    return steps.map(({ key, completed }) => ({
+      label: t(key),
+      description: t(`${key}Desc`),
+      completed,
+    }));
+  }, [payment.method, t]);
 
   // Show loading during verification - MOVED AFTER HOOKS to prevent React Error #300
   if (isVerifying) {
@@ -190,7 +164,7 @@ const OrderSuccess = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
-          <p className="text-muted-foreground">Verifying secure payment...</p>
+          <p className="text-muted-foreground">{t('pages.orderSuccess.verifyingSecurePayment')}</p>
         </div>
       </div>
     );
@@ -207,20 +181,19 @@ const OrderSuccess = () => {
               <BadgeCheck className="h-8 w-8" />
             </div>
             <h1 className="text-3xl md:text-4xl font-semibold">
-              Order confirmed! Thank you for shopping with us.
+              {t('pages.orderSuccess.orderConfirmedThankYouForShopping')}
             </h1>
             <p className="text-muted-foreground max-w-2xl">
-              We’ve received your order and sent the details to your email. Sit tight while the vendor
-              prepares everything. You can track the status anytime from your dashboard.
+              {t('pages.orderSuccess.weVeReceivedYourOrderAnd')}
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <section className="bg-card border border-border/60 rounded-xl shadow-sm p-6 space-y-6">
               <div>
-                <h2 className="text-lg font-semibold mb-2">Order overview</h2>
+                <h2 className="text-lg font-semibold mb-2">{t('pages.orderSuccess.orderOverview')}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Your order is split by vendor so each seller can deliver efficiently.
+                  {t('pages.orderSuccess.yourOrderIsSplitByVendor')}
                 </p>
               </div>
 
@@ -233,12 +206,12 @@ const OrderSuccess = () => {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                          <p className="text-sm text-muted-foreground">Order ID</p>
+                          <p className="text-sm text-muted-foreground">{t('pages.orderSuccess.orderId')}</p>
                           <p className="font-semibold tracking-tight">{order.id}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-3 py-1">
-                            {order.status ? order.status.toUpperCase() : "PENDING"}
+                            {order.status ? order.status.toUpperCase() : t('pages.orderSuccess.pending')}
                           </span>
                           <span className="text-sm font-medium">
                             ${Number(order.total_amount).toFixed(2)}
@@ -247,25 +220,25 @@ const OrderSuccess = () => {
                       </div>
                       <Separator className="my-3" />
                       <p className="text-sm text-muted-foreground mb-3">
-                        Vendor:{" "}
+                        {t('pages.orderSuccess.vendor')}{" "}
                         <span className="font-medium text-foreground">
-                          {order.vendor?.business_name ?? order.vendor_id ?? "Assigned after confirmation"}
+                          {order.vendor?.business_name ?? order.vendor_id ?? t('pages.orderSuccess.assignedAfterConfirmation')}
                         </span>
                       </p>
 
                       {/* Price Breakdown */}
                       <div className="bg-muted/30 rounded-md p-3 text-sm space-y-1.5">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Price</span>
+                          <span className="text-muted-foreground">{t('pages.orderSuccess.price')}</span>
                           <span>${extractBasePrice(Number(order.total_amount)).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">VAT (16%)</span>
+                          <span className="text-muted-foreground">{t('pages.orderSuccess.vat16')}</span>
                           <span>${calculateIncludedVAT(Number(order.total_amount)).toFixed(2)}</span>
                         </div>
                         <Separator className="my-1.5" />
                         <div className="flex justify-between font-medium">
-                          <span>Total</span>
+                          <span>{t('pages.orderSuccess.total')}</span>
                           <span>${Number(order.total_amount).toFixed(2)}</span>
                         </div>
                       </div>
@@ -275,14 +248,13 @@ const OrderSuccess = () => {
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
-                  We couldn’t retrieve order details from this session. View your orders from the dashboard
-                  to see the latest updates.
+                  {t('pages.orderSuccess.weCouldnTRetrieveOrderDetails')}
                 </div>
               )}
 
               <div className="space-y-2 text-left">
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Payment method
+                  {t('pages.orderSuccess.paymentMethod')}
                 </h3>
                 <p className="text-sm text-foreground">{paymentLabel}</p>
               </div>
@@ -290,7 +262,7 @@ const OrderSuccess = () => {
               {formattedAddress && (
                 <div className="space-y-2 text-left">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    Shipping address
+                    {t('pages.orderSuccess.shippingAddress')}
                   </h3>
                   <pre className="rounded-md border border-border/60 bg-muted/40 p-4 text-sm leading-relaxed whitespace-pre-wrap">
                     {formattedAddress}
@@ -303,9 +275,9 @@ const OrderSuccess = () => {
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
                 <div className="text-left">
-                  <p className="text-sm font-semibold">What happens next?</p>
+                  <p className="text-sm font-semibold">{t('pages.orderSuccess.whatHappensNext')}</p>
                   <p className="text-xs text-muted-foreground">
-                    Follow the progress of your order through each milestone.
+                    {t('pages.orderSuccess.followTheProgressOfYourOrder')}
                   </p>
                 </div>
               </div>
@@ -337,28 +309,27 @@ const OrderSuccess = () => {
                   className="w-full"
                   onClick={() => navigate("/customer/dashboard", { state: { tab: "orders" } })}
                 >
-                  Track my orders
+                  {t('pages.orderSuccess.trackMyOrders')}
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => navigate("/")}>
                   <Home className="mr-2 h-4 w-4" />
-                  Continue shopping
+                  {t('pages.orderSuccess.continueShopping')}
                 </Button>
               </div>
             </aside>
           </div>
 
           <div className="mt-10 border border-border/60 rounded-lg bg-muted/30 p-6 text-left">
-            <h3 className="text-sm font-semibold mb-2">Need help?</h3>
+            <h3 className="text-sm font-semibold mb-2">{t('pages.orderSuccess.needHelp')}</h3>
             <p className="text-sm text-muted-foreground">
-              If you have any questions about your order, reach out to our support team or contact the
-              vendor directly through your dashboard.
+              {t('pages.orderSuccess.ifYouHaveAnyQuestionsAbout')}
             </p>
             <Button
               variant="ghost"
               className="mt-3"
               onClick={() => navigate("/contact", { state: { subject: "Order support" } })}
             >
-              Contact support
+              {t('pages.orderSuccess.contactSupport')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

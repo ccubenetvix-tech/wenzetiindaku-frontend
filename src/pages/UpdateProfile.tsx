@@ -23,8 +23,11 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/utils/api';
+import i18n from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
 
 const UpdateProfile = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, updateUser, clearSession } = useAuth();
@@ -121,8 +124,8 @@ const UpdateProfile = () => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         toast({
-          title: "Invalid File Type",
-          description: "Please select an image file.",
+          title: i18n.t('pages.updateProfile.invalidFileType'),
+          description: i18n.t('pages.updateProfile.pleaseSelectAnImageFile'),
           variant: "destructive",
         });
         return;
@@ -131,8 +134,8 @@ const UpdateProfile = () => {
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         toast({
-          title: "File Too Large",
-          description: "Please select an image smaller than 5MB.",
+          title: i18n.t('pages.updateProfile.fileTooLarge'),
+          description: i18n.t('pages.updateProfile.pleaseSelectAnImageSmallerThan'),
           variant: "destructive",
         });
         return;
@@ -156,7 +159,7 @@ const UpdateProfile = () => {
 
     // Validate DOB before saving
     if (formData.dateOfBirth && !validateAge(formData.dateOfBirth)) {
-      setError('You must be at least 18 years old to use this service');
+      setError(i18n.t('pages.updateProfile.youMustBeAtLeast18'));
       setIsLoading(false);
       return;
     }
@@ -164,7 +167,7 @@ const UpdateProfile = () => {
     try {
       // Validate required fields
       if (!formData.gender || !formData.address || !formData.phoneNumber || !formData.dateOfBirth) {
-        setError('Please fill in all required fields.');
+        setError(i18n.t('pages.updateProfile.pleaseFillInAllRequiredFields'));
         setIsLoading(false);
         return;
       }
@@ -205,7 +208,7 @@ const UpdateProfile = () => {
         const updatedDateOfBirth = updatedCustomer?.dateOfBirth ?? formData.dateOfBirth;
 
         toast({
-          title: "Profile Updated",
+          title: i18n.t('pages.updateProfile.profileUpdated'),
           description: response.message,
         });
 
@@ -229,7 +232,7 @@ const UpdateProfile = () => {
         const errorMessage = response.error?.message || 'Failed to update profile';
         setError(errorMessage);
         toast({
-          title: "Update Failed",
+          title: i18n.t('pages.updateProfile.updateFailed'),
           description: errorMessage,
           variant: "destructive",
         });
@@ -241,8 +244,8 @@ const UpdateProfile = () => {
         clearSession();
         navigate('/customer/login');
         toast({
-          title: "Session Expired",
-          description: "Please log in again to continue.",
+          title: i18n.t('pages.updateProfile.sessionExpired'),
+          description: i18n.t('pages.updateProfile.pleaseLogInAgainToContinue'),
           variant: "destructive",
         });
         return;
@@ -251,7 +254,7 @@ const UpdateProfile = () => {
       const message = error instanceof Error ? error.message : 'Network error. Please try again.';
       setError(message);
       toast({
-        title: "Update Failed",
+        title: i18n.t('pages.updateProfile.updateFailed'),
         description: message,
         variant: "destructive",
       });
@@ -275,7 +278,7 @@ const UpdateProfile = () => {
             className="mb-4 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            {t('pages.updateProfile.backToHome')}
           </Button>
           
           <div className="text-center">
@@ -283,19 +286,19 @@ const UpdateProfile = () => {
               <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Complete Your Profile
+              {t('pages.updateProfile.completeYourProfile')}
             </h1>
             <p className="text-muted-foreground">
-              Add some details to personalize your WENZE TII NDAKU experience
+              {t('pages.updateProfile.addSomeDetailsToPersonalizeYour')}
             </p>
           </div>
         </div>
 
         <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-xl">Profile Information</CardTitle>
+            <CardTitle className="text-xl">{t('pages.updateProfile.profileInformation')}</CardTitle>
             <CardDescription>
-              Please provide the following information to complete your profile
+              {t('pages.updateProfile.pleaseProvideTheFollowingInformationTo')}
             </CardDescription>
           </CardHeader>
 
@@ -331,31 +334,31 @@ const UpdateProfile = () => {
                   </label>
                 </div>
                 <p className="text-sm text-muted-foreground text-center">
-                  Click the camera icon to upload a profile picture
+                  {t('pages.updateProfile.clickTheCameraIconToUpload')}
                 </p>
               </div>
 
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">{t('pages.updateProfile.firstName')}</Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    placeholder="Enter your first name"
+                    placeholder={t('pages.updateProfile.enterYourFirstName')}
                     className="border-muted focus:border-primary focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">{t('pages.updateProfile.lastName')}</Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Enter your last name"
+                    placeholder={t('pages.updateProfile.enterYourLastName')}
                     className="border-muted focus:border-primary focus:ring-primary"
                   />
                 </div>
@@ -363,7 +366,7 @@ const UpdateProfile = () => {
 
               {/* Email (Read-only) */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t('pages.updateProfile.emailAddress')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -375,29 +378,29 @@ const UpdateProfile = () => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Email cannot be changed
+                  {t('pages.updateProfile.emailCannotBeChanged')}
                 </p>
               </div>
 
               {/* Gender */}
               <div className="space-y-2">
-                <Label htmlFor="gender">Gender *</Label>
+                <Label htmlFor="gender">{t('pages.updateProfile.gender')}</Label>
                 <Select value={formData.gender} onValueChange={handleSelectChange}>
                   <SelectTrigger className="border-muted focus:border-primary focus:ring-primary">
-                    <SelectValue placeholder="Select your gender" />
+                    <SelectValue placeholder={t('pages.updateProfile.selectYourGender')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    <SelectItem value="male">{t('pages.updateProfile.male')}</SelectItem>
+                    <SelectItem value="female">{t('pages.updateProfile.female')}</SelectItem>
+                    <SelectItem value="other">{t('pages.updateProfile.other')}</SelectItem>
+                    <SelectItem value="prefer-not-to-say">{t('pages.updateProfile.preferNotToSay')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Phone Number */}
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number *</Label>
+                <Label htmlFor="phoneNumber">{t('pages.updateProfile.phoneNumber')}</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -406,7 +409,7 @@ const UpdateProfile = () => {
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={handleChange}
-                    placeholder="Enter your phone number"
+                    placeholder={t('pages.updateProfile.enterYourPhoneNumber')}
                     className="pl-10 border-muted focus:border-primary focus:ring-primary"
                   />
                 </div>
@@ -414,7 +417,7 @@ const UpdateProfile = () => {
 
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                <Label htmlFor="dateOfBirth">{t('pages.updateProfile.dateOfBirth')}</Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -436,7 +439,7 @@ const UpdateProfile = () => {
 
               {/* Address */}
               <div className="space-y-2">
-                <Label htmlFor="address">Address *</Label>
+                <Label htmlFor="address">{t('pages.updateProfile.address')}</Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Textarea
@@ -444,7 +447,7 @@ const UpdateProfile = () => {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    placeholder="Enter your full address"
+                    placeholder={t('pages.updateProfile.enterYourFullAddress')}
                     className="pl-10 border-muted focus:border-primary focus:ring-primary min-h-[100px]"
                   />
                 </div>
@@ -459,12 +462,12 @@ const UpdateProfile = () => {
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Completing Profile...
+                    {t('pages.updateProfile.completingProfile')}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Complete Profile
+                    {t('pages.updateProfile.completeProfile')}
                   </div>
                 )}
               </Button>
@@ -473,7 +476,7 @@ const UpdateProfile = () => {
             {/* Required Fields Note */}
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Note:</strong> Fields marked with * are required to complete your profile.
+                <strong>{t('pages.updateProfile.note')}</strong> {t('pages.updateProfile.fieldsMarkedWithAreRequiredTo')}
               </p>
             </div>
           </CardContent>

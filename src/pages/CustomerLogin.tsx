@@ -9,6 +9,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/utils/api";
+import i18n from "@/lib/i18n";
 
 const CustomerLogin = () => {
   const { t } = useTranslation();
@@ -47,10 +49,10 @@ const CustomerLogin = () => {
 
     if (error === "account_type_conflict") {
       toast({
-        title: "Unable to Continue",
+        title: i18n.t('pages.customerLogin.unableToContinue'),
         description:
           messageParam ||
-          "This email is already registered under a different account type. Please use another email.",
+          i18n.t('pages.customerLogin.thisEmailIsAlreadyRegisteredUnder'),
         variant: "destructive",
       });
       handled = true;
@@ -75,21 +77,51 @@ const CustomerLogin = () => {
       // Check if profile is completed
       if (user.role === 'customer' && !user.profile_completed) {
         toast({
-          title: "Login Successful",
-          description: "Please complete your profile to continue.",
+          title: i18n.t('pages.customerLogin.loginSuccessful'),
+          description: i18n.t('pages.customerLogin.pleaseCompleteYourProfileToContinue'),
         });
         navigate("/update-profile");
       } else {
         toast({
-          title: "Login Successful",
-          description: "Welcome back to WENZE TII NDAKU!",
+          title: i18n.t('pages.customerLogin.loginSuccessful'),
+          description: i18n.t('pages.customerLogin.welcomeBackToWenzeTiiNdaku'),
         });
         navigate("/");
       }
     } catch (error) {
+      // Account exists but was never verified (e.g. their OTP expired before they
+      // finished signing up) — send them to the verify step with a fresh code
+      // instead of leaving them stuck on a "please verify your email" error.
+      if (error instanceof Error && error.message.toLowerCase().includes('verify your email')) {
+        navigate(`/customer/signup?verify=1&email=${encodeURIComponent(formData.email)}`);
+        return;
+      }
+
+      // Fall back to admin credentials — lets the admin log in from the
+      // normal login form without needing to know the separate /admin/login URL.
+      // Reuses /api/admin/login, which already has its own strict rate limit.
+      try {
+        const adminResult: any = await apiClient.adminLogin(formData.email, formData.password);
+        if (adminResult.success) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          localStorage.setItem('adminToken', adminResult.data.token);
+          localStorage.setItem('adminUser', JSON.stringify(adminResult.data.admin));
+
+          toast({
+            title: i18n.t('pages.customerLogin.loginSuccessful'),
+            description: i18n.t('pages.customerLogin.welcomeToTheAdminDashboard'),
+          });
+          navigate('/admin/dashboard');
+          return;
+        }
+      } catch (adminError) {
+        // Not an admin either — fall through to the original error below.
+      }
+
       toast({
-        title: "Login Failed",
-        description: error instanceof Error ? error.message : "An error occurred during login",
+        title: i18n.t('pages.customerLogin.loginFailed'),
+        description: error instanceof Error ? error.message : i18n.t('pages.customerLogin.anErrorOccurredDuringLogin'),
         variant: "destructive",
       });
     }
@@ -100,8 +132,8 @@ const CustomerLogin = () => {
       googleLogin();
     } catch (error) {
       toast({
-        title: "Google Login Failed",
-        description: "An error occurred during Google login",
+        title: i18n.t('pages.customerLogin.googleLoginFailed'),
+        description: i18n.t('pages.customerLogin.anErrorOccurredDuringGoogleLogin'),
         variant: "destructive",
       });
     }
@@ -209,8 +241,8 @@ const CustomerLogin = () => {
                     checked={formData.rememberMe}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-primary border-muted rounded focus:ring-primary focus:ring-2"
-                    aria-label="Remember me"
-                    title="Remember me"
+                    aria-label={t('pages.customerLogin.rememberMe')}
+                    title={t('pages.customerLogin.rememberMe')}
                   />
                   <Label htmlFor="rememberMe" className="text-sm text-muted-foreground">
                     {t('rememberMe')}
@@ -295,10 +327,10 @@ const CustomerLogin = () => {
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
               <h3 className="text-sm font-medium text-foreground mb-2">{t('needSupport')}</h3>
               <div className="text-xs text-muted-foreground">
-                <p>Email: tech-wenzetiindaku@outlook.com</p>
-                <p>Phone: +32 495 84 68 66</p>
-                <p>Location: Kinshasa, R.D. CONGO</p>
-                <p>Hours: Mon-Fri 9AM-6PM WAT</p>
+                <p>{t('pages.customerLogin.emailTechWenzetiindakuOutlookCom')}</p>
+                <p>{t('pages.customerLogin.phone32495846866')}</p>
+                <p>{t('pages.customerLogin.locationKinshasaRDCongo')}</p>
+                <p>{t('pages.customerLogin.hoursMonFri9am6pmWat')}</p>
               </div>
             </div>
           </div>

@@ -81,7 +81,7 @@ const Category = () => {
   const displayCategory = category || {
     id: categoryId,
     name: categoryId || 'Unknown Category',
-    description: 'Products in this category',
+    description: t('pages.category.productsInThisCategory'),
     icon: '📦'
   };
 
@@ -142,7 +142,7 @@ const Category = () => {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder={t('pages.category.searchProducts')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -160,12 +160,12 @@ const Category = () => {
                   }}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="created_at-desc">Newest First</option>
-                  <option value="created_at-asc">Oldest First</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="name-asc">Name: A to Z</option>
-                  <option value="name-desc">Name: Z to A</option>
+                  <option value="created_at-desc">{t('pages.category.newestFirst')}</option>
+                  <option value="created_at-asc">{t('pages.category.oldestFirst')}</option>
+                  <option value="price-asc">{t('pages.category.priceLowToHigh')}</option>
+                  <option value="price-desc">{t('pages.category.priceHighToLow')}</option>
+                  <option value="name-asc">{t('pages.category.nameAToZ')}</option>
+                  <option value="name-desc">{t('pages.category.nameZToA')}</option>
                 </select>
 
                 {/* View Mode Toggle */}
@@ -197,7 +197,7 @@ const Category = () => {
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
+              <span className="ml-2 text-gray-600 dark:text-gray-300">{t('pages.category.loadingProducts')}</span>
             </div>
           ) : filteredProducts.length > 0 ? (
             <>
@@ -233,7 +233,7 @@ const Category = () => {
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                     >
-                      Previous
+                      {t('pages.category.previous')}
                     </Button>
 
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -251,7 +251,7 @@ const Category = () => {
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      {t('pages.category.next')}
                     </Button>
                   </div>
                 </div>
@@ -261,17 +261,17 @@ const Category = () => {
             <div className="text-center py-12">
               <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                No Products Found
+                {t('pages.category.noProductsFound')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 {searchQuery
-                  ? `No products found for "${searchQuery}" in ${displayCategory.name}`
-                  : `No products available in ${displayCategory.name} yet.`
+                  ? t('pages.category.noProductsFoundForSearchqueryIn', { searchQuery, name: displayCategory.name })
+                  : t('pages.category.noProductsAvailableInNameYet', { name: displayCategory.name })
                 }
               </p>
               {!searchQuery && (
                 <Button onClick={() => navigate('/vendor/register')}>
-                  Become a Vendor
+                  {t('pages.category.becomeAVendor')}
                 </Button>
               )}
             </div>

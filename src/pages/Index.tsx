@@ -186,8 +186,8 @@ const Index = () => {
       <Header />
 
       <SEO
-        title="Wenze Tii Ndaku | African Multi-Vendor Marketplace"
-        description="Discover Wenze Tii Ndaku, the premier African multi-vendor marketplace. Shop electronics, fashion, beauty, food, and more from trusted vendors."
+        title={t('pages.index.wenzeTiiNdakuAfricanMultiVendor')}
+        description={t('pages.index.discoverWenzeTiiNdakuThePremier')}
         schema={{
           "@context": "https://schema.org",
           "@type": "Organization",

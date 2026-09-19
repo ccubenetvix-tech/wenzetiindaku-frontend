@@ -80,16 +80,15 @@ export function CookieConsent() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Cookie className="h-5 w-5 text-orange-500" />
-              <h3 className="font-semibold text-lg">Cookie Consent</h3>
+              <h3 className="font-semibold text-lg">{t('components.cookieConsent.cookieConsent')}</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. 
-              By clicking "Accept All", you consent to our use of cookies. You can manage your preferences or learn more in our{" "}
+              {t('components.cookieConsent.weUseCookiesToEnhanceYour')}{" "}
               <button 
                 onClick={handleViewPolicy}
                 className="text-blue-600 hover:text-blue-700 underline"
               >
-                Cookie Policy
+                {t('components.cookieConsent.cookiePolicy')}
               </button>.
             </p>
           </div>
@@ -104,78 +103,78 @@ export function CookieConsent() {
                   className="flex items-center gap-2"
                 >
                   <Settings className="h-4 w-4" />
-                  Customize
+                  {t('components.cookieConsent.customize')}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleDecline}
                 >
-                  Decline
+                  {t('components.cookieConsent.decline')}
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleAcceptAll}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  Accept All
+                  {t('components.cookieConsent.acceptAll')}
                 </Button>
               </>
             ) : (
               <div className="w-full lg:w-auto">
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-3">
-                  <h4 className="font-medium mb-3">Cookie Preferences</h4>
+                  <h4 className="font-medium mb-3">{t('components.cookieConsent.cookiePreferences')}</h4>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">Essential Cookies</p>
-                        <p className="text-xs text-muted-foreground">Required for basic website functionality</p>
+                        <p className="text-sm font-medium">{t('components.cookieConsent.essentialCookies')}</p>
+                        <p className="text-xs text-muted-foreground">{t('components.cookieConsent.requiredForBasicWebsiteFunctionality')}</p>
                       </div>
                       <input
                         type="checkbox"
                         checked={cookiePreferences.essential}
                         disabled
                         className="rounded"
-                        aria-label="Essential cookies (required)"
+                        aria-label={t('components.cookieConsent.essentialCookiesRequired')}
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">Performance Cookies</p>
-                        <p className="text-xs text-muted-foreground">Help us understand how you use our website</p>
+                        <p className="text-sm font-medium">{t('components.cookieConsent.performanceCookies')}</p>
+                        <p className="text-xs text-muted-foreground">{t('components.cookieConsent.helpUsUnderstandHowYouUse')}</p>
                       </div>
                       <input
                         type="checkbox"
                         checked={cookiePreferences.performance}
                         onChange={() => handlePreferenceChange('performance')}
                         className="rounded"
-                        aria-label="Performance cookies"
+                        aria-label={t('components.cookieConsent.performanceCookies2')}
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">Functional Cookies</p>
-                        <p className="text-xs text-muted-foreground">Remember your preferences and settings</p>
+                        <p className="text-sm font-medium">{t('components.cookieConsent.functionalCookies')}</p>
+                        <p className="text-xs text-muted-foreground">{t('components.cookieConsent.rememberYourPreferencesAndSettings')}</p>
                       </div>
                       <input
                         type="checkbox"
                         checked={cookiePreferences.functional}
                         onChange={() => handlePreferenceChange('functional')}
                         className="rounded"
-                        aria-label="Functional cookies"
+                        aria-label={t('components.cookieConsent.functionalCookies2')}
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">Marketing Cookies</p>
-                        <p className="text-xs text-muted-foreground">Used to deliver relevant advertisements</p>
+                        <p className="text-sm font-medium">{t('components.cookieConsent.marketingCookies')}</p>
+                        <p className="text-xs text-muted-foreground">{t('components.cookieConsent.usedToDeliverRelevantAdvertisements')}</p>
                       </div>
                       <input
                         type="checkbox"
                         checked={cookiePreferences.marketing}
                         onChange={() => handlePreferenceChange('marketing')}
                         className="rounded"
-                        aria-label="Marketing cookies"
+                        aria-label={t('components.cookieConsent.marketingCookies2')}
                       />
                     </div>
                   </div>
@@ -186,14 +185,14 @@ export function CookieConsent() {
                     size="sm"
                     onClick={() => setShowSettings(false)}
                   >
-                    Back
+                    {t('components.cookieConsent.back')}
                   </Button>
                   <Button
                     size="sm"
                     onClick={handleAcceptSelected}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    Save Preferences
+                    {t('components.cookieConsent.savePreferences')}
                   </Button>
                 </div>
               </div>

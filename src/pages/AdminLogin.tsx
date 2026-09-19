@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/utils/api';
+import i18n from "@/lib/i18n";
 
 const AdminLogin = () => {
   const { t } = useTranslation();
@@ -50,26 +51,26 @@ const AdminLogin = () => {
         localStorage.setItem('adminUser', JSON.stringify(data.data.admin));
 
         toast({
-          title: "Login Successful",
-          description: "Welcome to the admin dashboard!",
+          title: i18n.t('pages.adminLogin.loginSuccessful'),
+          description: i18n.t('pages.adminLogin.welcomeToTheAdminDashboard'),
         });
 
         // Redirect to admin dashboard
         navigate('/admin/dashboard');
       } else {
-        setError(data.error?.message || 'Login failed');
+        setError(data.error?.message || i18n.t('pages.adminLogin.loginFailed2'));
         toast({
-          title: "Login Failed",
-          description: data.error?.message || "Invalid credentials",
+          title: i18n.t('pages.adminLogin.loginFailed'),
+          description: data.error?.message || i18n.t('pages.adminLogin.invalidCredentials'),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Admin login error:', error);
-      setError('Network error. Please try again.');
+      setError(i18n.t('pages.adminLogin.networkErrorPleaseTryAgain'));
       toast({
-        title: "Login Failed",
-        description: "Network error. Please try again.",
+        title: i18n.t('pages.adminLogin.loginFailed'),
+        description: i18n.t('pages.adminLogin.networkErrorPleaseTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -199,7 +200,7 @@ const AdminLogin = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-xs text-muted-foreground">
-            © 2025 WENZE TII NDAKU. All rights reserved.
+            {t('pages.adminLogin.n2025WenzeTiiNdakuAllRights')}
           </p>
         </div>
       </div>

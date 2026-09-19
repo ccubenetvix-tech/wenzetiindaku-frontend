@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from "react-i18next";
 
 interface ImageSliderProps {
   images: string[];
@@ -19,6 +20,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   showDots = true,
   showCounter = true
 }) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -63,7 +65,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           >
             <img
               src={image}
-              alt={`Slide ${index + 1}`}
+              alt={t('components.imageSlider.slideValue', { value: index + 1 })}
               className="w-full h-full object-cover"
             />
           </div>
@@ -79,7 +81,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           <button
             onClick={goToPrevious}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 transition-all duration-200"
-            aria-label="Previous image"
+            aria-label={t('components.imageSlider.previousImage')}
           >
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -89,7 +91,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           <button
             onClick={goToNext}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 transition-all duration-200"
-            aria-label="Next image"
+            aria-label={t('components.imageSlider.nextImage')}
           >
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -110,7 +112,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
                   ? 'bg-white scale-110' 
                   : 'bg-white/50 hover:bg-white/70'
               }`}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={t('components.imageSlider.goToSlideValue', { value: index + 1 })}
             />
           ))}
         </div>

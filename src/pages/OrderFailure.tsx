@@ -3,8 +3,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { XCircle, ArrowLeft, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const OrderFailure = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -23,7 +25,7 @@ const OrderFailure = () => {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">Payment Failed</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t('pages.orderFailure.paymentFailed')}</h1>
             <p className="text-muted-foreground break-words">
               {decodeURIComponent(reason)}
             </p>
@@ -31,7 +33,7 @@ const OrderFailure = () => {
 
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
             <p>
-              Don't worry, you haven't been charged. You can try again with a different payment method or retry the transaction.
+              {t('pages.orderFailure.donTWorryYouHavenT')}
             </p>
           </div>
 
@@ -41,7 +43,7 @@ const OrderFailure = () => {
               onClick={() => navigate("/checkout")}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
-              Try Again
+              {t('pages.orderFailure.tryAgain')}
             </Button>
 
             <Button
@@ -50,7 +52,7 @@ const OrderFailure = () => {
               onClick={() => navigate("/cart")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Return to Cart
+              {t('pages.orderFailure.returnToCart')}
             </Button>
           </div>
         </div>

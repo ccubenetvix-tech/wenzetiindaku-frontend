@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiClient } from '../utils/api';
 import { useAuth } from './AuthContext';
+import i18n from "@/lib/i18n";
 
 /**
  * Cart Item Interface
@@ -58,7 +59,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error(i18n.t('contexts.cartContext.usecartMustBeUsedWithinA'));
   }
   return context;
 };
@@ -155,7 +156,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
    */
   const addToCart = async (product: { productId: string; name: string; price: number; image: string; vendor: string }) => {
     if (!isAuthenticated || user?.role !== 'customer') {
-      throw new Error('Must be logged in as a customer to add to cart');
+      throw new Error(i18n.t('contexts.cartContext.mustBeLoggedInAsA'));
     }
 
     try {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { formatDate, formatMoney, formatStatus } from "@/lib/format";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ShoppingBag,
   Heart,
@@ -24,6 +25,7 @@ import {
   CircleCheck,
   Clock3,
   Edit,
+  FileText,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -53,6 +55,7 @@ import { apiClient } from "@/utils/api";
 import { calculateIncludedVAT } from "@/utils/priceUtils";
 
 import type { CartItem as CartEntry } from "@/contexts/CartContext";
+import i18n from "@/lib/i18n";
 
 const ORDERS_PAGE_SIZE = 10;
 
@@ -87,6 +90,7 @@ interface ApiOrderItem {
 
 interface ApiOrder {
   id: string;
+  order_number?: string | null;
   created_at?: string;
   status?: string | null;
   total_amount?: number | string | null;
@@ -98,6 +102,7 @@ interface ApiOrder {
 
 interface OrderSummary {
   id: string;
+  orderNumber?: string | null;
   date: string;
   status: string;
   total: number;
@@ -170,7 +175,7 @@ function CustomerReviewsSection() {
         if (response?.success && response.data) {
           setReviews(response.data.reviews || []);
         } else if (response?.error) {
-          throw new Error(response.error.message || "Failed to load reviews");
+          throw new Error(response.error.message || i18n.t('pages.customerDashboard.failedToLoadReviews'));
         }
       } catch (error: any) {
         console.error('Error loading reviews:', error);
@@ -236,12 +241,8 @@ function CustomerReviewsSection() {
           {reviews.map((review) => {
             const product = review.product || {};
             const reviewDate = review.created_at
-              ? new Date(review.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })
-              : 'Recently';
+              ? formatDate(review.created_at)
+              : t("customerDashboard.recently");
 
             return (
               <Card key={review.id} className="border">
@@ -249,7 +250,7 @@ function CustomerReviewsSection() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium">{product.name || 'Product'}</h4>
+                        <h4 className="font-medium">{product.name || t("customerDashboard.unnamedProduct")}</h4>
                         {(product.id || review.product_id) && (
                           <Button
                             variant="ghost"
@@ -301,34 +302,7 @@ const toNumber = (value: unknown): number => {
   return 0;
 };
 
-const formatCurrency = (value: number): string =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(Number.isFinite(value) ? value : 0);
-
-const formatDate = (input?: string | null): string => {
-  if (!input) return "—";
-  const date = new Date(input);
-  if (Number.isNaN(date.getTime())) {
-    return input;
-  }
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
-};
-
-const formatStatus = (status?: string | null): string => {
-  if (!status) return t('unknown');
-  return status
-    .split(/[\s_-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-};
+const formatCurrency = (value: number): string => formatMoney(value);
 
 const getStatusColor = (status?: string | null): string => {
   switch ((status ?? "").toLowerCase()) {
@@ -381,6 +355,7 @@ const transformOrder = (order: ApiOrder): OrderSummary => {
 
   return {
     id: order.id,
+    orderNumber: order.order_number ?? null,
     date: order.created_at ?? "",
     status: order.status ?? "pending",
     total: toNumber(order.total_amount),
@@ -492,6 +467,7 @@ const normalizeAddressInput = (
 export default function CustomerDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const {
     addToCart,
@@ -514,7 +490,11 @@ export default function CustomerDashboard() {
     refreshWishlist,
   } = useWishlist();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const validTabs = new Set(["overview", "orders", "cart", "wishlist", "addresses", "reviews"]);
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    initialTab && validTabs.has(initialTab) ? initialTab : "overview",
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -881,6 +861,7 @@ export default function CustomerDashboard() {
       const paymentStatusLabel = formatStatus(order.paymentStatus).toLowerCase();
       return (
         order.id.toLowerCase().includes(search) ||
+        (order.orderNumber ?? "").toLowerCase().includes(search) ||
         statusLabel.includes(search) ||
         paymentStatusLabel.includes(search) ||
         (order.tracking ?? "")
@@ -1088,7 +1069,7 @@ export default function CustomerDashboard() {
       };
 
       if (!response?.success) {
-        throw new Error(response?.error?.message || "Unable to cancel order.");
+        throw new Error(response?.error?.message || i18n.t('pages.customerDashboard.unableToCancelOrder'));
       }
 
       const updatedOrder = response.data?.order;
@@ -1310,7 +1291,7 @@ export default function CustomerDashboard() {
         };
 
         if (!response?.success) {
-          throw new Error(response?.error?.message || "Failed to set default address");
+          throw new Error(response?.error?.message || i18n.t('pages.customerDashboard.failedToSetDefaultAddress'));
         }
 
         toast({
@@ -1368,7 +1349,7 @@ export default function CustomerDashboard() {
         };
 
         if (!response?.success) {
-          throw new Error(response?.error?.message || "Failed to delete address");
+          throw new Error(response?.error?.message || i18n.t('pages.customerDashboard.failedToDeleteAddress'));
         }
 
         toast({
@@ -1615,7 +1596,7 @@ export default function CustomerDashboard() {
                           <div>
                             <p className="font-medium">
                               {t("customerDashboard.orderLabel", "Order")}{" "}
-                              {order.id}
+                              {order.orderNumber ?? order.id}
                             </p>
                             <p className="text-sm text-gray-500">
                               {formatDate(order.date)}
@@ -1786,7 +1767,7 @@ export default function CustomerDashboard() {
                         : filteredOrders.map((order) => (
                           <TableRow key={order.id}>
                             <TableCell className="font-medium">
-                              {order.id}
+                              {order.orderNumber ?? order.id}
                             </TableCell>
                             <TableCell>{formatDate(order.date)}</TableCell>
                             <TableCell>
@@ -1842,7 +1823,7 @@ export default function CustomerDashboard() {
                     <DialogHeader className="flex-shrink-0">
                       <DialogTitle>
                         {t("customerDashboard.orderDetailsTitle", "Order {{id}}", {
-                          id: orderDetails.id,
+                          id: orderDetails.orderNumber ?? orderDetails.id,
                         })}
                       </DialogTitle>
                       <DialogDescription>
@@ -1971,6 +1952,39 @@ export default function CustomerDashboard() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end flex-shrink-0 border-t pt-4 mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const invoiceData = {
+                            orderId: orderDetails.id,
+                            orderNumber: orderDetails.orderNumber,
+                            createdAt: orderDetails.date,
+                            customer: {
+                              name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.businessName || user?.email || "",
+                              email: user?.email || "",
+                              phone: user?.phoneNumber,
+                              address: orderDetails.shippingAddress,
+                            },
+                            items: orderDetails.products.map((item) => {
+                              const price = Number(item.price ?? item.product?.price ?? 0);
+                              const quantity = Number(item.quantity ?? 0);
+                              return {
+                                productName: item.product?.name ?? "",
+                                quantity,
+                                price,
+                                subtotal: price * quantity,
+                              };
+                            }),
+                            totalAmount: orderDetails.total,
+                            paymentMethod: orderDetails.paymentMethod ?? "",
+                            status: orderDetails.status,
+                          };
+                          import("@/utils/invoice").then((mod) => mod.generateInvoicePDF(invoiceData));
+                        }}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        {t("customerDashboard.downloadInvoice", "Download invoice")}
+                      </Button>
                       <Button variant="outline" onClick={handleCloseOrderDetails}>
                         {t("customerDashboard.close", "Close")}
                       </Button>
@@ -2331,7 +2345,7 @@ export default function CustomerDashboard() {
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span className="ml-2 text-sm text-muted-foreground">
-                      Loading addresses...
+                      {t('pages.customerDashboard.loadingAddresses')}
                     </span>
                   </div>
                 ) : dbAddresses.length === 0 ? (
@@ -2357,7 +2371,7 @@ export default function CustomerDashboard() {
                             <Badge
                               variant={address.is_default ? "default" : "outline"}
                             >
-                              {address.label || "Home"}
+                              {address.label || t('pages.customerDashboard.home')}
                             </Badge>
                             {address.is_default && (
                               <Badge variant="secondary">
@@ -2366,7 +2380,7 @@ export default function CustomerDashboard() {
                             )}
                             {address.is_profile_address && (
                               <Badge variant="outline" className="text-xs">
-                                Signup Address
+                                {t('pages.customerDashboard.signupAddress')}
                               </Badge>
                             )}
                           </div>

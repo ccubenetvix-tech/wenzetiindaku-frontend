@@ -20,89 +20,90 @@ import {
 
 
 export default function Returns() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Header />
       <main className="flex-1">
         <section className="py-16 bg-gradient-to-r from-blue-600 to-orange-500 text-white">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">POLITIQUE DE RETOUR ET DE REMBOURSEMENT</h1>
-            <p className="text-xl mb-2 max-w-2xl mx-auto">WENZE TII NDAKU (WTN)</p>
-            <p className="text-md">Dernière mise à jour : 25 février 2026</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('pages.returns.politiqueDeRetourEtDeRemboursement')}</h1>
+            <p className="text-xl mb-2 max-w-2xl mx-auto">{t('pages.returns.wenzeTiiNdakuWtn')}</p>
+            <p className="text-md">{t('pages.returns.derniReMiseJour25F')}</p>
           </div>
         </section>
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto prose prose-lg text-foreground">
             <ol className="list-decimal pl-6 space-y-4">
               <li>
-                <strong>PRÉAMBULE</strong><br />
-                La présente Politique de Retour et de Remboursement régit les conditions applicables aux produits achetés sur la plateforme WENZE TII NDAKU (WTN).<br />
-                WTN agit exclusivement en qualité de plateforme intermédiaire (marketplace) mettant en relation des vendeurs indépendants et des acheteurs. Les produits commercialisés sont proposés et expédiés par des vendeurs tiers enregistrés sur la plateforme.
+                <strong>{t('pages.returns.prAmbule')}</strong><br />
+                {t('pages.returns.laPrSentePolitiqueDeRetour')}<br />
+                {t('pages.returns.wtnAgitExclusivementEnQualitDe')}
               </li>
               <li>
-                <strong>DÉLAI DE RÉCLAMATION</strong><br />
-                Le client dispose d’un délai de sept (7) jours calendaires à compter de la date de réception du produit pour soumettre une demande de retour via son compte utilisateur.<br />
-                Toute demande effectuée au-delà de ce délai pourra être refusée, sauf cas exceptionnel justifié.
+                <strong>{t('pages.returns.dLaiDeRClamation')}</strong><br />
+                {t('pages.returns.leClientDisposeDUnD')}<br />
+                {t('pages.returns.touteDemandeEffectuEAuDel')}
               </li>
               <li>
-                <strong>CONDITIONS D’ÉLIGIBILITÉ</strong><br />
-                Un produit peut être retourné uniquement dans les cas suivants :<br />
-                - Produit endommagé à la livraison<br />
-                - Produit non conforme à la description publiée<br />
-                - Défaut de fabrication avéré<br />
-                - Erreur manifeste dans la commande<br />
-                Le produit doit être non utilisé, dans son état d’origine, retourné avec son emballage d’origine et accompagné de la preuve d’achat.
+                <strong>{t('pages.returns.conditionsDLigibilit')}</strong><br />
+                {t('pages.returns.unProduitPeutTreRetournUniquement')}<br />
+                {t('pages.returns.produitEndommagLaLivraison')}<br />
+                {t('pages.returns.produitNonConformeLaDescriptionPubli')}<br />
+                {t('pages.returns.dFautDeFabricationAvR')}<br />
+                {t('pages.returns.erreurManifesteDansLaCommande')}<br />
+                {t('pages.returns.leProduitDoitTreNonUtilis')}
               </li>
               <li>
-                <strong>PRODUITS NON ÉLIGIBLES</strong><br />
-                Sauf défaut avéré, les produits suivants ne peuvent être retournés :<br />
-                - Produits cosmétiques ouverts ou utilisés<br />
-                - Sous-vêtements et articles intimes<br />
-                - Produits numériques téléchargeables<br />
-                - Articles personnalisés ou sur mesure<br />
-                - Produits alimentaires<br />
-                - Articles en promotion ou liquidation
+                <strong>{t('pages.returns.produitsNonLigibles')}</strong><br />
+                {t('pages.returns.saufDFautAvRLes')}<br />
+                {t('pages.returns.produitsCosmTiquesOuvertsOuUtilis')}<br />
+                {t('pages.returns.sousVTementsEtArticlesIntimes')}<br />
+                {t('pages.returns.produitsNumRiquesTLChargeables')}<br />
+                {t('pages.returns.articlesPersonnalisSOuSurMesure')}<br />
+                {t('pages.returns.produitsAlimentaires')}<br />
+                {t('pages.returns.articlesEnPromotionOuLiquidation')}
               </li>
               <li>
-                <strong>PROCÉDURE DE RETOUR</strong><br />
-                1. Envoyez un mail à wtn-customers@outlook.com<br />
-                2. Le mail doit contenir le nom du client enregistré et pièce d’identité.<br />
-                3. La copie de la confirmation de la commande.<br />
-                4. Décrivez le motif du retour de façon claire et détaillée.<br />
-                5. Joignez des photos justificatives si nécessaire.<br />
-                La demande sera examinée par l’équipe WTN en collaboration avec le vendeur concerné.
+                <strong>{t('pages.returns.procDureDeRetour')}</strong><br />
+                {t('pages.returns.n1EnvoyezUnMailWtnCustomers')}<br />
+                {t('pages.returns.n2LeMailDoitContenirLe')}<br />
+                {t('pages.returns.n3LaCopieDeLaConfirmation')}<br />
+                {t('pages.returns.n4DCrivezLeMotifDu')}<br />
+                {t('pages.returns.n5JoignezDesPhotosJustificativesSi')}<br />
+                {t('pages.returns.laDemandeSeraExaminEPar')}
               </li>
               <li>
-                <strong>VALIDATION ET REMBOURSEMENT</strong><br />
-                Après validation du retour :<br />
-                - Le remboursement sera effectué via le mode de paiement initial lorsque possible.<br />
-                - Le délai de remboursement peut varier entre 5 et 14 jours ouvrables.<br />
-                Un remplacement, un avoir ou un remboursement partiel peut être proposé selon le cas.
+                <strong>{t('pages.returns.validationEtRemboursement')}</strong><br />
+                {t('pages.returns.aprSValidationDuRetour')}<br />
+                {t('pages.returns.leRemboursementSeraEffectuViaLe')}<br />
+                {t('pages.returns.leDLaiDeRemboursementPeut')}<br />
+                {t('pages.returns.unRemplacementUnAvoirOuUn')}
               </li>
               <li>
-                <strong>FRAIS DE RETOUR</strong><br />
-                - À la charge du vendeur si le produit est défectueux ou incorrect.<br />
-                - À la charge du client si le retour est motivé par un changement d’avis (si accepté).
+                <strong>{t('pages.returns.fraisDeRetour')}</strong><br />
+                {t('pages.returns.laChargeDuVendeurSiLe')}<br />
+                {t('pages.returns.laChargeDuClientSiLe')}
               </li>
               <li>
-                <strong>RESPONSABILITÉ</strong><br />
-                WTN agit en qualité d’intermédiaire technique. La responsabilité concernant la qualité et la conformité des produits incombe au vendeur.<br />
-                WTN se réserve le droit de suspendre un vendeur en cas d’abus répétés ou de refuser des demandes manifestement abusives.
+                <strong>{t('pages.returns.responsabilit')}</strong><br />
+                {t('pages.returns.wtnAgitEnQualitDInterm')}<br />
+                {t('pages.returns.wtnSeRServeLeDroit')}
               </li>
               <li>
-                <strong>LITIGES</strong><br />
-                En cas de désaccord, WTN mettra en œuvre une procédure de médiation interne.<br />
-                À défaut d’accord, le litige pourra être soumis aux juridictions compétentes conformément aux lois applicables en République Démocratique du Congo.
+                <strong>{t('pages.returns.litiges')}</strong><br />
+                {t('pages.returns.enCasDeDSaccordWtn')}<br />
+                {t('pages.returns.dFautDAccordLeLitige')}
               </li>
               <li>
-                <strong>CONTACT</strong><br />
-                WENZE TII NDAKU, SARL<br />
-                Email: wenzetiindaku@outlook.com<br />
-                Téléphone: +32 495 84 68 66
+                <strong>{t('pages.returns.contact')}</strong><br />
+                {t('pages.returns.wenzeTiiNdakuSarl')}<br />
+                {t('pages.returns.emailWenzetiindakuOutlookCom')}<br />
+                {t('pages.returns.tLPhone3249584')}
               </li>
               <li>
-                <strong>MODIFICATION</strong><br />
-                WTN se réserve le droit de modifier la présente politique à tout moment afin d’assurer la conformité légale et le bon fonctionnement de la plateforme.
+                <strong>{t('pages.returns.modification')}</strong><br />
+                {t('pages.returns.wtnSeRServeLeDroit2')}
               </li>
             </ol>
           </div>

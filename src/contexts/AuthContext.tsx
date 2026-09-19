@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { apiClient, setAuthState, getApiBaseUrl } from '@/utils/api';
+import i18n from "@/lib/i18n";
 
 interface User {
   id: string;
@@ -55,7 +56,7 @@ const API_BASE_URL = getApiBaseUrl();
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error(i18n.t('contexts.authContext.useauthMustBeUsedWithinAn'));
   }
   return context;
 };
@@ -158,7 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Login failed');
+        throw new Error(data.error?.message || i18n.t('contexts.authContext.loginFailed'));
       }
 
       if (data.success) {
@@ -187,7 +188,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error?.message || 'Signup failed');
+        // Carry the unverifiedAccount flag through so the signup page can offer
+        // to resend the OTP instead of leaving the user at a dead-end error.
+        throw Object.assign(new Error(result.error?.message || i18n.t('contexts.authContext.signupFailed')), {
+          unverifiedAccount: !!result.error?.unverifiedAccount,
+        });
       }
 
       return result;
@@ -213,7 +218,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'OTP verification failed');
+        throw new Error(data.error?.message || i18n.t('contexts.authContext.otpVerificationFailed'));
       }
 
       return data;
@@ -239,7 +244,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to resend OTP');
+        throw new Error(data.error?.message || i18n.t('contexts.authContext.failedToResendOtp'));
       }
 
       return data;

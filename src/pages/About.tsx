@@ -205,7 +205,7 @@ const About = () => {
               <div className="bg-card p-6 rounded-lg shadow-sm text-center">
                 <MapPin className="h-8 w-8 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">{t('visitUs')}</h3>
-                <p className="text-muted-foreground">Kinshasa, R.D. CONGO</p>
+                <p className="text-muted-foreground">{t('pages.about.kinshasaRDCongo')}</p>
               </div>
             </div>
 

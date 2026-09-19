@@ -46,7 +46,9 @@ import { Loader2 } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
 import { useLoaderTransition } from "@/hooks/useLoaderTransition";
 import { SEO } from "@/components/SEO";
+import i18n from "@/lib/i18n";
 
+import { formatDate } from "@/lib/format";
 const ProductDetail = () => {
   const MIN_LOADING_DURATION = 400;
   const { productId } = useParams();
@@ -534,8 +536,8 @@ const ProductDetail = () => {
 
       if (response?.success) {
         toast({
-          title: "Review submitted",
-          description: "Thank you for your review!",
+          title: i18n.t('pages.productDetail.reviewSubmitted'),
+          description: i18n.t('pages.productDetail.thankYouForYourReview'),
         });
 
         // Reset form
@@ -548,7 +550,7 @@ const ProductDetail = () => {
         // Reload reviews
         await loadReviews();
       } else {
-        throw new Error(response?.error?.message || "Failed to submit review");
+        throw new Error(response?.error?.message || i18n.t('pages.productDetail.failedToSubmitReview'));
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
@@ -577,7 +579,7 @@ const ProductDetail = () => {
       }
 
       toast({
-        title: "Error",
+        title: i18n.t('pages.productDetail.error'),
         description: errorMessage,
         variant: "destructive"
       });
@@ -593,9 +595,9 @@ const ProductDetail = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {loadError || "Product Not Found"}
+              {loadError || t('pages.productDetail.productNotFound')}
             </h1>
-            <Button onClick={() => navigate('/')}>Go Home</Button>
+            <Button onClick={() => navigate('/')}>{t('pages.productDetail.goHome')}</Button>
           </div>
         </div>
         <Footer />
@@ -786,7 +788,7 @@ const ProductDetail = () => {
                         ))}
                       </div>
                       <span className="ml-2 text-sm text-muted-foreground">
-                        {reviewStats.averageRating > 0 ? reviewStats.averageRating.toFixed(1) : productRating} ({reviewStats.totalReviews > 0 ? reviewStats.totalReviews : productReviewCount} {t('review_plural', { count: reviewStats.totalReviews > 0 ? reviewStats.totalReviews : productReviewCount })})
+                        {reviewStats.averageRating > 0 ? reviewStats.averageRating.toFixed(1) : productRating} ({t('reviewCount', { count: reviewStats.totalReviews > 0 ? reviewStats.totalReviews : productReviewCount })})
                       </span>
                     </div>
                   </div>
@@ -1097,7 +1099,7 @@ const ProductDetail = () => {
                               ))}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {t('basedOn')} {reviewStats.totalReviews} {t('review_plural', { count: reviewStats.totalReviews })}
+                              {t('basedOnReviews', { count: reviewStats.totalReviews })}
                             </div>
                           </div>
 
@@ -1147,11 +1149,7 @@ const ProductDetail = () => {
                             : customer.first_name || customer.email || 'Anonymous';
                           const initials = customerName.charAt(0).toUpperCase();
                           const reviewDate = review.created_at
-                            ? new Date(review.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })
+                            ? formatDate(review.created_at)
                             : 'Recently';
 
                           return (

@@ -1,4 +1,5 @@
-// Razorpay configuration utility
+
+import i18n from "@/lib/i18n";// Razorpay configuration utility
 
 // Get Razorpay key ID from environment variables
 export const getRazorpayKey = (): string => {
@@ -36,7 +37,7 @@ export const loadRazorpayScript = (): Promise<void> => {
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Razorpay script'));
+    script.onerror = () => reject(new Error(i18n.t('utils.razorpay.failedToLoadRazorpayScript')));
     document.body.appendChild(script);
   });
 };

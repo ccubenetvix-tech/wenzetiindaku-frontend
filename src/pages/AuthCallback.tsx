@@ -7,10 +7,13 @@ import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getApiBaseUrl } from '@/utils/api';
+import i18n from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
 
 const API_BASE_URL = getApiBaseUrl();
 
 const AuthCallback = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -27,10 +30,10 @@ const AuthCallback = () => {
 
         if (error) {
           setStatus('error');
-          setMessage('Authentication failed. Please try again.');
+          setMessage(i18n.t('pages.authCallback.authenticationFailedPleaseTryAgain'));
           toast({
-            title: "Authentication Failed",
-            description: "There was an error during Google authentication.",
+            title: i18n.t('pages.authCallback.authenticationFailed'),
+            description: i18n.t('pages.authCallback.thereWasAnErrorDuringGoogle'),
             variant: "destructive",
           });
           return;
@@ -38,10 +41,10 @@ const AuthCallback = () => {
 
         if (!token) {
           setStatus('error');
-          setMessage('No authentication token received.');
+          setMessage(i18n.t('pages.authCallback.noAuthenticationTokenReceived'));
           toast({
-            title: "Authentication Failed",
-            description: "No authentication token received.",
+            title: i18n.t('pages.authCallback.authenticationFailed'),
+            description: i18n.t('pages.authCallback.noAuthenticationTokenReceived'),
             variant: "destructive",
           });
           return;
@@ -50,7 +53,7 @@ const AuthCallback = () => {
         const decodeJwtPayload = (jwtToken: string) => {
           const parts = jwtToken.split('.');
           if (parts.length !== 3) {
-            throw new Error('Invalid token format');
+            throw new Error(i18n.t('pages.authCallback.invalidTokenFormat'));
           }
 
           const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -64,12 +67,12 @@ const AuthCallback = () => {
         try {
           const payload = decodeJwtPayload(token);
           if (!payload?.userId || !payload?.role) {
-            throw new Error('Missing token claims');
+            throw new Error(i18n.t('pages.authCallback.missingTokenClaims'));
           }
         } catch (decodeError) {
           console.error('Error decoding token payload:', decodeError);
           setStatus('error');
-          setMessage('Invalid authentication token.');
+          setMessage(i18n.t('pages.authCallback.invalidAuthenticationToken'));
           clearSession();
           return;
         }
@@ -92,18 +95,18 @@ const AuthCallback = () => {
         const user = userData?.data?.user;
 
         if (!user) {
-          throw new Error('User data missing in authentication response.');
+          throw new Error(i18n.t('pages.authCallback.userDataMissingInAuthenticationResponse'));
         }
 
         // Persist session
         setSession(token, user);
 
         setStatus('success');
-        setMessage(isNewUser ? 'Welcome to WENZE TII NDAKU! Your account has been created successfully.' : 'Welcome back! You have been logged in successfully.');
+        setMessage(isNewUser ? i18n.t('pages.authCallback.welcomeToWenzeTiiNdakuYour') : i18n.t('pages.authCallback.welcomeBackYouHaveBeenLogged'));
 
         toast({
-          title: "Authentication Successful",
-          description: isNewUser ? "Welcome to WENZE TII NDAKU!" : "Welcome back!",
+          title: i18n.t('pages.authCallback.authenticationSuccessful'),
+          description: isNewUser ? i18n.t('pages.authCallback.welcomeToWenzeTiiNdaku') : i18n.t('pages.authCallback.welcomeBack'),
         });
 
         // Redirect to profile update page for new users, home for existing users
@@ -118,11 +121,11 @@ const AuthCallback = () => {
       } catch (error) {
         console.error('Callback error:', error);
         setStatus('error');
-        setMessage(error instanceof Error ? error.message : 'An unexpected error occurred during authentication.');
+        setMessage(error instanceof Error ? error.message : i18n.t('pages.authCallback.anUnexpectedErrorOccurredDuringAuthentication'));
         clearSession();
         toast({
-          title: "Authentication Error",
-          description: "We could not complete Google authentication.",
+          title: i18n.t('pages.authCallback.authenticationError'),
+          description: i18n.t('pages.authCallback.weCouldNotCompleteGoogleAuthentication'),
           variant: "destructive",
         });
       }
@@ -156,14 +159,14 @@ const AuthCallback = () => {
               )}
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              {status === 'loading' && 'Authenticating...'}
-              {status === 'success' && 'Authentication Successful'}
-              {status === 'error' && 'Authentication Failed'}
+              {status === 'loading' && t('pages.authCallback.authenticating')}
+              {status === 'success' && t('pages.authCallback.authenticationSuccessful')}
+              {status === 'error' && t('pages.authCallback.authenticationFailed')}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {status === 'loading' && 'Please wait while we complete your authentication.'}
-              {status === 'success' && 'You will be redirected shortly.'}
-              {status === 'error' && 'There was a problem with your authentication.'}
+              {status === 'loading' && t('pages.authCallback.pleaseWaitWhileWeCompleteYour')}
+              {status === 'success' && t('pages.authCallback.youWillBeRedirectedShortly')}
+              {status === 'error' && t('pages.authCallback.thereWasAProblemWithYour')}
             </CardDescription>
           </CardHeader>
 
@@ -179,10 +182,10 @@ const AuthCallback = () => {
             {status === 'success' && (
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Redirecting you to the homepage...
+                  {t('pages.authCallback.redirectingYouToTheHomepage')}
                 </p>
                 <Button onClick={handleGoHome} className="w-full">
-                  Go to Homepage
+                  {t('pages.authCallback.goToHomepage')}
                 </Button>
               </div>
             )}
@@ -190,14 +193,14 @@ const AuthCallback = () => {
             {status === 'error' && (
               <div className="text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Please try logging in again or contact support if the problem persists.
+                  {t('pages.authCallback.pleaseTryLoggingInAgainOr')}
                 </p>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handleRetry} className="flex-1">
-                    Try Again
+                    {t('pages.authCallback.tryAgain')}
                   </Button>
                   <Button onClick={handleGoHome} className="flex-1">
-                    Go Home
+                    {t('pages.authCallback.goHome')}
                   </Button>
                 </div>
               </div>
@@ -206,7 +209,7 @@ const AuthCallback = () => {
             {status === 'loading' && (
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">
-                  Please wait while we process your authentication...
+                  {t('pages.authCallback.pleaseWaitWhileWeProcessYour')}
                 </p>
               </div>
             )}
@@ -216,7 +219,7 @@ const AuthCallback = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-xs text-muted-foreground">
-            © 2025 WENZE TII NDAKU. All rights reserved.
+            {t('pages.authCallback.n2025WenzeTiiNdakuAllRights')}
           </p>
         </div>
       </div>

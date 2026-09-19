@@ -1,4 +1,5 @@
 
+import i18n from "@/lib/i18n";
 // Global auth state management for API client
 let authState: {
   clearAuth: () => void;
@@ -29,21 +30,21 @@ export const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
 
-  // Priority 2: Check environment setting
-  const environment = import.meta.env.VITE_ENVIRONMENT || 'production';
-
-  if (environment === 'development') {
+  // Priority 2: Vite's own DEV flag (true only for `vite dev`, false for any real build)
+  // — derived automatically from how the app was started, so it can't be misconfigured
+  // or silently default to production the way a manually-set env var can.
+  if (import.meta.env.DEV) {
     // In development, use local backend from env
     const localUrl = import.meta.env.VITE_LOCAL_BACKEND_URL;
     if (!localUrl) {
-      throw new Error('VITE_LOCAL_BACKEND_URL is not set in .env file. Please set it to your local backend URL (e.g., http://localhost:5000/api)');
+      throw new Error(i18n.t('utils.api.viteLocalBackendUrlIsNot'));
     }
     return localUrl;
   } else {
     // In production, use deployed backend from env
     const productionUrl = import.meta.env.VITE_PRODUCTION_BACKEND_URL;
     if (!productionUrl) {
-      throw new Error('VITE_PRODUCTION_BACKEND_URL is not set in .env file. Please set it to your production backend URL');
+      throw new Error(i18n.t('utils.api.viteProductionBackendUrlIsNot'));
     }
     return productionUrl;
   }
@@ -110,7 +111,7 @@ export class ApiClient {
       if (!response.ok) {
         // read text to avoid JSON parse on HTML/text errors (e.g., 429)
         const text = await response.text();
-        const error = new Error(text || response.statusText || `HTTP ${response.status}`);
+        const error = new Error(text || response.statusText || i18n.t('utils.api.httpStatus', { status: response.status }));
         (error as Error & { status?: number }).status = response.status;
         throw error;
       }

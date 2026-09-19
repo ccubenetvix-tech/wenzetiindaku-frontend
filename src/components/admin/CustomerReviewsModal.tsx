@@ -7,7 +7,9 @@ import {
 } from '@/components/ui/dialog';
 import { apiClient } from '../../utils/api';
 import { Loader2, MessageSquare, Star, User } from 'lucide-react';
-import { format } from 'date-fns';
+import i18n from "@/lib/i18n";
+import { formatDate } from "@/lib/format";
+import { useTranslation } from "react-i18next";
 
 interface CustomerReviewsModalProps {
     isOpen: boolean;
@@ -37,6 +39,7 @@ const CustomerReviewsModal: React.FC<CustomerReviewsModalProps> = ({
     onClose,
     customerId,
 }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -55,21 +58,13 @@ const CustomerReviewsModal: React.FC<CustomerReviewsModalProps> = ({
             if (response.success) {
                 setReviews(response.data.reviews || []);
             } else {
-                setError(response.error?.message || 'Failed to fetch reviews');
+                setError(response.error?.message || i18n.t('components.admin.customerReviewsModal.failedToFetchReviews'));
             }
         } catch (err) {
-            setError('An error occurred while fetching reviews');
+            setError(i18n.t('components.admin.customerReviewsModal.anErrorOccurredWhileFetchingReviews'));
             console.error(err);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const formatDate = (dateString: string) => {
-        try {
-            return format(new Date(dateString), 'PPP');
-        } catch {
-            return dateString;
         }
     };
 
@@ -92,7 +87,7 @@ const CustomerReviewsModal: React.FC<CustomerReviewsModalProps> = ({
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold flex items-center">
                         <MessageSquare className="mr-2 h-5 w-5" />
-                        Customer Reviews & Feedback
+                        {t('components.admin.customerReviewsModal.customerReviewsFeedback')}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -117,7 +112,7 @@ const CustomerReviewsModal: React.FC<CustomerReviewsModalProps> = ({
                                     <p className="text-sm text-gray-500">{reviews[0].customer.email}</p>
                                 </div>
                                 <div className="ml-auto text-sm text-gray-500">
-                                    Total Reviews: <span className="font-semibold text-gray-900">{reviews.length}</span>
+                                    {t('components.admin.customerReviewsModal.totalReviews')} <span className="font-semibold text-gray-900">{reviews.length}</span>
                                 </div>
                             </div>
                         )}
@@ -136,11 +131,11 @@ const CustomerReviewsModal: React.FC<CustomerReviewsModalProps> = ({
                                                             className="h-full w-full object-cover rounded"
                                                         />
                                                     ) : (
-                                                        <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">No img</div>
+                                                        <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">{t('components.admin.customerReviewsModal.noImg')}</div>
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-900 text-sm">{review.product?.name || 'Unknown Product'}</p>
+                                                    <p className="font-medium text-gray-900 text-sm">{review.product?.name || t('components.admin.customerReviewsModal.unknownProduct')}</p>
                                                     <div className="mt-1">{renderStars(review.rating)}</div>
                                                 </div>
                                             </div>
@@ -156,7 +151,7 @@ const CustomerReviewsModal: React.FC<CustomerReviewsModalProps> = ({
                         ) : (
                             <div className="text-center py-12 bg-gray-50 rounded-lg">
                                 <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500">No reviews submitted by this customer.</p>
+                                <p className="text-gray-500">{t('components.admin.customerReviewsModal.noReviewsSubmittedByThisCustomer')}</p>
                             </div>
                         )}
                     </div>
