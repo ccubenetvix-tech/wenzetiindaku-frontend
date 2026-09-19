@@ -4,7 +4,7 @@ import i18n from '@/lib/i18n';
 import { formatDate, formatMoney, formatPaymentMethod, formatStatus } from '@/lib/format';
 
 // jsPDF's built-in fonts can't draw the narrow/no-break spaces Intl uses in French numbers.
-const pdfText = (value: string): string => value.replace(/[  ]/g, ' ');
+const pdfText = (value: string): string => value.replace(/[\u00A0\u202F]/g, ' ');
 
 // Define the Order interface locally to avoid circular dependencies
 // You should ideally import this from a shared types file if available
