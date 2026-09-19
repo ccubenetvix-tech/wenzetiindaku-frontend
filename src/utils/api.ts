@@ -462,15 +462,15 @@ export class ApiClient {
     return this.request(`/vendor/orders?${params}`);
   }
 
-  async updateOrderStatus(orderId: string, status: string) {
+  async updateOrderStatus(orderId: string, status: string, paymentInfo?: { paymentCollected?: boolean; unpaidReason?: string }) {
     return this.request(`/vendor/orders/${orderId}/status`, {
       method: 'PUT',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, ...paymentInfo }),
     });
   }
 
-  async updateVendorOrderStatus(orderId: string, status: string) {
-    return this.updateOrderStatus(orderId, status);
+  async updateVendorOrderStatus(orderId: string, status: string, paymentInfo?: { paymentCollected?: boolean; unpaidReason?: string }) {
+    return this.updateOrderStatus(orderId, status, paymentInfo);
   }
 
   // Admin methods

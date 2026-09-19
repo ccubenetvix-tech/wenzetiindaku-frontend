@@ -1998,7 +1998,16 @@
       "productCreated": "Product Created",
       "failedToDeleteProduct": "Failed to delete product",
       "failedToUpdateOrder": "Failed to update order",
-      "downloadInvoice": "Download invoice"
+      "downloadInvoice": "Download invoice",
+      "confirmCodPaymentTitle": "Confirm COD Payment",
+      "confirmCodPaymentQuestion": "Has the customer paid for this Cash on Delivery order?",
+      "paymentCollectedYes": "Yes, payment collected",
+      "paymentCollectedNo": "No, not paid yet",
+      "unpaidReasonLabel": "Why hasn't the payment been collected?",
+      "unpaidReasonPlaceholder": "e.g. Customer wasn't home, will pay on next visit...",
+      "unpaidReasonRequired": "Please provide a reason",
+      "submitReason": "Submit",
+      "paymentPendingReason": "Payment Pending Reason"
     },
     "vendorForgotPassword": {
       "emailIsRequired": "Email is required",

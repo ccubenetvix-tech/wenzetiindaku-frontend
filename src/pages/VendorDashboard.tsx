@@ -98,6 +98,7 @@ interface Order {
   items: number;
   payment: string;
   paymentStatus?: string | null;
+  paymentPendingReason?: string | null;
   shippingAddress?: Record<string, any> | null;
   cancellationReason?: string | null;
   orderItems?: Array<{
@@ -397,6 +398,9 @@ export default function VendorDashboard() {
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [codConfirmOrder, setCodConfirmOrder] = useState<Order | null>(null);
+  const [codConfirmStep, setCodConfirmStep] = useState<'ask' | 'reason'>('ask');
+  const [codUnpaidReason, setCodUnpaidReason] = useState('');
 
   // Product form
   const [showProductDialog, setShowProductDialog] = useState(false);
@@ -522,6 +526,7 @@ export default function VendorDashboard() {
             items: Array.isArray(order.order_items) ? order.order_items.length : 0,
             payment: order.payment_method ?? "N/A",
             paymentStatus: order.payment_status ?? null,
+            paymentPendingReason: order.payment_pending_reason ?? null,
             shippingAddress: order.shipping_address ?? null,
             cancellationReason: order.cancellation_reason ?? null,
             orderItems: order.order_items ?? [],
@@ -841,10 +846,14 @@ export default function VendorDashboard() {
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateOrderStatus = async (
+    orderId: string,
+    newStatus: string,
+    paymentInfo?: { paymentCollected?: boolean; unpaidReason?: string }
+  ) => {
     try {
       setUpdatingOrderId(orderId);
-      const data = await apiClient.updateVendorOrderStatus(orderId, newStatus) as any;
+      const data = await apiClient.updateVendorOrderStatus(orderId, newStatus, paymentInfo) as any;
 
       if (data.success) {
         toast({
@@ -874,6 +883,51 @@ export default function VendorDashboard() {
       setUpdatingOrderId(null);
       setIsLoading(false);
     }
+  };
+
+  const closeCodConfirmDialog = () => {
+    setCodConfirmOrder(null);
+    setCodConfirmStep('ask');
+    setCodUnpaidReason('');
+  };
+
+  const handleOrderStatusChange = (order: Order, newStatus: string) => {
+    if (updatingOrderId === order.id) return;
+
+    const isCod = (order.payment || '').toLowerCase() === 'cod';
+    const isAlreadyPaid = (order.paymentStatus || '').toLowerCase() === 'paid';
+
+    if (newStatus === 'delivered' && isCod && !isAlreadyPaid) {
+      setCodConfirmOrder(order);
+      setCodConfirmStep('ask');
+      setCodUnpaidReason('');
+      return;
+    }
+
+    handleUpdateOrderStatus(order.id, newStatus);
+  };
+
+  const handleConfirmCodPaymentCollected = async () => {
+    if (!codConfirmOrder) return;
+    const orderId = codConfirmOrder.id;
+    closeCodConfirmDialog();
+    await handleUpdateOrderStatus(orderId, 'delivered', { paymentCollected: true });
+  };
+
+  const handleSubmitCodUnpaidReason = async () => {
+    if (!codConfirmOrder) return;
+    if (!codUnpaidReason.trim()) {
+      toast({
+        title: i18n.t('pages.vendorDashboard.error'),
+        description: i18n.t('pages.vendorDashboard.unpaidReasonRequired'),
+        variant: "destructive",
+      });
+      return;
+    }
+    const orderId = codConfirmOrder.id;
+    const reason = codUnpaidReason.trim();
+    closeCodConfirmDialog();
+    await handleUpdateOrderStatus(orderId, 'delivered', { paymentCollected: false, unpaidReason: reason });
   };
 
   if (authLoading || isLoading) {
@@ -1435,15 +1489,19 @@ export default function VendorDashboard() {
                                 </TableCell>
                                 <TableCell>{order.items}</TableCell>
                                 <TableCell>{formatMoney(order.total)}</TableCell>
-                                <TableCell>{order.paymentStatus ? formatStatus(order.paymentStatus) : "—"}</TableCell>
+                                <TableCell>
+                                  <div>{order.paymentStatus ? formatStatus(order.paymentStatus) : "—"}</div>
+                                  {order.paymentPendingReason && (
+                                    <div className="text-xs text-amber-600 dark:text-amber-400 max-w-[160px] truncate" title={order.paymentPendingReason}>
+                                      {order.paymentPendingReason}
+                                    </div>
+                                  )}
+                                </TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-2">
                                     <Select
                                       value={order.status}
-                                      onValueChange={(value) => {
-                                        if (updatingOrderId === order.id) return;
-                                        handleUpdateOrderStatus(order.id, value);
-                                      }}
+                                      onValueChange={(value) => handleOrderStatusChange(order, value)}
                                       disabled={order.status.toLowerCase() === 'cancelled' || updatingOrderId === order.id}
                                     >
                                       <SelectTrigger className="w-32" disabled={order.status.toLowerCase() === 'cancelled' || updatingOrderId === order.id}>
@@ -1550,6 +1608,17 @@ export default function VendorDashboard() {
                         </div>
                       )}
 
+                      {orderDetails.paymentPendingReason && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/10">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-400">
+                            {t('pages.vendorDashboard.paymentPendingReason')}
+                          </h4>
+                          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                            {orderDetails.paymentPendingReason}
+                          </p>
+                        </div>
+                      )}
+
                       <div className="rounded-lg border p-4">
                         <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           {t('pages.vendorDashboard.items')}
@@ -1642,6 +1711,69 @@ export default function VendorDashboard() {
                   ) : (
                     <div className="py-6 text-center text-sm text-muted-foreground">
                       {t('pages.vendorDashboard.selectAnOrderToViewThe')}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+
+              {/* COD payment confirmation dialog */}
+              <Dialog
+                open={!!codConfirmOrder}
+                onOpenChange={(open) => {
+                  if (!open) closeCodConfirmDialog();
+                }}
+              >
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>{t('pages.vendorDashboard.confirmCodPaymentTitle')}</DialogTitle>
+                    <DialogDescription>
+                      {t('pages.vendorDashboard.confirmCodPaymentQuestion')}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {codConfirmStep === 'ask' ? (
+                    <DialogFooter className="gap-2 sm:justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => setCodConfirmStep('reason')}
+                        disabled={!!updatingOrderId}
+                      >
+                        {t('pages.vendorDashboard.paymentCollectedNo')}
+                      </Button>
+                      <Button
+                        onClick={handleConfirmCodPaymentCollected}
+                        disabled={!!updatingOrderId}
+                      >
+                        {t('pages.vendorDashboard.paymentCollectedYes')}
+                      </Button>
+                    </DialogFooter>
+                  ) : (
+                    <div className="space-y-3">
+                      <Label htmlFor="cod-unpaid-reason">
+                        {t('pages.vendorDashboard.unpaidReasonLabel')}
+                      </Label>
+                      <Textarea
+                        id="cod-unpaid-reason"
+                        value={codUnpaidReason}
+                        onChange={(e) => setCodUnpaidReason(e.target.value)}
+                        placeholder={t('pages.vendorDashboard.unpaidReasonPlaceholder')}
+                        rows={3}
+                      />
+                      <DialogFooter className="gap-2 sm:justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => setCodConfirmStep('ask')}
+                          disabled={!!updatingOrderId}
+                        >
+                          {t('pages.vendorDashboard.cancel')}
+                        </Button>
+                        <Button
+                          onClick={handleSubmitCodUnpaidReason}
+                          disabled={!!updatingOrderId || !codUnpaidReason.trim()}
+                        >
+                          {t('pages.vendorDashboard.submitReason')}
+                        </Button>
+                      </DialogFooter>
                     </div>
                   )}
                 </DialogContent>

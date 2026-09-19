@@ -2031,7 +2031,16 @@
       "productCreated": "Produit créé",
       "failedToDeleteProduct": "Impossible de supprimer le produit",
       "failedToUpdateOrder": "Impossible de mettre à jour la commande",
-      "downloadInvoice": "Télécharger la facture"
+      "downloadInvoice": "Télécharger la facture",
+      "confirmCodPaymentTitle": "Confirmer le paiement à la livraison",
+      "confirmCodPaymentQuestion": "Le client a-t-il payé cette commande contre remboursement ?",
+      "paymentCollectedYes": "Oui, paiement encaissé",
+      "paymentCollectedNo": "Non, pas encore payé",
+      "unpaidReasonLabel": "Pourquoi le paiement n'a-t-il pas été encaissé ?",
+      "unpaidReasonPlaceholder": "ex. Le client était absent, paiera lors de la prochaine visite...",
+      "unpaidReasonRequired": "Veuillez indiquer une raison",
+      "submitReason": "Soumettre",
+      "paymentPendingReason": "Raison du paiement en attente"
     },
     "helpCenter": {
       "helpCenter": "Centre d’aide",

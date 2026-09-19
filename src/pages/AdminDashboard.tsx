@@ -147,6 +147,7 @@ interface Order {
   status: string;
   paymentMethod: string;
   paymentStatus: string;
+  paymentPendingReason?: string | null;
   shippingAddress?: any;
   cancellationReason?: string;
   items: Array<{
@@ -2867,6 +2868,14 @@ const AdminDashboard = () => {
                 <div className="border-t pt-4">
                   <h3 className="text-lg font-semibold mb-2 text-red-600">{t('pages.adminDashboard.cancellationReason')}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.cancellationReason}</p>
+                </div>
+              )}
+
+              {/* Payment Pending Reason (COD not yet collected) */}
+              {selectedOrder.paymentPendingReason && (
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-2 text-amber-600">{t('pages.adminDashboard.paymentPendingReason', 'Payment Pending Reason')}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.paymentPendingReason}</p>
                 </div>
               )}
             </div>

@@ -96,6 +96,7 @@ interface ApiOrder {
   total_amount?: number | string | null;
   payment_method?: string | null;
   payment_status?: string | null;
+  payment_pending_reason?: string | null;
   shipping_address?: Record<string, any> | null;
   order_items?: ApiOrderItem[] | null;
 }
@@ -110,6 +111,7 @@ interface OrderSummary {
   tracking?: string | null;
   paymentMethod?: string | null;
   paymentStatus?: string | null;
+  paymentPendingReason?: string | null;
   shippingAddress?: Record<string, any> | null;
   products: ApiOrderItem[];
 }
@@ -363,6 +365,7 @@ const transformOrder = (order: ApiOrder): OrderSummary => {
     tracking: getTrackingNumber(order.shipping_address ?? undefined),
     paymentMethod: order.payment_method ?? null,
     paymentStatus: order.payment_status ?? null,
+    paymentPendingReason: order.payment_pending_reason ?? null,
     shippingAddress: order.shipping_address ?? null,
     products,
   };
@@ -1876,6 +1879,11 @@ export default function CustomerDashboard() {
                             {orderDetails.paymentStatus && (
                               <p className="mt-1 text-xs text-muted-foreground">
                                 {t("customerDashboard.paymentStatus", "Payment status")}: {formatStatus(orderDetails.paymentStatus)}
+                              </p>
+                            )}
+                            {orderDetails.paymentPendingReason && (
+                              <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                                {t("customerDashboard.paymentPendingReason", "Note from vendor")}: {orderDetails.paymentPendingReason}
                               </p>
                             )}
                           </div>
