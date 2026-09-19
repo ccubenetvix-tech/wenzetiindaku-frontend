@@ -1476,7 +1476,9 @@
       "pleaseTryAgain": "Veuillez réessayer.",
       "anErrorOccurredDuringSignup": "Une erreur s’est produite lors de l’inscription",
       "invalidOtp": "Code invalide",
-      "couldNotResendCode": "Impossible de renvoyer le code"
+      "couldNotResendCode": "Impossible de renvoyer le code",
+      "verifyHere": "Vérifier ici",
+      "sendingCode": "Envoi du code..."
     },
     "forgotPassword": {
       "emailIsRequired": "L’adresse e-mail est obligatoire",
@@ -1903,7 +1905,9 @@
       "pleaseTryAgain": "Veuillez réessayer.",
       "anErrorOccurredDuringRegistration": "Une erreur s’est produite lors de l’inscription",
       "invalidOtp": "Code invalide",
-      "couldNotResendCode": "Impossible de renvoyer le code"
+      "couldNotResendCode": "Impossible de renvoyer le code",
+      "verifyHere": "Vérifier ici",
+      "sendingCode": "Envoi du code..."
     },
     "vendorDashboard": {
       "error": "Erreur",

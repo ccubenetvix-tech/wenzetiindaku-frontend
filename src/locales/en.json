@@ -1338,7 +1338,9 @@
       "pleaseTryAgain": "Please try again.",
       "anErrorOccurredDuringSignup": "An error occurred during signup",
       "invalidOtp": "Invalid OTP",
-      "couldNotResendCode": "Could not resend code"
+      "couldNotResendCode": "Could not resend code",
+      "verifyHere": "Verify here",
+      "sendingCode": "Sending code..."
     },
     "faq": {
       "foireAuxQuestionsFaq": "FREQUENTLY ASKED QUESTIONS (FAQ)",
@@ -2168,7 +2170,9 @@
       "pleaseTryAgain": "Please try again.",
       "anErrorOccurredDuringRegistration": "An error occurred during registration",
       "invalidOtp": "Invalid OTP",
-      "couldNotResendCode": "Could not resend code"
+      "couldNotResendCode": "Could not resend code",
+      "verifyHere": "Verify here",
+      "sendingCode": "Sending code..."
     },
     "vendorTerms": {
       "contratDeVendeur": "Seller Agreement",

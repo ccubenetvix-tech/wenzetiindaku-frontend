@@ -58,7 +58,9 @@ const VendorRegister = () => {
   const [emailStatus, setEmailStatus] = useState<{
     state: "idle" | "checking" | "available" | "blocked";
     message: string;
+    verified?: boolean | null;
   }>({ state: "idle", message: "" });
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -73,6 +75,29 @@ const VendorRegister = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
+  // Sends a fresh OTP for the given email and jumps straight to the verification
+  // step. Shared by the login-redirect flow below and the "Verify here" link that
+  // appears when signup detects an already-registered-but-unverified email.
+  const sendVerificationCodeAndShowOtp = async (email: string) => {
+    setIsSendingVerification(true);
+    try {
+      await resendOTP(email, 'vendor');
+      setShowOTPForm(true);
+      toast({
+        title: i18n.t('pages.vendorRegister.verificationRequired'),
+        description: i18n.t('pages.vendorRegister.weVeSentANewVerification'),
+      });
+    } catch (error) {
+      toast({
+        title: i18n.t('pages.vendorRegister.couldNotSendCode'),
+        description: error instanceof Error ? error.message : i18n.t('pages.vendorRegister.pleaseTryAgain'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingVerification(false);
+    }
+  };
+
   // Arrived here from a login attempt on an unverified account (see VendorLogin.tsx) —
   // skip straight to the OTP step with a freshly-sent code instead of making them sign up again.
   useEffect(() => {
@@ -81,23 +106,7 @@ const VendorRegister = () => {
     if (!email) return;
 
     setFormData((prev) => ({ ...prev, businessEmail: email }));
-
-    (async () => {
-      try {
-        await resendOTP(email, 'vendor');
-        setShowOTPForm(true);
-        toast({
-          title: i18n.t('pages.vendorRegister.verificationRequired'),
-          description: i18n.t('pages.vendorRegister.weVeSentANewVerification'),
-        });
-      } catch (error) {
-        toast({
-          title: i18n.t('pages.vendorRegister.couldNotSendCode'),
-          description: error instanceof Error ? error.message : i18n.t('pages.vendorRegister.pleaseTryAgain'),
-          variant: "destructive",
-        });
-      }
-    })();
+    sendVerificationCodeAndShowOtp(email);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -148,12 +157,13 @@ const VendorRegister = () => {
         const response = await apiClient.getEmailStatus(email, "vendor", controller.signal);
 
         if (response?.success) {
-          const { isRegistered, registeredAs, label, message } = response.data ?? {};
+          const { isRegistered, registeredAs, label, message, verified } = response.data ?? {};
 
           if (isRegistered && registeredAs) {
             setEmailStatus({
               state: "blocked",
               message: message || `This email is already registered as a ${label || (registeredAs === "customer" ? "Customer" : "Vendor")}. Please use a different email.`,
+              verified,
             });
           } else {
             setEmailStatus({ state: "available", message: "" });
@@ -403,7 +413,24 @@ const VendorRegister = () => {
                       {emailStatus.state === "blocked" && (
                         <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                           <AlertCircle className="mt-0.5 h-4 w-4" />
-                          <span>{emailStatus.message}</span>
+                          <span>
+                            {emailStatus.message}
+                            {emailStatus.verified === false && (
+                              <>
+                                {" "}
+                                <button
+                                  type="button"
+                                  onClick={() => sendVerificationCodeAndShowOtp(formData.businessEmail.trim())}
+                                  disabled={isSendingVerification}
+                                  className="font-medium underline underline-offset-2 hover:text-amber-900 disabled:opacity-50"
+                                >
+                                  {isSendingVerification
+                                    ? i18n.t('pages.vendorRegister.sendingCode')
+                                    : i18n.t('pages.vendorRegister.verifyHere')}
+                                </button>
+                              </>
+                            )}
+                          </span>
                         </div>
                       )}
                     </div>
