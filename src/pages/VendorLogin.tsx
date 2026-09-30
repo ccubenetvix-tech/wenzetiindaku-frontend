@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Store, Eye, EyeOff, Mail, Lock, ArrowLeft, TrendingUp, Users } from "lucide-react";
+import { Store, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,24 +134,6 @@ const VendorLogin = () => {
               </p>
             </div>
 
-            {/* Vendor Benefits */}
-            <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-              <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200 mb-2">
-                <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">{t('growBusiness')}</span>
-              </div>
-              <div className="space-y-1 text-xs text-orange-700 dark:text-orange-300">
-                <div className="flex items-center gap-2">
-                  <Users className="h-3 w-3" />
-                  <span>{t('reachCustomers')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>{t('trackSales')}</span>
-                </div>
-              </div>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
@@ -273,7 +255,6 @@ const VendorLogin = () => {
                 <p>{t('pages.vendorLogin.emailWenzetiindakuOutlookCom')}</p>
                 <p>{t('pages.vendorLogin.phone32495846866')}</p>
                 <p>{t('pages.vendorLogin.locationKinshasaRDCongo')}</p>
-                <p>{t('pages.vendorLogin.hoursMonFri9am6pmWat')}</p>
               </div>
             </div>
 
