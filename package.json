@@ -12,10 +12,15 @@
     "setup-env": "node setup-env.js",
     "lint": "eslint .",
     "i18n:check": "node scripts/check-i18n.mjs",
+    "legal:build": "node scripts/build-legal.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^3.10.0",
+    "@mui/icons-material": "^9.4.0",
+    "@mui/material": "^9.4.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

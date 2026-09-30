@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 // Import React Router for navigation
 import { useNavigate } from "react-router-dom";
 // Import Lucide React icons for social media and contact information
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
 /**
  * Footer Component - Main footer for the marketplace
@@ -67,15 +72,15 @@ export function Footer() {
             {/* Contact Info */}
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary" />
+                <EmailOutlinedIcon className="text-primary" sx={{ fontSize: 16 }} />
                 <span>wenzetiindaku@outlook.com</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" />
-                <span>+32 495 84 68 66</span>
+                <WhatsAppIcon className="text-primary" sx={{ fontSize: 16 }} />
+                <span>{t('whatsappMessagesOnly')}: +32 495 84 68 66</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" />
+                <PlaceOutlinedIcon className="text-primary" sx={{ fontSize: 16 }} />
                 <span>{t('components.footer.kinshasaRDCongo')}</span>
               </div>
             </div>
@@ -112,25 +117,34 @@ export function Footer() {
           {/* Social Links */}
           <div className="flex items-center gap-4">
             <a
-              href="#"
+              href="https://www.facebook.com/share/1DhBePM4Qg/"
+              target="_blank"
+              rel="noopener noreferrer"
               title={t('followFacebook')}
+              aria-label={t('followFacebook')}
               className="text-muted-foreground hover:text-primary transition-colors duration-200"
             >
-              <Facebook className="h-5 w-5" />
+              <FacebookIcon sx={{ fontSize: 22 }} />
             </a>
             <a
-              href="#"
-              title={t('followTwitter')}
-              className="text-muted-foreground hover:text-primary transition-colors duration-200"
-            >
-              <Twitter className="h-5 w-5" />
-            </a>
-            <a
-              href="#"
+              href="https://www.instagram.com/wenze2ndaku"
+              target="_blank"
+              rel="noopener noreferrer"
               title={t('followInstagram')}
+              aria-label={t('followInstagram')}
               className="text-muted-foreground hover:text-primary transition-colors duration-200"
             >
-              <Instagram className="h-5 w-5" />
+              <InstagramIcon sx={{ fontSize: 22 }} />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/wenze-tii-ndaku/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title={t('followLinkedin')}
+              aria-label={t('followLinkedin')}
+              className="text-muted-foreground hover:text-primary transition-colors duration-200"
+            >
+              <LinkedInIcon sx={{ fontSize: 22 }} />
             </a>
           </div>
         </div>
