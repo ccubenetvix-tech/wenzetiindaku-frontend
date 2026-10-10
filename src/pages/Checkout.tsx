@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useMemo,
   useState,
 } from "react";
@@ -34,6 +35,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
 import { calculateIncludedVAT, calculateVAT } from "@/utils/priceUtils";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 
 type CheckoutStep = "address" | "payment" | "review";
@@ -467,6 +469,20 @@ const Checkout = () => {
       setIsLoadingAddresses(false);
     }
   }, [isAuthenticated, user?.email, normalizeAddressInput]);
+
+  // Analytics: record the checkout start once, when the cart has loaded.
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || isLoading || cartItems.length === 0) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(cartItems.map((item) => ({
+      id: item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      vendor: item.vendor,
+    })));
+  }, [cartItems, isLoading]);
 
   useEffect(() => {
     // Fetch live exchange rate

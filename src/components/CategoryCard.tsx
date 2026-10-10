@@ -28,13 +28,13 @@ interface CategoryCardProps {
 }
 
 // Function to get the appropriate image for each category key
-const getCategoryImage = (categoryKey: string): string => {
+// Categories without a photo yet (e.g. Health & Wellness) return undefined and show their initial instead.
+const getCategoryImage = (categoryKey: string): string | undefined => {
   const imageMap: Record<string, string> = {
-    'electronics': electronicsImg,
-    'fashionClothing': clothingImg,
+    'technologyElectronics': electronicsImg,
+    'clothingFashion': clothingImg,
     'homeGarden': homeImg,
     'beautyHealth': beautyImg,
-    'healthWellness': beautyImg,
     'sportsOutdoors': sportsImg,
     'booksMedia': booksImg,
     'toysGames': toysImg,
@@ -44,7 +44,7 @@ const getCategoryImage = (categoryKey: string): string => {
     'artCrafts': artsImg,
   };
 
-  return imageMap[categoryKey] || clothingImg;
+  return imageMap[categoryKey];
 };
 
 export const CategoryCard = memo(function CategoryCard({ category, index, isLoading = false }: CategoryCardProps) {
@@ -65,17 +65,23 @@ export const CategoryCard = memo(function CategoryCard({ category, index, isLoad
         {/* Category Image */}
         <div className="mb-3 flex justify-center">
           <div className="relative h-12 w-12 rounded-lg bg-gray-100 dark:bg-navy-800 overflow-hidden">
-            <img
-              src={categoryImage}
-              alt={t(category.name)}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const firstChar = t(category.name)[0] || '';
-                target.parentElement!.innerHTML = `<div class="h-full w-full bg-navy-600 flex items-center justify-center"><span class="text-sm font-bold text-white">${firstChar}</span></div>`;
-              }}
-            />
+            {categoryImage ? (
+              <img
+                src={categoryImage}
+                alt={t(category.name)}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const firstChar = t(category.name)[0] || '';
+                  target.parentElement!.innerHTML = `<div class="h-full w-full bg-navy-600 flex items-center justify-center"><span class="text-sm font-bold text-white">${firstChar}</span></div>`;
+                }}
+              />
+            ) : (
+              <div className="h-full w-full bg-navy-600 flex items-center justify-center">
+                <span className="text-sm font-bold text-white">{t(category.name)[0] || ''}</span>
+              </div>
+            )}
           </div>
         </div>
 

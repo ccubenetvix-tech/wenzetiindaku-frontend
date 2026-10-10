@@ -126,7 +126,7 @@ export function Header() {
     { name: t('home'), href: '/' },
     { name: t('about'), href: '/about' },
     { name: t('stores'), href: '/stores' },
-    { name: t('products'), href: '/search' },
+    { name: t('navProducts'), href: '/search' },
     { name: t('categories'), href: '/categories' },
     ...(isAuthenticated && user
       ? [{

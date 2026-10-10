@@ -52,7 +52,7 @@ import CustomerHistoryModal from '../components/admin/CustomerHistoryModal';
 import CustomerReviewsModal from '../components/admin/CustomerReviewsModal';
 import i18n from "@/lib/i18n";
 
-import { formatDate, formatDateTime, formatMoney, formatStatus, formatTime } from "@/lib/format";
+import { formatDate, formatDateTime, formatMoney, formatStatus, formatTime, categoryLabel } from "@/lib/format";
 interface Vendor {
   id: string;
   business_name: string;
@@ -2059,7 +2059,7 @@ const AdminDashboard = () => {
                   <div className="flex flex-wrap gap-2">
                     {selectedVendor.categories.map((category, index) => (
                       <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">
-                        {category}
+                        {categoryLabel(category)}
                       </Badge>
                     ))}
                   </div>
