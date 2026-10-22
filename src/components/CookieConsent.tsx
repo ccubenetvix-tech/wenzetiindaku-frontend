@@ -34,12 +34,14 @@ export function CookieConsent() {
     
     localStorage.setItem('cookie-consent', JSON.stringify(preferences));
     localStorage.setItem('cookie-consent-date', new Date().toISOString());
+    window.dispatchEvent(new Event('cookie-consent-changed'));
     setShowConsent(false);
   };
 
   const handleAcceptSelected = () => {
     localStorage.setItem('cookie-consent', JSON.stringify(cookiePreferences));
     localStorage.setItem('cookie-consent-date', new Date().toISOString());
+    window.dispatchEvent(new Event('cookie-consent-changed'));
     setShowConsent(false);
     setShowSettings(false);
   };
@@ -54,6 +56,7 @@ export function CookieConsent() {
     
     localStorage.setItem('cookie-consent', JSON.stringify(preferences));
     localStorage.setItem('cookie-consent-date', new Date().toISOString());
+    window.dispatchEvent(new Event('cookie-consent-changed'));
     setShowConsent(false);
   };
 

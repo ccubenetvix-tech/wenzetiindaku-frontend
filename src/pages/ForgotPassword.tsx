@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isStrongPassword } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
@@ -84,7 +85,7 @@ const ForgotPassword = () => {
   const resetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.newPassword.length < 8) {
+    if (!isStrongPassword(formData.newPassword)) {
       toast({
         title: i18n.t('pages.forgotPassword.passwordTooShort'),
         description: i18n.t('pages.forgotPassword.newPasswordMustBeAtLeast'),
@@ -289,6 +290,9 @@ const ForgotPassword = () => {
                       {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
+                  <p className={`text-xs ${formData.newPassword && !isStrongPassword(formData.newPassword) ? "text-red-600" : "text-muted-foreground"}`}>
+                    {t('pages.customerSignup.mustBeAtLeast8Characters')}
+                  </p>
                 </div>
 
                 <div className="space-y-2">

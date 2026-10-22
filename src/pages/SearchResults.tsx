@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { categoryLabel } from "@/lib/format";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Search, Filter, Grid, Star, SlidersHorizontal } from "lucide-react";
@@ -15,12 +16,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { filterBySearch, sortBy } from "@/utils";
 import { apiClient } from "@/utils/api";
 import { PageLoader } from "@/components/PageLoader";
 import { useLoaderTransition } from "@/hooks/useLoaderTransition";
 import { cn } from "@/lib/utils";
 import { predefinedCategories } from "@/data/categories";
+import { trackSearch } from "@/lib/analytics";
+import { matchesSearch } from "@/lib/productSearch";
+
+// New products get a default rating in the database; only count ratings backed by reviews.
+const realRating = (p: any) => (Number(p.review_count) > 0 ? Number(p.rating) || 0 : 0);
+
+// Sort options shown in the "Sort by" menu. "relevance" keeps the order returned by the API.
+const sortProducts = (products: any[], sortOption: string) => {
+  const byName = (a: any, b: any) => String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
+  const price = (p: any) => Number(p.price) || 0;
+  const rating = (p: any) => realRating(p);
+  const sorted = [...products];
+  switch (sortOption) {
+    case "price-low":
+      return sorted.sort((a, b) => price(a) - price(b));
+    case "price-high":
+      return sorted.sort((a, b) => price(b) - price(a));
+    case "rating":
+      return sorted.sort((a, b) => rating(b) - rating(a) || (Number(b.review_count) || 0) - (Number(a.review_count) || 0));
+    case "alpha":
+      return sorted.sort(byName);
+    case "alpha-reverse":
+      return sorted.sort((a, b) => byName(b, a));
+    default:
+      return sorted;
+  }
+};
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -45,27 +72,46 @@ const SearchResults = () => {
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState(0);
   const [sortByValue, setSortByValue] = useState("relevance");
+  // On phones the filters are hidden behind a button so products show first.
+  const [showFiltersOnMobile, setShowFiltersOnMobile] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  // Follow the category in the URL when the user navigates between categories.
+  useEffect(() => {
+    setSelectedCategory(categoryParam || "all");
+  }, [categoryParam]);
+
+  // Any change to the filters or sort order starts again from the first page,
+  // otherwise a narrower result set can leave the user on an empty page.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, refineSearch, selectedCategory, minPrice, maxPrice, minRating, sortByValue]);
 
   // Fetch products from API
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setIsLoading(true);
-        const response: any = await apiClient.getAllProducts({
-          search: query,
-          category: categoryParam || undefined,
-          limit: 100
-        });
-
-        if (response.success && response.data) {
-          setAllProducts(response.data.products || []);
-        } else {
-          setAllProducts([]);
+        // Load the whole catalogue (page by page) and search it here: the API only
+        // matches the exact phrase, which misses multi-word searches and typos.
+        const pageSize = 200;
+        const loaded: any[] = [];
+        for (let page = 1; ; page++) {
+          const response: any = await apiClient.getAllProducts({
+            category: categoryParam || undefined,
+            limit: pageSize,
+            page,
+          });
+          if (!response.success || !response.data) break;
+          const batch = response.data.products || [];
+          loaded.push(...batch);
+          const totalPages = response.data.pagination?.totalPages ?? 1;
+          if (page >= totalPages || batch.length === 0) break;
         }
+        setAllProducts(loaded);
       } catch (error) {
         console.error('Error loading products:', error);
         setAllProducts([]);
@@ -75,16 +121,28 @@ const SearchResults = () => {
     };
 
     loadProducts();
-  }, [query, categoryParam]);
+  }, [categoryParam]);
+
+  useEffect(() => {
+    trackSearch(query);
+  }, [query]);
 
   // Apply client-side filters
   const filteredProducts = useMemo(() => {
     let filtered = allProducts;
 
-    // Filter by search query
-    const searchQuery = refineSearch || query;
-    if (searchQuery) {
-      filtered = filterBySearch(filtered, searchQuery, ['name', 'description', 'category', 'vendor']);
+    // Filter by the search query and the "refine search" box (both must match)
+    const searchText = `${query} ${refineSearch}`.trim();
+    if (searchText) {
+      filtered = filtered.filter((product: any) =>
+        matchesSearch(searchText, [
+          product.name,
+          product.description,
+          product.category,
+          categoryLabel(product.category),
+          product.vendor?.business_name ?? product.vendor,
+        ]),
+      );
     }
 
     // Filter by category
@@ -94,32 +152,33 @@ const SearchResults = () => {
 
     // Filter by price range
     if (minPrice) {
-      filtered = filtered.filter((product: any) => product.price >= parseFloat(minPrice));
+      filtered = filtered.filter((product: any) => Number(product.price) >= parseFloat(minPrice));
     }
     if (maxPrice) {
-      filtered = filtered.filter((product: any) => product.price <= parseFloat(maxPrice));
+      filtered = filtered.filter((product: any) => Number(product.price) <= parseFloat(maxPrice));
     }
 
     // Filter by minimum rating
     if (minRating > 0) {
-      filtered = filtered.filter((product: any) => (product.rating || 0) >= minRating);
+      filtered = filtered.filter((product: any) => realRating(product) >= minRating);
     }
 
     // Sort products
-    filtered = sortBy(filtered, sortByValue);
+    filtered = sortProducts(filtered, sortByValue);
 
     return filtered;
   }, [allProducts, query, refineSearch, selectedCategory, minPrice, maxPrice, minRating, sortByValue]);
+
+  // Show the top of the results when moving to another page.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
-  const handleApplyFilters = () => {
-    setCurrentPage(1); // Reset to first page when filters change
-  };
 
   const clearFilters = () => {
     setRefineSearch("");
@@ -128,6 +187,7 @@ const SearchResults = () => {
     setMaxPrice("");
     setMinRating(0);
     setSortByValue("relevance");
+    setCurrentPage(1);
   };
 
   return (
@@ -157,7 +217,7 @@ const SearchResults = () => {
                 <div className="flex items-center gap-3">
                   <Search className="h-6 w-6 text-primary" />
                   <h1 className="text-3xl md:text-4xl font-bold">
-                    {categoryParam ? `${t('productsIn')} ${categoryParam}` : (query ? `${t('searchResults')} "${query}"` : t('allProducts'))}
+                    {categoryParam ? `${t('productsIn')} ${categoryLabel(categoryParam)}` : (query ? `${t('searchResults')} "${query}"` : t('allProducts'))}
                   </h1>
                 </div>
 
@@ -198,7 +258,16 @@ const SearchResults = () => {
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Filters Sidebar */}
               <aside className="lg:w-1/4">
-                <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
+                <Button
+                  variant="outline"
+                  className="w-full mb-4 lg:hidden"
+                  onClick={() => setShowFiltersOnMobile((open) => !open)}
+                  aria-expanded={showFiltersOnMobile}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  {showFiltersOnMobile ? t('hideFilters') : t('filters')}
+                </Button>
+                <div className={cn("bg-card p-6 rounded-lg shadow-sm mb-6", !showFiltersOnMobile && "hidden lg:block")}>
                   {/* Search within results */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium mb-2">

@@ -122,7 +122,7 @@ const Store = () => {
             totalProducts: 0, // Will be updated when products are loaded
             joinedDate: new Date(vendor.createdAt).getFullYear().toString(),
             location: `${vendor.city || 'Unknown'}, ${vendor.country || 'Unknown'}`,
-            banner: vendor.profile_photo || vendor.profilePhoto || "/store.jpeg",
+            banner: vendor.profile_photo || vendor.profilePhoto || "",
             profilePhoto: vendor.profile_photo || vendor.profilePhoto || ""
           };
 
@@ -238,7 +238,7 @@ const Store = () => {
           <PageLoader
             variant="store"
             title={t('pages.store.exploringStores')}
-            subtitle="Discovering places near you"
+            subtitle={t('pages.stores.loadingStoresSubtitle')}
             fadingOut={isFadingOut}
           />
         )}
@@ -253,12 +253,14 @@ const Store = () => {
           {store && (
             <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 overflow-hidden bg-black/5">
               {/* Store banner image - use object-contain so full photo is visible */}
-              <img
-                src={store.banner || "/store.jpeg"}
-                alt={store.name}
-                className="absolute inset-0 w-full h-full object-contain object-center"
-                loading="lazy"
-              />
+              {store.banner && (
+                <img
+                  src={store.banner}
+                  alt={store.name}
+                  className="absolute inset-0 w-full h-full object-contain object-center"
+                  loading="lazy"
+                />
+              )}
               {/* Gradient overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
               <div className="relative h-full max-w-7xl mx-auto px-4 flex items-end pb-8">

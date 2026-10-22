@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, memo, useCallback } from "react";
+import { categoryLabel } from "@/lib/format";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Star, Users, ShoppingBag, Truck, Loader2, Store } from "lucide-react";
@@ -37,11 +38,11 @@ const Index = () => {
 
   // Hero slider images
   const heroImages = [
-    "/one.svg",
-    "/two.svg",
-    "/three.svg",
-    "/four.svg",
-    "/five.svg"
+    "/hero-one.webp",
+    "/hero-two.webp",
+    "/hero-three.webp",
+    "/hero-four.webp",
+    "/hero-five.webp"
   ];
 
   // Load featured stores
@@ -432,12 +433,14 @@ const Index = () => {
                       {/* Header with store banner image - fixed height, clean fill */}
                       <div className="relative h-32 overflow-visible bg-navy-800">
                         {/* Store banner image (fills header, may crop slightly for perfect edge-to-edge look) */}
-                        <img
-                          src={store.image || "/store.jpeg"}
-                          alt={store.name}
-                          className="absolute inset-0 w-full h-full object-contain object-center"
-                          loading="lazy"
-                        />
+                        {store.image && (
+                          <img
+                            src={store.image}
+                            alt={store.name}
+                            className="absolute inset-0 w-full h-full object-contain object-center"
+                            loading="lazy"
+                          />
+                        )}
                         {/* Subtle dark overlay for text contrast */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
@@ -446,11 +449,13 @@ const Index = () => {
                           <div className="relative">
                             <div className="w-16 h-16 bg-white dark:bg-navy-900 rounded-full p-1.5 shadow-xl ring-2 ring-white/30">
                               <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                                <img
-                                  src={store.image || "/store.jpeg"}
-                                  alt={store.name}
-                                  className="w-full h-full object-cover"
-                                />
+                                {store.image && (
+                                  <img
+                                    src={store.image}
+                                    alt={store.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
                               </div>
                             </div>
 
@@ -529,7 +534,7 @@ const Index = () => {
                                 key={idx}
                                 className="px-2.5 py-0.5 bg-gradient-to-r from-navy-50 to-orange-50 dark:from-navy-800 dark:to-orange-900 text-[11px] font-medium text-gray-700 dark:text-gray-300 rounded-full"
                               >
-                                {category}
+                                {categoryLabel(category)}
                               </span>
                             ))}
                           </div>
@@ -554,12 +559,14 @@ const Index = () => {
                     <div className="relative bg-white dark:bg-navy-900 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-navy-700 hover:border-orange-500/50">
                       {/* Compact header with store banner image - fixed height, edge-to-edge */}
                       <div className="relative h-20 overflow-visible bg-navy-800">
-                        <img
-                          src={store.image || "/store.jpeg"}
-                          alt={store.name}
-                          className="absolute inset-0 w-full h-full object-contain object-center"
-                          loading="lazy"
-                        />
+                        {store.image && (
+                          <img
+                            src={store.image}
+                            alt={store.name}
+                            className="absolute inset-0 w-full h-full object-contain object-center"
+                            loading="lazy"
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
                         {/* Store Avatar with Profile Pic */}
@@ -567,11 +574,13 @@ const Index = () => {
                           <div className="relative">
                             <div className="w-12 h-12 bg-white dark:bg-navy-900 rounded-full p-1 shadow-lg ring-2 ring-white/30">
                               <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                                <img
-                                  src={store.image || "/store.jpeg"}
-                                  alt={store.name}
-                                  className="w-full h-full object-cover"
-                                />
+                                {store.image && (
+                                  <img
+                                    src={store.image}
+                                    alt={store.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
                               </div>
                             </div>
                             {store.verified && (

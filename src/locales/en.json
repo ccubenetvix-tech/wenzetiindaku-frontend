@@ -25,8 +25,8 @@
   "descFashionClothing": "Clothing, shoes, and accessories",
   "homeGarden": "Home & Garden",
   "descHomeGarden": "Home decor, furniture, and garden supplies",
-  "beautyHealth": "Beauty & Health",
-  "descBeautyHealth": "Cosmetics, skincare, and health products",
+  "beautyHealth": "Cosmetics & Beauty",
+  "descBeautyHealth": "Cosmetics, skincare and beauty products",
   "healthWellness": "Health & Wellness",
   "descHealthWellness": "Health products and wellness items",
   "sportsOutdoors": "Sports & Outdoors",
@@ -1067,7 +1067,8 @@
       "noProductsFoundForSearchqueryIn": "No products found for \"{{searchQuery}}\" in {{name}}",
       "noProductsAvailableInNameYet": "No products available in {{name}} yet.",
       "becomeAVendor": "Become a Vendor",
-      "productsInThisCategory": "Products in this category"
+      "productsInThisCategory": "Products in this category",
+      "unknownCategory": "Unknown category"
     },
     "chat": {
       "connectionError": "Connection Error",
@@ -1266,7 +1267,7 @@
       "pleaseCheckYourEmailForThe": "Please check your email for the password reset code.",
       "requestFailed": "Request failed",
       "passwordTooShort": "Password too short",
-      "newPasswordMustBeAtLeast": "New password must be at least 8 characters long.",
+      "newPasswordMustBeAtLeast": "New password must be at least 8 characters long and contain a special character.",
       "passwordsDoNotMatch": "Passwords do not match",
       "pleaseReTypeTheSameNew": "Please re-type the same new password.",
       "invalidOtp": "Invalid OTP",
@@ -1351,45 +1352,6 @@
       "goHome": "Go Home",
       "failedToSubmitReview": "Failed to submit review"
     },
-    "profile": {
-      "johnDoe": "John Doe",
-      "memberSinceJanuary2023": "Member since January 2023",
-      "personalInfo": "Personal Info",
-      "addresses": "Addresses",
-      "payment": "Payment",
-      "orderHistory": "Order History",
-      "wishlist": "Wishlist",
-      "personalInformation": "Personal Information",
-      "saveChanges": "Save Changes",
-      "editProfile": "Edit Profile",
-      "firstName": "First Name",
-      "lastName": "Last Name",
-      "email": "Email",
-      "phoneNumber": "Phone Number",
-      "settings": "Settings",
-      "preferredLanguage": "Preferred Language",
-      "shippingAddresses": "Shipping Addresses",
-      "addNewAddress": "Add New Address",
-      "homeAddress": "Home Address",
-      "default": "Default",
-      "kinshasaKinshasa0000": "Kinshasa, Kinshasa 0000",
-      "drCongo": "DR Congo",
-      "edit": "Edit",
-      "paymentMethods": "Payment Methods",
-      "addPaymentMethod": "Add Payment Method",
-      "expires1225": "Expires 12/25",
-      "orderId": "Order {{id}}",
-      "placedOnValue": "Placed on {{value}}",
-      "itemsItemSTotalTotal": "{{items}} item(s) • Total: ${{total}}",
-      "trackingTrackingnumber": "Tracking: {{trackingNumber}}",
-      "viewDetails": "View Details",
-      "trackOrder": "Track Order",
-      "reorder": "Reorder",
-      "accountActions": "Account Actions",
-      "signOut": "Sign Out",
-      "wishlistCountItems_one": "Wishlist ({{count}} item)",
-      "wishlistCountItems_other": "Wishlist ({{count}} items)"
-    },
     "shippingInfo": {
       "shippingInformation": "Shipping Information",
       "needHelpWithShipping": "Need Help with Shipping?",
@@ -1437,7 +1399,8 @@
       "exploringStores": "Exploring stores",
       "store": "Store",
       "featured": "Featured",
-      "forSearchquery": "for \"{{searchQuery}}\""
+      "forSearchquery": "for \"{{searchQuery}}\"",
+      "loadingStoresSubtitle": "Loading stores and their products…"
     },
     "updateProfile": {
       "invalidFileType": "Invalid File Type",
@@ -1622,7 +1585,7 @@
       "pleaseCheckYourEmailForThe": "Please check your email for the password reset code.",
       "requestFailed": "Request failed",
       "passwordTooShort": "Password too short",
-      "newPasswordMustBeAtLeast": "New password must be at least 8 characters long.",
+      "newPasswordMustBeAtLeast": "New password must be at least 8 characters long and contain a special character.",
       "passwordsDoNotMatch": "Passwords do not match",
       "pleaseReTypeTheSameNew": "Please re-type the same new password.",
       "invalidOtp": "Invalid OTP",
@@ -2681,5 +2644,12 @@
     "registration": "WENZE TII NDAKU Marketplace | National Identification Number: 01-S9502-N00001N | Kinshasa, Democratic Republic of Congo",
     "location": "Location"
   },
-  "products": "Products"
+  "products": "Products",
+  "linkCopied": "Link copied",
+  "shareFailed": "Could not share this product.",
+  "shareProduct": "Share this product",
+  "buyNow": "Buy now",
+  "navProducts": "Products",
+  "filters": "Filters",
+  "hideFilters": "Hide filters"
 }

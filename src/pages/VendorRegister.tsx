@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { isStrongPassword } from "@/utils";
+import { categoryLabel } from "@/lib/format";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -280,7 +282,7 @@ const VendorRegister = () => {
       formData.businessType &&
       formData.description.trim() &&
       formData.categories.length > 0 &&
-      formData.password.length >= 8 &&
+      isStrongPassword(formData.password) &&
       formData.password === formData.confirmPassword &&
       formData.agreeToTerms &&
       formData.agreeToVendorTerms &&
@@ -575,7 +577,7 @@ const VendorRegister = () => {
                           onChange={() => handleCategoryChange(category)}
                           className="w-4 h-4 text-orange-600 border-muted rounded focus:ring-orange-600 focus:ring-2"
                         />
-                        <span className="text-sm text-foreground">{category}</span>
+                        <span className="text-sm text-foreground">{categoryLabel(category)}</span>
                       </label>
                     ))}
                   </div>
@@ -618,7 +620,7 @@ const VendorRegister = () => {
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={`text-xs ${formData.password && !isStrongPassword(formData.password) ? "text-red-600" : "text-muted-foreground"}`}>
                         {t('pages.vendorRegister.mustBeAtLeast8Characters')}
                       </p>
                     </div>

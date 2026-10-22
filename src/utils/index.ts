@@ -72,6 +72,10 @@ export const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 
+// Password rule shown to users: at least 8 characters including a special character.
+export const isStrongPassword = (password: string): boolean =>
+  password.length >= 8 && /[^A-Za-z0-9]/.test(password);
+
 // Validate phone number
 export const isValidPhone = (phone: string): boolean => {
   const phoneRegex = /^\+?[\d\s\-()]+$/;
