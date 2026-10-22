@@ -34,7 +34,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/utils/api";
-import { calculateIncludedVAT, calculateVAT } from "@/utils/priceUtils";
+import { calculateIncludedVAT } from "@/utils/priceUtils";
 import { trackBeginCheckout } from "@/lib/analytics";
 
 
@@ -137,7 +137,7 @@ const Checkout = () => {
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cartItems]
   );
-  const vatAmount = useMemo(() => calculateVAT(subtotal), [subtotal]);
+  const vatAmount = useMemo(() => calculateIncludedVAT(subtotal), [subtotal]);
   const total = useMemo(() => subtotal, [subtotal]);
 
   const steps: Array<{ id: CheckoutStep; name: string; description: string }> = [

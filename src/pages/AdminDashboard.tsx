@@ -125,6 +125,7 @@ interface DashboardStats {
   totalSales: number;
   pendingVendors: number;
   flaggedProducts: number;
+  onHoldOrders: number;
 }
 
 interface Order {
@@ -697,6 +698,8 @@ const AdminDashboard = () => {
       delivered: 'bg-green-100 text-green-800 hover:bg-green-100',
       completed: 'bg-green-100 text-green-800 hover:bg-green-100',
       cancelled: 'bg-red-100 text-red-800 hover:bg-red-100',
+      on_hold: 'bg-red-100 text-red-800 hover:bg-red-100',
+      payment_pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
     };
     return statusColors[status] || 'bg-gray-100 text-gray-800 hover:bg-gray-100';
   };
@@ -1010,6 +1013,16 @@ const AdminDashboard = () => {
                             <span className="text-sm font-medium text-red-900 dark:text-red-100">{t('pages.adminDashboard.flaggedProducts')}</span>
                           </div>
                           <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{stats?.flaggedProducts ?? 0}</Badge>
+                        </div>
+                      )}
+
+                      {(stats?.onHoldOrders ?? 0) > 0 && (
+                        <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                          <div className="flex items-center space-x-3">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            <span className="text-sm font-medium text-red-900 dark:text-red-100">{t('pages.adminDashboard.onHoldOrders')}</span>
+                          </div>
+                          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{stats?.onHoldOrders ?? 0}</Badge>
                         </div>
                       )}
                     </>
@@ -1336,6 +1349,7 @@ const AdminDashboard = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t('pages.adminDashboard.allStatus')}</SelectItem>
+                      <SelectItem value="payment_pending">{t('pages.adminDashboard.paymentPending')}</SelectItem>
                       <SelectItem value="pending">{t('pages.adminDashboard.pending')}</SelectItem>
                       <SelectItem value="confirmed">{t('pages.adminDashboard.confirmed')}</SelectItem>
                       <SelectItem value="processing">{t('pages.adminDashboard.processing')}</SelectItem>
@@ -1343,6 +1357,7 @@ const AdminDashboard = () => {
                       <SelectItem value="out_for_delivery">{t('pages.adminDashboard.outForDelivery')}</SelectItem>
                       <SelectItem value="delivered">{t('pages.adminDashboard.delivered')}</SelectItem>
                       <SelectItem value="completed">{t('pages.adminDashboard.completed')}</SelectItem>
+                      <SelectItem value="on_hold">{t('pages.adminDashboard.onHold')}</SelectItem>
                       <SelectItem value="cancelled">{t('pages.adminDashboard.cancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
