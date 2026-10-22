@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Heart,
   Star,
   ShoppingCart,
-  Shield,
   ZoomIn,
   Store as StoreIcon,
   Package,
@@ -48,11 +47,13 @@ import { useLoaderTransition } from "@/hooks/useLoaderTransition";
 import { SEO } from "@/components/SEO";
 import i18n from "@/lib/i18n";
 
-import { formatDate } from "@/lib/format";
+import { formatDate, categoryLabel } from "@/lib/format";
+import { trackViewItem } from "@/lib/analytics";
 const ProductDetail = () => {
   const MIN_LOADING_DURATION = 400;
   const { productId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -189,7 +190,15 @@ const ProductDetail = () => {
         console.log('Product response:', response);
 
         if (response.success && response.data) {
-          setProduct(response.data.product || response.data);
+          const loadedProduct = response.data.product || response.data;
+          setProduct(loadedProduct);
+          trackViewItem({
+            id: loadedProduct.id,
+            name: loadedProduct.name,
+            price: loadedProduct.price,
+            category: loadedProduct.category,
+            vendor: loadedProduct.vendor?.business_name,
+          });
         } else {
           console.error('Error loading product:', response.error);
           setLoadError(t('productNotFound'));
@@ -307,7 +316,7 @@ const ProductDetail = () => {
         description: t('loginToCart'),
         variant: "destructive"
       });
-      navigate('/login');
+      navigate('/customer/login', { state: { redirectTo: location.pathname } });
       return false;
     }
 
@@ -363,6 +372,29 @@ const ProductDetail = () => {
       setIsAddToCartLoading(false);
     }
   }, [addToCart, isAuthenticated, navigate, product, quantity, selectedImage, toast, user?.role]);
+
+  // "Buy now": add to cart, then go straight to checkout.
+  const handleBuyNow = useCallback(async () => {
+    const added = await handleAddToCart();
+    if (added) navigate('/checkout');
+  }, [handleAddToCart, navigate]);
+
+  // Share the product link (native share sheet on phones, copy link elsewhere).
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product?.name, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast({ title: t('linkCopied') });
+    } catch (error) {
+      if ((error as Error)?.name !== 'AbortError') {
+        toast({ title: t('error'), description: t('shareFailed'), variant: 'destructive' });
+      }
+    }
+  }, [product?.name, t, toast]);
 
   // Check if current user is the vendor of this product
   const isVendor = product && user && user.role === 'vendor' && (user.businessName === product.vendor?.business_name || user.businessName === product.vendor?.name);
@@ -491,7 +523,7 @@ const ProductDetail = () => {
         description: t('loginToReview'),
         variant: "destructive"
       });
-      navigate('/login');
+      navigate('/customer/login', { state: { redirectTo: location.pathname } });
       return;
     }
 
@@ -607,6 +639,7 @@ const ProductDetail = () => {
 
   const productData = product ?? {};
   const productCategory = productData.category || t("productDetail.allProducts", "Products");
+  const productCategoryLabel = productData.category ? categoryLabel(productData.category) : productCategory;
   const productName = productData.name || t("productDetail.productName", "Product");
   const productImages = Array.isArray(productData.images) && productData.images.length > 0
     ? productData.images
@@ -618,13 +651,14 @@ const ProductDetail = () => {
     "Unknown Vendor";
   const isProductNew = Boolean(productData.isNew ?? productData.is_new);
   const isProductFeatured = Boolean(productData.isFeatured ?? productData.is_featured);
-  const productRating = Number(
-    typeof productData.rating === "string" ? parseFloat(productData.rating) : productData.rating || 0,
-  );
   const productReviewCount =
     productData.review_count ??
     productData.reviewCount ??
     0;
+  // The database gives new products a default rating; show none until there are real reviews.
+  const productRating = productReviewCount > 0
+    ? Number(typeof productData.rating === "string" ? parseFloat(productData.rating) : productData.rating || 0)
+    : 0;
   const productStock = Number.isFinite(productData.stock)
     ? productData.stock
     : Number.parseInt(productData.stock, 10) || 0;
@@ -665,7 +699,7 @@ const ProductDetail = () => {
           type="product"
           breadcrumbs={[
             { name: t('home'), url: '/' },
-            { name: t(productCategory || 'category'), url: `/category/${encodeURIComponent(productData.category)}` },
+            { name: productCategoryLabel, url: `/category/${encodeURIComponent(productData.category)}` },
             { name: productName, url: `/product/${productId}` }
           ]}
           schema={{
@@ -709,7 +743,7 @@ const ProductDetail = () => {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/')}>{t('home')}</span>
                 <span>/</span>
-                <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/categories')}>{t(productCategory)}</span>
+                <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/categories')}>{productCategoryLabel}</span>
                 <span>/</span>
                 <span className="text-foreground">{productName}</span>
               </div>
@@ -796,11 +830,11 @@ const ProductDetail = () => {
                   <div className="flex items-baseline gap-3 mb-3">
                     <span className="text-3xl font-bold text-primary">{t('price')}</span>
                     <span className="text-3xl font-bold text-primary">
-                      ${productPrice}
+                      ${Number(productPrice).toFixed(2)}
                     </span>
                     {productOriginalPrice && (
                       <span className="text-xl text-muted-foreground line-through">
-                        ${productOriginalPrice}
+                        ${Number(productOriginalPrice).toFixed(2)}
                       </span>
                     )}
                   </div>
@@ -847,7 +881,8 @@ const ProductDetail = () => {
                     <div className="flex items-center border rounded-md">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="px-3 py-2 hover:bg-muted"
+                        disabled={productStock === 0}
+                        className="px-3 py-2 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         -
                       </button>
@@ -857,7 +892,8 @@ const ProductDetail = () => {
                           const maxQuantity = productStock > 0 ? productStock : 1;
                           setQuantity(Math.min(maxQuantity, quantity + 1));
                         }}
-                        className="px-3 py-2 hover:bg-muted"
+                        disabled={productStock === 0 || quantity >= productStock}
+                        className="px-3 py-2 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         +
                       </button>
@@ -884,14 +920,25 @@ const ProductDetail = () => {
                       ) : (
                         <>
                           <ShoppingCart className="h-5 w-5 mr-2" />
-                          {!isAuthenticated
-                            ? t('loginToAdd')
-                            : user?.role === 'vendor'
-                              ? t('notForVendors')
-                              : t('addToCart')
+                          {productStock === 0
+                            ? t('outOfStock')
+                            : !isAuthenticated
+                              ? t('loginToAdd')
+                              : user?.role === 'vendor'
+                                ? t('notForVendors')
+                                : t('addToCart')
                           }
                         </>
                       )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleShare}
+                      aria-label={t('shareProduct')}
+                      title={t('shareProduct')}
+                    >
+                      <Share2 className="h-5 w-5" />
                     </Button>
                     <Button
                       variant="outline"
@@ -907,21 +954,21 @@ const ProductDetail = () => {
                       )}
                     </Button>
                   </div>
+                  {productStock > 0 && user?.role !== 'vendor' && (
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="w-full"
+                      disabled={isAddToCartLoading}
+                      onClick={handleBuyNow}
+                    >
+                      {t('buyNow')}
+                    </Button>
+                  )}
                 </div>
 
 
 
-                {/* Trust Badges */}
-                <div className="grid grid-cols-1 gap-3 text-sm">
-                  <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span className="text-green-800 dark:text-green-200">{t('securePayment')}</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <CheckCircle className="h-4 w-4 text-purple-600" />
-                    <span className="text-purple-800 dark:text-purple-200">{t('Quality Guaranteed')}</span>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -1217,7 +1264,7 @@ const ProductDetail = () => {
                   onClick={() => canNavigateToCategory && navigate(`/search?category=${encodeURIComponent(String(productCategory))}`)}
                   disabled={!canNavigateToCategory}
                 >
-                  {t('viewAllInCategory', { category: t(productCategory) })}
+                  {t('viewAllInCategory', { category: productCategoryLabel })}
                 </Button>
               </div>
               {isLoadingRelated ? (

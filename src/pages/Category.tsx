@@ -77,13 +77,21 @@ const Category = () => {
     loadProducts();
   }, [categoryId, currentPage, searchQuery, sortBy, sortOrder]);
 
+  // Show the top of the results when moving to another page.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
+
   // Create a fallback category if not found
-  const displayCategory = category || {
-    id: categoryId,
-    name: categoryId || 'Unknown Category',
-    description: t('pages.category.productsInThisCategory'),
-    icon: '📦'
-  };
+  // predefinedCategories stores translation keys; resolve them for the current language.
+  const displayCategory = category
+    ? { ...category, name: t(category.name), description: t(category.description) }
+    : {
+        id: categoryId,
+        name: categoryId || t('pages.category.unknownCategory'),
+        description: t('pages.category.productsInThisCategory'),
+        icon: '📦'
+      };
 
   // Filter products based on search
   const filteredProducts = useMemo(() => {

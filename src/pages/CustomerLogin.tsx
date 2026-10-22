@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { User, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,10 @@ import i18n from "@/lib/i18n";
 const CustomerLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Return to the page that asked for login (e.g. a product page), only within this site.
+  const requestedRedirect = (location.state as { redirectTo?: string } | null)?.redirectTo;
+  const redirectTo = requestedRedirect && requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//') ? requestedRedirect : '/';
   const [searchParams, setSearchParams] = useSearchParams();
   const { login, googleLogin, isLoading, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -86,7 +90,7 @@ const CustomerLogin = () => {
           title: i18n.t('pages.customerLogin.loginSuccessful'),
           description: i18n.t('pages.customerLogin.welcomeBackToWenzeTiiNdaku'),
         });
-        navigate("/");
+        navigate(redirectTo);
       }
     } catch (error) {
       // Account exists but was never verified (e.g. their OTP expired before they
@@ -330,7 +334,6 @@ const CustomerLogin = () => {
                 <p>{t('pages.customerLogin.emailTechWenzetiindakuOutlookCom')}</p>
                 <p>{t('pages.customerLogin.phone32495846866')}</p>
                 <p>{t('pages.customerLogin.locationKinshasaRDCongo')}</p>
-                <p>{t('pages.customerLogin.hoursMonFri9am6pmWat')}</p>
               </div>
             </div>
           </div>

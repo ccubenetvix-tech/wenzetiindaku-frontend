@@ -35,7 +35,7 @@ import { Footer } from '@/components/Footer';
 import i18n from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
 
-import { formatDate } from "@/lib/format";
+import { formatDate, categoryLabel } from "@/lib/format";
 const VendorProfile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -729,7 +729,7 @@ const VendorProfile = () => {
                               className="rounded border-gray-300"
                             />
                             <Label htmlFor={category} className="text-sm font-normal">
-                              {category}
+                              {categoryLabel(category)}
                             </Label>
                           </div>
                         ))}
