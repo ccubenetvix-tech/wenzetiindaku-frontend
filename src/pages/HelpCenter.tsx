@@ -3,41 +3,21 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MessageCircle, Search, HelpCircle, FileText, Users, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mail, MessageCircle, HelpCircle, FileText, RotateCcw, Truck, Shield } from "lucide-react";
 
 export default function HelpCenter() {
   const { t } = useTranslation();
 
-  const helpCategories = [
-    {
-      icon: FileText,
-      title: t('pages.helpCenter.gettingStarted'),
-      description: t('pages.helpCenter.learnHowToUseOurMarketplace'),
-      topics: [t('pages.helpCenter.accountSetup'), t('pages.helpCenter.firstPurchase'), t('pages.helpCenter.profileManagement'), t('pages.helpCenter.securityTips')]
-    },
-    {
-      icon: Users,
-      title: t('pages.helpCenter.accountProfile'),
-      description: t('pages.helpCenter.manageYourAccountSettings'),
-      topics: [t('pages.helpCenter.passwordReset'), t('pages.helpCenter.emailVerification'), t('pages.helpCenter.profileUpdates'), t('pages.helpCenter.accountDeletion')]
-    },
-    {
-      icon: Clock,
-      title: t('pages.helpCenter.ordersShipping'),
-      description: t('pages.helpCenter.trackAndManageYourOrders'),
-      topics: [t('pages.helpCenter.orderTracking'), t('pages.helpCenter.shippingOptions'), t('pages.helpCenter.deliveryIssues'), t('pages.helpCenter.orderHistory')]
-    },
-    {
-      icon: HelpCircle,
-      title: t('pages.helpCenter.paymentBilling'),
-      description: t('pages.helpCenter.paymentMethodsAndBilling'),
-      topics: [t('pages.helpCenter.paymentMethods'), t('pages.helpCenter.billingIssues'), t('pages.helpCenter.refunds'), t('pages.helpCenter.paymentSecurity')]
-    }
+  // Pages that hold the client's own documents.
+  const helpLinks = [
+    { icon: HelpCircle, title: t('legalDocs.faq.title'), href: '/faq' },
+    { icon: RotateCcw, title: t('legalDocs.returns.title'), href: '/returns' },
+    { icon: Truck, title: t('pages.shippingInfo.shippingInformation'), href: '/shipping' },
+    { icon: FileText, title: t('legalDocs.terms.title'), href: '/terms' },
+    { icon: FileText, title: t('legalDocs.vendorTerms.title'), href: '/vendor-terms' },
+    { icon: Shield, title: t('legalDocs.privacy.title'), href: '/privacy' },
   ];
-
-
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -52,14 +32,6 @@ export default function HelpCenter() {
               {t('pages.helpCenter.findAnswersToYourQuestionsAnd')}
             </p>
 
-            {/* Search Bar */}
-            <div className="max-w-md mx-auto relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder={t('pages.helpCenter.searchForHelp')}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/70"
-              />
-            </div>
           </div>
         </section>
 
@@ -68,26 +40,18 @@ export default function HelpCenter() {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">{t('pages.helpCenter.howCanWeHelpYou')}</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {helpCategories.map((category, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow duration-300 cursor-pointer">
-                  <CardHeader className="text-center">
-                    <div className="mx-auto mb-4 p-3 bg-blue-100 dark:bg-blue-900/20 rounded-full w-fit">
-                      <category.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <CardTitle className="text-lg">{category.title}</CardTitle>
-                    <p className="text-muted-foreground text-sm">{category.description}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {category.topics.map((topic, topicIndex) => (
-                        <li key={topicIndex} className="text-sm text-muted-foreground hover:text-primary cursor-pointer">
-                          • {topic}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {helpLinks.map((link) => (
+                <Link key={link.href} to={link.href}>
+                  <Card className="h-full hover:shadow-lg transition-shadow duration-300">
+                    <CardHeader className="text-center">
+                      <div className="mx-auto mb-4 p-3 bg-blue-100 dark:bg-blue-900/20 rounded-full w-fit">
+                        <link.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <CardTitle className="text-lg">{link.title}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
@@ -104,50 +68,32 @@ export default function HelpCenter() {
                 {t('pages.helpCenter.canTFindWhatYouRe')}
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <Card className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6 text-center">
                     <Mail className="h-8 w-8 text-blue-600 mx-auto mb-4" />
                     <h3 className="font-semibold mb-2">{t('pages.helpCenter.emailSupport')}</h3>
                     <p className="text-sm text-muted-foreground mb-4">{t('pages.helpCenter.getHelpViaEmail')}</p>
-                    <Button variant="outline" size="sm">{t('pages.helpCenter.sendEmail')}</Button>
+                    <Button asChild variant="outline" size="sm">
+                      <a href="mailto:wenzetiindaku@outlook.com">{t('pages.helpCenter.sendEmail')}</a>
+                    </Button>
                   </CardContent>
                 </Card>
 
                 <Card className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6 text-center">
-                    <Phone className="h-8 w-8 text-green-600 mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">{t('pages.helpCenter.phoneSupport')}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{t('pages.helpCenter.callUsDirectly')}</p>
-                    <Button variant="outline" size="sm">{t('pages.helpCenter.callNow')}</Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-6 text-center">
-                    <MessageCircle className="h-8 w-8 text-purple-600 mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">{t('pages.helpCenter.liveChat')}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{t('pages.helpCenter.chatWithSupport')}</p>
-                    <Button variant="outline" size="sm">{t('pages.helpCenter.startChat')}</Button>
+                    <MessageCircle className="h-8 w-8 text-green-600 mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">{t('whatsappMessagesOnly')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">+32 495 84 68 66</p>
+                    <Button asChild variant="outline" size="sm">
+                      <a href="https://wa.me/32495846866" target="_blank" rel="noopener noreferrer">
+                        {t('pages.helpCenter.sendWhatsappMessage')}
+                      </a>
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Contact Form */}
-              <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                  <CardTitle>{t('pages.helpCenter.sendUsAMessage')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input placeholder={t('pages.helpCenter.yourName')} />
-                    <Input placeholder={t('pages.helpCenter.yourEmail')} type="email" />
-                  </div>
-                  <Input placeholder={t('pages.helpCenter.subject')} />
-                  <Textarea placeholder={t('pages.helpCenter.yourMessage')} rows={4} />
-                  <Button className="w-full">{t('pages.helpCenter.sendMessage')}</Button>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </section>

@@ -11,7 +11,7 @@
 import { useState, useEffect, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Star, TrendingUp, Users, ShoppingBag, Shield, Truck, Loader2, Store } from "lucide-react";
+import { ArrowRight, Star, Users, ShoppingBag, Truck, Loader2, Store } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 // Import UI components
@@ -195,9 +195,9 @@ const Index = () => {
           "url": "https://www.wenzetiindaku.com",
           "logo": "https://www.wenzetiindaku.com/marketplace.jpeg",
           "sameAs": [
-            "https://www.facebook.com/wenzetiindaku",
-            "https://twitter.com/wenzetiindaku",
-            "https://www.instagram.com/wenzetiindaku"
+            "https://www.facebook.com/share/1DhBePM4Qg/",
+            "https://www.instagram.com/wenze2ndaku",
+            "https://www.linkedin.com/company/wenze-tii-ndaku/"
           ]
         }}
       />
@@ -210,13 +210,10 @@ const Index = () => {
               {/* Left Content */}
               <div className="text-center lg:text-left">
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                  {t('yourPremierMarketplace')}{" "}
-                  <span className="bg-gradient-to-r from-navy-600 to-orange-500 bg-clip-text text-transparent">
-                    {t('marketplace')}
-                  </span>
+                  {t('heroTitle')}
                 </h1>
                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-xl mx-auto lg:mx-0">
-                  {t('discoverMillions')}
+                  {t('aboutSubtitle')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                   <Button
@@ -250,35 +247,6 @@ const Index = () => {
                     showCounter={false}
                   />
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Trust Indicators - Professional */}
-        <section className="bg-gray-50 dark:bg-navy-950 py-8">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Shield className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('securePayment')}</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('secureCheckout')}</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-navy-600 to-orange-500 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Users className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('support247')}</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('alwaysHereToHelp')}</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-navy-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{t('bestPrices')}</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('competitiveRates')}</p>
               </div>
             </div>
           </div>
@@ -646,28 +614,6 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Platform Statistics - Professional Design */}
-        <section className="py-16 bg-gradient-to-br from-navy-950 via-navy-900 to-orange-950 relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] bg-[size:60px_60px]"></div>
-          </div>
-
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center mb-12">
-              <div className="inline-block mb-4">
-                <span className="bg-gradient-to-r from-orange-400 to-orange-600 text-transparent bg-clip-text text-sm font-semibold uppercase tracking-wider">
-                  {t('platformExcellence')}
-                </span>
-              </div>
-              <p className="text-white/70 max-w-2xl mx-auto text-lg">
-                {t('joinGrowingCommunity')}
-              </p>
-
             </div>
           </div>
         </section>

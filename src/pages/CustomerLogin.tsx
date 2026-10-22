@@ -330,7 +330,6 @@ const CustomerLogin = () => {
                 <p>{t('pages.customerLogin.emailTechWenzetiindakuOutlookCom')}</p>
                 <p>{t('pages.customerLogin.phone32495846866')}</p>
                 <p>{t('pages.customerLogin.locationKinshasaRDCongo')}</p>
-                <p>{t('pages.customerLogin.hoursMonFri9am6pmWat')}</p>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import {
   Mail,
-  Phone,
+  MessageCircle,
   MapPin,
   HelpCircle,
 } from "lucide-react";
@@ -48,32 +48,23 @@ const Contact = () => {
                     <div className="space-y-4 text-muted-foreground">
                       <div>
                         <p className="font-medium text-foreground text-sm">{t('pages.contact.generalInquiries')}</p>
-                        <p>info@wenzetiindaku.com</p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-foreground text-sm">{t('pages.contact.technicalSupport')}</p>
-                        <p>tech@wenzetiindaku.com <span className="text-xs text-muted-foreground italic block">{t('pages.contact.forTechAssistance')}</span></p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-foreground text-sm">{t('pages.contact.vendorSupport')}</p>
-                        <p>vendors@wenzetiindaku.com</p>
+                        <a href="mailto:wenzetiindaku@outlook.com" className="hover:text-primary">wenzetiindaku@outlook.com</a>
                       </div>
 
                       <div>
                         <p className="font-medium text-foreground text-sm">{t('pages.contact.customerSupport')}</p>
-                        <p>customers@wenzetiindaku.com</p>
+                        <a href="mailto:wtn-customers@outlook.com" className="hover:text-primary">wtn-customers@outlook.com</a>
+                        <span className="text-xs text-muted-foreground italic block">{t('pages.contact.returnsAndDataRequests')}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-start">
-                  <Phone className="h-6 w-6 text-secondary mr-4 mt-1" />
+                  <MessageCircle className="h-6 w-6 text-secondary mr-4 mt-1" />
                   <div>
-                    <h3 className="font-semibold mb-1">{t('pages.contact.phoneSupport')}</h3>
-                    <p className="text-muted-foreground">+32 495 84 68 66</p>
+                    <h3 className="font-semibold mb-1">{t('whatsappMessagesOnly')}</h3>
+                    <a href="https://wa.me/32495846866" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">+32 495 84 68 66</a>
                   </div>
                 </div>
 

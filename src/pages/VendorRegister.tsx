@@ -13,8 +13,6 @@ import {
   Phone,
   Globe,
   FileText,
-  CheckCircle,
-  TrendingUp,
   AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -318,28 +316,6 @@ const VendorRegister = () => {
               <p className="text-muted-foreground text-lg">
                 {t('joinMarketplace')}
               </p>
-            </div>
-
-            {/* Benefits Banner */}
-            <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-              <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200 mb-3">
-                <TrendingUp className="h-5 w-5" />
-                <span className="text-lg font-semibold">{t('growBusiness')}</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-orange-700 dark:text-orange-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{t('reachCustomers')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{t('pages.vendorRegister.easyToUseVendorDashboard')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{t('pages.vendorRegister.securePaymentProcessing')}</span>
-                </div>
-              </div>
             </div>
 
             {!showOTPForm ? (

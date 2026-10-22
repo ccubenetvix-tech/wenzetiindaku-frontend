@@ -6,7 +6,6 @@ import {
   Heart,
   Star,
   ShoppingCart,
-  Shield,
   ZoomIn,
   Store as StoreIcon,
   Package,
@@ -911,17 +910,6 @@ const ProductDetail = () => {
 
 
 
-                {/* Trust Badges */}
-                <div className="grid grid-cols-1 gap-3 text-sm">
-                  <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span className="text-green-800 dark:text-green-200">{t('securePayment')}</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <CheckCircle className="h-4 w-4 text-purple-600" />
-                    <span className="text-purple-800 dark:text-purple-200">{t('Quality Guaranteed')}</span>
-                  </div>
-                </div>
               </div>
             </div>
 
