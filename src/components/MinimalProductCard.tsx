@@ -272,11 +272,12 @@ export const MinimalProductCard = memo(function MinimalProductCard({
           </div>
 
           {/* Minimal Add to Cart / View Product - Only on hover */}
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {/* Always visible on touch screens (no hover); revealed on hover from md up */}
+          <div className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
             <Button
               onClick={user?.role === 'vendor' ? handleProductClick : handleAddToCart}
               size="sm"
-              className={`w-full h-7 text-xs ${!isAuthenticated
+              className={`w-full h-10 md:h-7 text-xs ${!isAuthenticated
                 ? 'bg-gray-400 hover:bg-gray-500 text-white'
                 : user?.role === 'vendor'
                   ? 'bg-orange-500 hover:bg-orange-600 text-white'

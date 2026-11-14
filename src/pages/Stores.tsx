@@ -17,6 +17,7 @@
 
 // Import React hooks and utilities
 import { useState, useMemo } from "react";
+import { categoryLabel } from "@/lib/format";
 import { useTranslation } from "react-i18next"; // For internationalization support
 import { useNavigate } from "react-router-dom"; // For programmatic navigation
 
@@ -176,7 +177,7 @@ export default function Stores() {
           <PageLoader
             variant="store"
             title={t('pages.stores.exploringStores')}
-            subtitle="Discovering places near you"
+            subtitle={t('pages.stores.loadingStoresSubtitle')}
             fadingOut={isFadingOut}
           />
         )}
@@ -228,15 +229,13 @@ export default function Stores() {
                     <div className="flex items-start gap-4 mb-6">
                       {/* Store avatar with uploaded image */}
                       <div className="w-20 h-20 rounded-full flex-shrink-0 overflow-hidden border-2 border-navy-100 dark:border-navy-800 bg-gradient-to-br from-navy-100 to-orange-100 dark:from-navy-900/20 dark:to-orange-900/20 flex items-center justify-center">
-                        {store.image ? (
+                        {store.image && (
                           <img
                             src={store.image}
                             alt={store.name}
                             className="w-full h-full object-cover object-center"
                             loading="lazy"
                           />
-                        ) : (
-                          <img src="/store.jpeg" className="w-full h-full object-cover object-center" alt={t('pages.stores.store')} />
                         )}
                       </div>
 
@@ -286,7 +285,7 @@ export default function Stores() {
                               key={index}
                               className="bg-navy-100 dark:bg-navy-900/20 text-navy-800 dark:text-navy-300 text-xs px-2 py-1 rounded-full whitespace-nowrap border border-navy-200 dark:border-navy-800"
                             >
-                              {category}
+                              {categoryLabel(category)}
                             </span>
                           ))}
                         </div>
@@ -295,7 +294,7 @@ export default function Stores() {
                       <div>
                         <h4 className="text-sm font-medium text-foreground mb-2">{t('specialties')}</h4>
                         <div className="text-sm text-muted-foreground leading-relaxed">
-                          {store.specialties.join(", ")}
+                          {store.specialties.map((s: string) => categoryLabel(s)).join(", ")}
                         </div>
                       </div>
                     </div>

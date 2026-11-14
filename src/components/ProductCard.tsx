@@ -257,11 +257,12 @@ export const ProductCard = memo(function ProductCard({
           </Button>
 
           {/* Add to Cart / View Product Button - Professional overlay */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* Always visible on touch screens (no hover); revealed on hover from md up */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
             <div className={`${compact ? 'p-2' : 'p-3'}`}>
               <Button
                 size={compact ? 'sm' : 'sm'}
-                className={`w-full rounded-md ${!isAuthenticated
+                className={`w-full rounded-md h-10 md:h-9 ${!isAuthenticated
                   ? 'bg-gray-400 hover:bg-gray-500 text-white'
                   : user?.role === 'vendor'
                     ? 'bg-orange-500 hover:bg-orange-600 text-white'

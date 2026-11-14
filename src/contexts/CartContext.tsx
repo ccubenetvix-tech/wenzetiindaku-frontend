@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { apiClient } from '../utils/api';
 import { useAuth } from './AuthContext';
 import i18n from "@/lib/i18n";
+import { trackAddToCart } from "@/lib/analytics";
 
 /**
  * Cart Item Interface
@@ -182,6 +183,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         // Refresh cart from database to get the new item with proper ID
         await refreshCart();
       }
+      trackAddToCart({ id: product.productId, name: product.name, price: product.price, vendor: product.vendor });
     } catch (error) {
       console.error('Failed to add to cart:', error);
       throw error;

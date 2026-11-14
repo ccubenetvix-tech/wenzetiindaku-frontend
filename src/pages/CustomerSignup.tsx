@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { isStrongPassword } from "@/utils";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { User, Eye, EyeOff, Mail, Lock, ArrowLeft, UserPlus, CheckCircle, AlertCircle } from "lucide-react";
@@ -228,7 +229,7 @@ const CustomerSignup = () => {
       formData.firstName.trim() &&
       formData.lastName.trim() &&
       formData.email.trim() &&
-      formData.password.length >= 8 &&
+      isStrongPassword(formData.password) &&
       formData.password === formData.confirmPassword &&
       formData.agreeToTerms &&
       emailStatus.state !== "blocked"
@@ -378,7 +379,7 @@ const CustomerSignup = () => {
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className={`text-xs ${formData.password && !isStrongPassword(formData.password) ? "text-red-600" : "text-muted-foreground"}`}>
                     {t('pages.customerSignup.mustBeAtLeast8Characters')}
                   </p>
                 </div>

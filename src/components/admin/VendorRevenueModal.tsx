@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiClient } from '../../utils/api';
-import { Loader2, DollarSign, ShoppingBag, TrendingUp, Package, Calendar, Trophy, Box } from 'lucide-react';
+import { Loader2, DollarSign, ShoppingBag, TrendingUp, Package, Calendar, Trophy, Box, Percent } from 'lucide-react';
 import i18n from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
 
@@ -40,6 +40,9 @@ interface VendorRevenueData {
     vendorName: string;
     totalRevenue: number;
     totalSalesVolume: number;
+    netRevenue: number;
+    commissionRate: number;
+    commission: number;
     totalProfit: number;
     avgGain: number;
     totalProducts: number;
@@ -161,7 +164,7 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                     <div className="space-y-8 animate-in fade-in zoom-in duration-300">
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div className="bg-white p-4 rounded-xl border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="p-2 bg-green-50 rounded-lg">
@@ -183,6 +186,19 @@ const VendorRevenueModal: React.FC<VendorRevenueModalProps> = ({
                                 <div>
                                     <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.totalGain')}</p>
                                     <p className="text-xl font-bold text-gray-900 mt-1">{formatMoney(data.totalProfit)}</p>
+                                    <p className="text-[10px] text-gray-400">{t('components.admin.vendorRevenueModal.netOfVatAndCommission')}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-xl border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="p-2 bg-rose-50 rounded-lg">
+                                        <Percent className="h-5 w-5 text-rose-600" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('components.admin.vendorRevenueModal.platformCommission', { rate: Math.round(data.commissionRate * 100) })}</p>
+                                    <p className="text-xl font-bold text-gray-900 mt-1">{formatMoney(data.commission)}</p>
                                 </div>
                             </div>
 

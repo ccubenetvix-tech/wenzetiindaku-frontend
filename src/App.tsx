@@ -1,4 +1,6 @@
 // Import UI notification components for toast messages
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 // Import tooltip provider for enhanced UI interactions
@@ -6,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Import React Query for server state management and caching
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // Import React Router for client-side routing and navigation
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 // Import i18next for internationalization support
 import { I18nextProvider } from "react-i18next";
@@ -20,51 +22,51 @@ import { ChatProvider } from "@/contexts/ChatContext";
 import { CookieConsent } from "@/components/CookieConsent";
 // Import i18n configuration for multi-language support
 import i18n from "./lib/i18n";
-// Import all page components for routing
+// Page components. The home page and 404 load with the app; every other page is
+// loaded on demand (code splitting) so the first visit downloads much less JavaScript.
 // Main marketplace pages
 import Index from "./pages/Index";                    // Homepage with hero section and featured content
-import Category from "./pages/Category";              // Individual category page with products
-import Categories from "./pages/Categories";          // Categories listing page
-import Store from "./pages/Store";                    // Individual store page
-import Stores from "./pages/Stores";                  // Stores listing page
-import ProductDetail from "./pages/ProductDetail";    // Product details and purchase page
-import Cart from "./pages/Cart";                      // Shopping cart page
-import Checkout from "./pages/Checkout";              // Checkout and payment page
-import OrderSuccess from "./pages/OrderSuccess";      // Order success confirmation page
-import OrderFailure from "./pages/OrderFailure";      // Order failure page
-import Profile from "./pages/Profile";                // User profile management
-import CustomerProfile from "./pages/CustomerProfile"; // Customer profile management
-import CustomerDashboard from "./pages/CustomerDashboard"; // Customer dashboard
-import AddAddress from "./pages/AddAddress"; // Add Address page
-import VendorProfile from "./pages/VendorProfile";     // Vendor profile management
-import SearchResults from "./pages/SearchResults";    // Search results page
-import Chat from "./pages/Chat";                        // Chat page
-import LogoutConfirmation from "./pages/LogoutConfirmation"; // Logout confirmation page
+const Category = lazy(() => import("./pages/Category"));              // Individual category page with products
+const Categories = lazy(() => import("./pages/Categories"));          // Categories listing page
+const Store = lazy(() => import("./pages/Store"));                    // Individual store page
+const Stores = lazy(() => import("./pages/Stores"));                  // Stores listing page
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));    // Product details and purchase page
+const Cart = lazy(() => import("./pages/Cart"));                      // Shopping cart page
+const Checkout = lazy(() => import("./pages/Checkout"));              // Checkout and payment page
+const OrderSuccess = lazy(() => import("./pages/OrderSuccess"));      // Order success confirmation page
+const OrderFailure = lazy(() => import("./pages/OrderFailure"));      // Order failure page
+const CustomerProfile = lazy(() => import("./pages/CustomerProfile")); // Customer profile management
+const CustomerDashboard = lazy(() => import("./pages/CustomerDashboard")); // Customer dashboard
+const AddAddress = lazy(() => import("./pages/AddAddress")); // Add Address page
+const VendorProfile = lazy(() => import("./pages/VendorProfile"));     // Vendor profile management
+const SearchResults = lazy(() => import("./pages/SearchResults"));    // Search results page
+const Chat = lazy(() => import("./pages/Chat"));                        // Chat page
+const LogoutConfirmation = lazy(() => import("./pages/LogoutConfirmation")); // Logout confirmation page
 
 // Information and legal pages
-import About from "./pages/About";                    // About the marketplace
-import Contact from "./pages/Contact";                // Contact information and form
-import PrivacyPolicy from "./pages/PrivacyPolicy";    // Privacy policy page
-import TermsOfService from "./pages/TermsOfService";  // Terms of service page
-import VendorTerms from "./pages/VendorTerms";        // Vendor terms page
-import CookiePolicy from "./pages/CookiePolicy";      // Cookie policy page
-import HelpCenter from "./pages/HelpCenter";          // Help and support center
-import ShippingInfo from "./pages/ShippingInfo";      // Shipping information
-import Returns from "./pages/Returns";                // Returns and refunds policy
-import Faq from "./pages/Faq";                      // Frequently Asked Questions page
+const About = lazy(() => import("./pages/About"));                    // About the marketplace
+const Contact = lazy(() => import("./pages/Contact"));                // Contact information and form
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));    // Privacy policy page
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));  // Terms of service page
+const VendorTerms = lazy(() => import("./pages/VendorTerms"));        // Vendor terms page
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));      // Cookie policy page
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));          // Help and support center
+const ShippingInfo = lazy(() => import("./pages/ShippingInfo"));      // Shipping information
+const Returns = lazy(() => import("./pages/Returns"));                // Returns and refunds policy
+const Faq = lazy(() => import("./pages/Faq"));                      // Frequently Asked Questions page
 
 // Authentication and dashboard pages
-import CustomerLogin from "./pages/CustomerLogin";    // Customer login page
-import CustomerSignup from "./pages/CustomerSignup";  // Customer registration page
-import VendorLogin from "./pages/VendorLogin";        // Vendor login page
-import VendorRegister from "./pages/VendorRegister";  // Vendor registration page
-import VendorDashboard from "./pages/VendorDashboard"; // Vendor management dashboard
-import ForgotPassword from "./pages/ForgotPassword";    // Customer password reset page
-import VendorForgotPassword from "./pages/VendorForgotPassword"; // Vendor password reset page
-import AdminLogin from "./pages/AdminLogin";          // Admin login page
-import AdminDashboard from "./pages/AdminDashboard";  // Admin dashboard
-import AuthCallback from "./pages/AuthCallback";      // OAuth callback page
-import UpdateProfile from "./pages/UpdateProfile";    // Profile update page
+const CustomerLogin = lazy(() => import("./pages/CustomerLogin"));    // Customer login page
+const CustomerSignup = lazy(() => import("./pages/CustomerSignup"));  // Customer registration page
+const VendorLogin = lazy(() => import("./pages/VendorLogin"));        // Vendor login page
+const VendorRegister = lazy(() => import("./pages/VendorRegister"));  // Vendor registration page
+const VendorDashboard = lazy(() => import("./pages/VendorDashboard")); // Vendor management dashboard
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));    // Customer password reset page
+const VendorForgotPassword = lazy(() => import("./pages/VendorForgotPassword")); // Vendor password reset page
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));          // Admin login page
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));  // Admin dashboard
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));      // OAuth callback page
+const UpdateProfile = lazy(() => import("./pages/UpdateProfile"));    // Profile update page
 
 // Utility components
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute"; // Route protection for admin access
@@ -75,6 +77,7 @@ import NotFound from "./pages/NotFound";              // 404 error page
 const queryClient = new QueryClient();
 
 import { HelmetProvider } from "react-helmet-async";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 // Main App component that sets up all providers and routing
 // Uses a nested provider pattern for clean separation of concerns
@@ -98,7 +101,15 @@ const App = () => (
                   {/* Browser router for client-side navigation */}
                   <BrowserRouter>
                     <ScrollToTop />
+                    <AnalyticsTracker />
                     {/* Route definitions for all application pages */}
+                    <Suspense
+                      fallback={
+                        <div className="flex min-h-screen items-center justify-center">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      }
+                    >
                     <Routes>
                       {/* Main marketplace routes */}
                       <Route path="/" element={<Index />} />                                    {/* Homepage */}
@@ -111,7 +122,7 @@ const App = () => (
                       <Route path="/checkout" element={<Checkout />} />                        {/* Checkout process */}
                       <Route path="/checkout/success" element={<OrderSuccess />} />            {/* Order success */}
                       <Route path="/checkout/failure" element={<OrderFailure />} />            {/* Order failure */}
-                      <Route path="/profile" element={<Profile />} />                          {/* User profile */}
+                      <Route path="/profile" element={<Navigate to="/customer/profile" replace />} /> {/* Old demo page; real profile requires login */}
                       <Route path="/customer/profile" element={<CustomerProfile />} />         {/* Customer profile */}
                       <Route path="/customer/address/add" element={<AddAddress />} />          {/* Add Address */}
                       <Route path="/vendor/profile" element={<VendorProfile />} />             {/* Vendor profile */}
@@ -155,6 +166,7 @@ const App = () => (
                       {/* Catch-all route for 404 errors - MUST be last */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    </Suspense>
                     {/* Cookie consent component for GDPR compliance - rendered on all pages */}
                     <CookieConsent />
                   </BrowserRouter>

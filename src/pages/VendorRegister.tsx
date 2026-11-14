@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { isStrongPassword } from "@/utils";
+import { categoryLabel } from "@/lib/format";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,8 +15,6 @@ import {
   Phone,
   Globe,
   FileText,
-  CheckCircle,
-  TrendingUp,
   AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -282,7 +282,7 @@ const VendorRegister = () => {
       formData.businessType &&
       formData.description.trim() &&
       formData.categories.length > 0 &&
-      formData.password.length >= 8 &&
+      isStrongPassword(formData.password) &&
       formData.password === formData.confirmPassword &&
       formData.agreeToTerms &&
       formData.agreeToVendorTerms &&
@@ -318,28 +318,6 @@ const VendorRegister = () => {
               <p className="text-muted-foreground text-lg">
                 {t('joinMarketplace')}
               </p>
-            </div>
-
-            {/* Benefits Banner */}
-            <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-              <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200 mb-3">
-                <TrendingUp className="h-5 w-5" />
-                <span className="text-lg font-semibold">{t('growBusiness')}</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-orange-700 dark:text-orange-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{t('reachCustomers')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{t('pages.vendorRegister.easyToUseVendorDashboard')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{t('pages.vendorRegister.securePaymentProcessing')}</span>
-                </div>
-              </div>
             </div>
 
             {!showOTPForm ? (
@@ -599,7 +577,7 @@ const VendorRegister = () => {
                           onChange={() => handleCategoryChange(category)}
                           className="w-4 h-4 text-orange-600 border-muted rounded focus:ring-orange-600 focus:ring-2"
                         />
-                        <span className="text-sm text-foreground">{category}</span>
+                        <span className="text-sm text-foreground">{categoryLabel(category)}</span>
                       </label>
                     ))}
                   </div>
@@ -642,7 +620,7 @@ const VendorRegister = () => {
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={`text-xs ${formData.password && !isStrongPassword(formData.password) ? "text-red-600" : "text-muted-foreground"}`}>
                         {t('pages.vendorRegister.mustBeAtLeast8Characters')}
                       </p>
                     </div>

@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { calculateVAT, calculateIncludedVAT, extractBasePrice } from "@/utils/priceUtils";
 import i18n from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
+import { trackPurchase } from "@/lib/analytics";
 
 interface SuccessLocationState {
   orders?: Array<{
@@ -104,6 +105,20 @@ const OrderSuccess = () => {
   }, [location.search, navigate, state.orders, toast]);
 
   const orders = state.orders ?? [];
+
+  // Analytics: one purchase event per vendor order, once per order.
+  useEffect(() => {
+    for (const order of state.orders ?? []) {
+      const key = `ga-purchase-${order.id}`;
+      try {
+        if (sessionStorage.getItem(key)) continue;
+        sessionStorage.setItem(key, "1");
+      } catch {
+        // storage unavailable: still record once for this render
+      }
+      trackPurchase(order.id, Number(order.total_amount) || 0, order.payment_method || state.payment?.method);
+    }
+  }, [state.orders, state.payment?.method]);
   const payment = state.payment ?? { method: "cod", status: "pending" };
   const shippingAddress = state.shippingAddress ?? {};
 

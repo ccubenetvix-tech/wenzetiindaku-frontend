@@ -6,7 +6,6 @@ import {
   ShoppingBag,
   Heart,
   Star,
-  Bell,
   Settings,
   DollarSign,
   Package,
@@ -257,7 +256,7 @@ function CustomerReviewsSection() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/products/${product.id || review.product_id}`)}
+                            onClick={() => navigate(`/product/${product.id || review.product_id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -1408,10 +1407,6 @@ export default function CustomerDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Bell className="mr-2 h-4 w-4" />
-                {t("customerDashboard.notifications", "Notifications")}
-              </Button>
               <Button
                 variant="outline"
                 size="sm"

@@ -308,7 +308,7 @@ function VendorReviewsSection() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/products/${productId}`)}
+                            onClick={() => navigate(`/product/${productId}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
